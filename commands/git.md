@@ -1,5 +1,5 @@
 ---
-description: "commit | push | pr | review | ci | release | prune | finish [--draft, --squash]"
+description: "commit | push | pr | review | ci | release | publish | prune | finish [--draft, --squash]"
 ---
 
 # /popkit:git - Git Workflow Management
@@ -22,6 +22,7 @@ Comprehensive git operations with smart commits, PR management, code review, CI/
 | `review` | Code review with confidence-based filtering |
 | `ci` | GitHub Actions workflow runs (list, view, rerun, watch) |
 | `release` | GitHub releases (create, list, view, changelog) |
+| `publish` | Publish plugin to public repo (monorepo → open source) |
 | `prune` | Remove stale local branches after PR merge |
 | `finish` | Complete development with 4-option flow |
 
@@ -597,6 +598,173 @@ Groups by type and includes PR/issue links.
 
 ---
 
+## Subcommand: publish
+
+Publish the plugin from the private monorepo to the public `popkit-plugin` repository for open-source distribution.
+
+```
+/popkit:git publish                   # Publish current state to public repo
+/popkit:git publish --dry-run         # Preview what would be published
+/popkit:git publish --branch release  # Publish to specific branch
+/popkit:git publish --tag v1.0.0      # Also create a release tag
+```
+
+### Architecture
+
+PopKit uses a **split-repo model**:
+- **Private monorepo** (`jrc1883/popkit`): Full development workspace with cloud services, billing, etc.
+- **Public plugin repo** (`jrc1883/popkit-plugin`): Open-source plugin only, for Claude Code marketplace
+
+This command uses `git subtree split` to extract `packages/plugin/` and push to the public repo.
+
+### Process
+
+1. **Verify Clean State**
+   ```bash
+   git status --porcelain
+   # Must have no uncommitted changes in packages/plugin/
+   ```
+
+2. **Run Subtree Split**
+   ```bash
+   git subtree split --prefix=packages/plugin -b plugin-public-split
+   ```
+
+3. **Push to Public Repo**
+   ```bash
+   git push plugin-public plugin-public-split:main --force
+   ```
+
+4. **Optional: Create Release Tag**
+   ```bash
+   # If --tag provided
+   git tag plugin-v1.0.0 plugin-public-split
+   git push plugin-public plugin-v1.0.0
+   ```
+
+5. **Verify Publication**
+   ```bash
+   gh repo view jrc1883/popkit-plugin --json url
+   ```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Show what would be published without pushing |
+| `--branch <name>` | Target branch in public repo (default: main) |
+| `--tag <version>` | Create and push a release tag |
+| `--force` | Force push even with diverged history |
+| `--changelog` | Generate changelog since last publish |
+
+### publish (default)
+
+Publish current plugin state:
+
+```
+/popkit:git publish
+```
+
+Output:
+```
+Publishing plugin to public repository...
+
+Subtree split: packages/plugin/ → plugin-public-split
+Commits extracted: 142
+Target: jrc1883/popkit-plugin (main)
+
+[ok] Pushed successfully
+
+Public repo: https://github.com/jrc1883/popkit-plugin
+Users can install with:
+  /plugin marketplace add jrc1883/popkit-plugin
+  /plugin install popkit@popkit-plugin
+```
+
+### publish --dry-run
+
+Preview without pushing:
+
+```
+/popkit:git publish --dry-run
+```
+
+Output:
+```
+[DRY RUN] Would publish:
+
+Source: packages/plugin/
+Target: jrc1883/popkit-plugin (main)
+
+Changed files since last publish:
+  M  commands/git.md
+  A  skills/pop-new-skill/SKILL.md
+  M  agents/config.json
+
+Commits to sync: 5
+  abc1234 feat(commands): add publish subcommand
+  def5678 fix(hooks): resolve Python path issue
+  ...
+
+Run without --dry-run to publish.
+```
+
+### publish --tag
+
+Create a tagged release in public repo:
+
+```
+/popkit:git publish --tag v1.0.0
+```
+
+This is useful for:
+- Marketplace version releases
+- Users pinning to specific versions
+- Changelog generation between versions
+
+### Workflow Integration
+
+**Typical release workflow:**
+
+```bash
+# 1. Make changes in monorepo
+/popkit:git commit "feat(plugin): add new feature"
+/popkit:git push
+
+# 2. When ready to release publicly
+/popkit:git publish --tag v1.0.0
+
+# 3. Update marketplace (users run)
+/plugin update popkit@popkit-plugin
+```
+
+### Remote Configuration
+
+The `plugin-public` remote must be configured:
+
+```bash
+git remote add plugin-public https://github.com/jrc1883/popkit-plugin.git
+```
+
+This is automatically set up when running `/popkit:git publish` for the first time.
+
+### Safety
+
+- **Never publishes cloud/** or other private packages
+- **Requires clean working tree** in plugin directory
+- **Preserves commit history** from monorepo
+- **Force push is explicit** - won't accidentally overwrite
+
+### Troubleshooting
+
+**"Remote not found"**: Run the remote setup command above.
+
+**"Dirty working tree"**: Commit or stash changes in `packages/plugin/` first.
+
+**"History diverged"**: Use `--force` if public repo has changes not in monorepo (rare).
+
+---
+
 ## Subcommand: prune
 
 Remove stale local branches after PRs are merged.
@@ -800,6 +968,8 @@ gh pr checkout 67
 | Changelog Generator | `hooks/utils/changelog_generator.py` |
 | Version Detection | package.json, Cargo.toml, pyproject.toml, git tags |
 | Morning Health Check | `/popkit:morning` includes CI status |
+| Plugin Publishing | `git subtree split` to `jrc1883/popkit-plugin` |
+| Public Repo | `plugin-public` remote for open-source distribution |
 
 ## Related Commands
 

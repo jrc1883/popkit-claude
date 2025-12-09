@@ -154,14 +154,95 @@ git worktree remove <worktree-path>
 
 **For Option 3:** Keep worktree.
 
+### Step 6: Issue Close & Continue (if working on issue)
+
+**Only applies when invoked via `/popkit:dev work #N`** - skip for standalone use.
+
+#### 6a: Close Prompt
+
+After successful merge (Option 1) or PR creation (Option 2):
+
+```
+Use AskUserQuestion tool with:
+- question: "Work on issue #N complete. Close the issue?"
+- header: "Close Issue"
+- options:
+  - label: "Yes, close it"
+    description: "Mark issue as completed"
+  - label: "No, keep open"
+    description: "Issue needs more work or follow-up"
+- multiSelect: false
+```
+
+If "Yes, close it":
+```bash
+gh issue close <number> --comment "Completed via /popkit:dev work #<number>"
+```
+
+#### 6b: Epic Parent Check
+
+Check if issue references a parent epic (look for "Part of #N" or "Parent: #N" in body):
+
+```bash
+gh issue view <number> --json body --jq '.body' | grep -oE '(Part of|Parent:?) #[0-9]+'
+```
+
+If parent found:
+1. Fetch all children of that epic
+2. If all children closed, prompt to close epic
+
+#### 6c: Context-Aware Next Actions
+
+Present dynamic next actions based on project state:
+
+```
+Use AskUserQuestion tool with:
+- question: "What would you like to do next?"
+- header: "Next Action"
+- options: [dynamically generated]
+- multiSelect: false
+```
+
+**Generate options by:**
+
+1. Fetch prioritized issues:
+   ```bash
+   gh issue list --state open --milestone v1.0.0 --json number,title,labels --limit 5
+   ```
+
+2. Sort by: P1 > P2 > P3, then phase:now > phase:next
+
+3. Build 4 options:
+   - Top 3 prioritized issues as "Work on #N: [title]"
+   - "Session capture and exit" as final option
+
+**Example:**
+```
+What would you like to do next?
+
+1. Work on #108: Power Mode Metrics (P1-high)
+   → Continue v1.0.0 milestone work
+
+2. Work on #109: QStash Pub/Sub (P2-medium)
+   → Add inter-agent messaging
+
+3. Work on #93: Multi-Project Dashboard (P2-medium)
+   → Build project visibility
+
+4. Session capture and exit
+   → Save state for later
+```
+
+**If user selects an issue**, immediately invoke `/popkit:dev work #N` - keeping them in the loop.
+
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | Yes | - | - | Yes |
-| 2. Create PR | - | Yes | Yes | - |
-| 3. Keep as-is | - | - | Yes | - |
-| 4. Discard | - | - | - | Yes (force) |
+| Option | Merge | Push | Keep Worktree | Cleanup Branch | Close Prompt |
+|--------|-------|------|---------------|----------------|--------------|
+| 1. Merge locally | Yes | - | - | Yes | Yes (if issue) |
+| 2. Create PR | - | Yes | Yes | - | Yes (if issue) |
+| 3. Keep as-is | - | - | Yes | - | No |
+| 4. Discard | - | - | - | Yes (force) | No |
 
 ## Common Mistakes
 

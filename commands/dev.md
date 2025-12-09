@@ -152,6 +152,89 @@ Options:
 Which option?
 ```
 
+#### Phase 8: Close & Continue (for work mode)
+**Goal:** Close issue and keep user in the loop
+
+After successful merge or PR creation in `work` mode:
+
+**Step 1: Close Prompt**
+```
+Use AskUserQuestion tool with:
+- question: "Work on issue #N complete. Close the issue?"
+- header: "Close Issue"
+- options:
+  1. label: "Yes, close it"
+     description: "Mark issue as completed"
+  2. label: "No, keep open"
+     description: "Issue needs more work or follow-up"
+- multiSelect: false
+```
+
+If "Yes", execute: `gh issue close <number> --comment "Completed via /popkit:dev work"`
+
+**Step 2: Epic Parent Check**
+
+If the closed issue references a parent epic (check issue body for "Part of #N" or "Parent: #N"):
+1. Fetch all child issues of that epic
+2. If all children are closed, prompt:
+
+```
+Use AskUserQuestion tool with:
+- question: "All children of Epic #M are now complete. Close the epic?"
+- header: "Close Epic"
+- options:
+  1. label: "Yes, close epic"
+     description: "Mark epic as completed"
+  2. label: "No, keep open"
+     description: "Epic needs more tracking"
+- multiSelect: false
+```
+
+**Step 3: Context-Aware Next Actions**
+
+After close decision, present dynamic next actions:
+
+```
+Use AskUserQuestion tool with:
+- question: "What would you like to do next?"
+- header: "Next Action"
+- options: [dynamically generated - see below]
+- multiSelect: false
+```
+
+**Dynamic Options Generation:**
+
+1. Fetch open issues: `gh issue list --state open --milestone v1.0.0 --json number,title,labels --limit 5`
+2. Sort by priority (P1 > P2 > P3) and phase (now > next)
+3. Build options:
+
+| Option | When to Include |
+|--------|-----------------|
+| "Work on #N: [title]" | Always include top 3-4 prioritized issues |
+| "Run nightly routine" | If time is evening (after 5pm) |
+| "Run morning health check" | If time is morning (before 10am) |
+| "Analyze project" | If no urgent issues |
+| "Session capture and exit" | Always include as last option |
+
+**Example Output:**
+```
+What would you like to do next?
+
+1. Work on #108: Power Mode Metrics (P1-high)
+   → Continue v1.0.0 milestone work
+
+2. Work on #109: QStash Pub/Sub (P2-medium)
+   → Add inter-agent messaging
+
+3. Work on #93: Multi-Project Dashboard (P2-medium)
+   → Build project visibility
+
+4. Session capture and exit
+   → Save state for later
+```
+
+**If user selects an issue**, immediately invoke `/popkit:dev work #N` for that issue - keeping them in the loop.
+
 ### Architecture Integration
 
 | Component | Integration |

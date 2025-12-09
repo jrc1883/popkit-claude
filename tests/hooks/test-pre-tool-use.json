@@ -1,0 +1,79 @@
+{
+  "name": "pre-tool-use",
+  "description": "Tests for pre-tool-use hook JSON protocol and safety checks",
+  "tests": [
+    {
+      "name": "blocks dangerous rm -rf commands",
+      "input": {
+        "tool_name": "Bash",
+        "tool_input": {
+          "command": "rm -rf /"
+        }
+      },
+      "expected": {
+        "decision": "block"
+      }
+    },
+    {
+      "name": "blocks sudo rm commands",
+      "input": {
+        "tool_name": "Bash",
+        "tool_input": {
+          "command": "sudo rm -rf /home/user"
+        }
+      },
+      "expected": {
+        "decision": "block"
+      }
+    },
+    {
+      "name": "allows safe file reads",
+      "input": {
+        "tool_name": "Read",
+        "tool_input": {
+          "file_path": "/tmp/test.txt"
+        }
+      },
+      "expected": {
+        "decision": "allow"
+      }
+    },
+    {
+      "name": "allows safe grep operations",
+      "input": {
+        "tool_name": "Grep",
+        "tool_input": {
+          "pattern": "function",
+          "path": "src/"
+        }
+      },
+      "expected": {
+        "decision": "allow"
+      }
+    },
+    {
+      "name": "blocks writes to sensitive paths",
+      "input": {
+        "tool_name": "Write",
+        "tool_input": {
+          "file_path": "/etc/passwd",
+          "content": "malicious"
+        }
+      },
+      "expected": {
+        "decision": "block"
+      }
+    },
+    {
+      "name": "returns valid JSON structure",
+      "input": {
+        "tool_name": "Read",
+        "tool_input": {
+          "file_path": "test.txt"
+        }
+      },
+      "expected_fields": ["decision", "tool_name"],
+      "expected_type": "object"
+    }
+  ]
+}

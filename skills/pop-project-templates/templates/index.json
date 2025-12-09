@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "Index of available project templates for feature-dev Phase 3",
+  "templates": [
+    {
+      "id": "saas-api",
+      "name": "SaaS Backend API",
+      "file": "saas-api.json",
+      "description": "Backend API for SaaS products with auth, billing, multi-tenancy",
+      "icon": "cloud",
+      "keywords": ["api", "saas", "backend", "rest", "auth", "billing"]
+    },
+    {
+      "id": "ml-service",
+      "name": "ML/AI Service",
+      "file": "ml-service.json",
+      "description": "Machine learning inference API with model serving",
+      "icon": "brain",
+      "keywords": ["ml", "ai", "inference", "model", "pytorch", "tensorflow"]
+    },
+    {
+      "id": "cli-tool",
+      "name": "CLI Tool",
+      "file": "cli-tool.json",
+      "description": "Command-line application with argument parsing and distribution",
+      "icon": "terminal",
+      "keywords": ["cli", "command", "terminal", "tool", "script"]
+    },
+    {
+      "id": "fullstack",
+      "name": "Full-Stack Web App",
+      "file": "fullstack.json",
+      "description": "Complete web application with frontend, backend, and database",
+      "icon": "layers",
+      "keywords": ["fullstack", "web", "frontend", "backend", "react", "next"]
+    }
+  ],
+  "custom": {
+    "id": "custom",
+    "name": "Custom Project",
+    "description": "Dynamic questions based on project context (no template)",
+    "icon": "settings"
+  }
+}

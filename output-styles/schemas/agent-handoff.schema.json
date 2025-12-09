@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Handoff Report",
+  "description": "Schema for validating agent-to-agent context transfer outputs",
+  "strict": true,
+  "type": "object",
+  "required": [
+    "from",
+    "to",
+    "task",
+    "status",
+    "confidence",
+    "summary"
+  ],
+  "properties": {
+    "from": {
+      "type": "string",
+      "description": "Name of the source agent"
+    },
+    "to": {
+      "type": "string",
+      "description": "Name of the target agent or 'parent'"
+    },
+    "task": {
+      "type": "string",
+      "description": "Brief description of the task"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "blocked", "failed"],
+      "description": "Completion status of the task"
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Confidence level in the work (0-100)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "2-3 sentence summary of what was accomplished"
+    },
+    "findings": {
+      "type": "object",
+      "properties": {
+        "discoveries": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Key discoveries with file:line references"
+        },
+        "artifactsCreated": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Paths to files created"
+        },
+        "artifactsModified": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Paths to files modified with line ranges"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "relevantFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "lines": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "decision": { "type": "string" },
+              "rationale": { "type": "string" },
+              "alternatives": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Blockers or open questions requiring input"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Recommendations for the next agent"
+    },
+    "verificationCommands": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Commands to verify the work"
+    },
+    "readyForNextPhase": {
+      "type": "boolean",
+      "description": "Whether the work is ready for the next phase"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "from": "code-explorer",
+      "to": "code-architect",
+      "task": "Analyze authentication patterns",
+      "status": "completed",
+      "confidence": 85,
+      "summary": "Explored existing auth implementation. Found NextAuth.js with Supabase adapter.",
+      "findings": {
+        "discoveries": ["Auth config in src/lib/auth.ts:1-45"],
+        "artifactsCreated": [],
+        "artifactsModified": []
+      },
+      "recommendations": ["Add OAuth providers to existing setup"],
+      "readyForNextPhase": true
+    }
+  ]
+}

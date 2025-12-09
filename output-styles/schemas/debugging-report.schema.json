@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Debugging Report",
+  "description": "Schema for validating bug investigation and root cause analysis outputs",
+  "strict": true,
+  "type": "object",
+  "required": [
+    "issueTitle",
+    "status",
+    "severity",
+    "symptom"
+  ],
+  "properties": {
+    "issueTitle": {
+      "type": "string",
+      "description": "Title of the bug being investigated"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Identified", "Fixed", "Partially Fixed", "Unresolved"],
+      "description": "Current status of the bug investigation"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["Critical", "High", "Medium", "Low"],
+      "description": "Severity level of the bug"
+    },
+    "timeSpent": {
+      "type": "string",
+      "description": "Duration of the investigation"
+    },
+    "symptom": {
+      "type": "object",
+      "required": ["description"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Clear description of the bug behavior"
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Exact error text if any"
+        },
+        "stepsToReproduce": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Steps to reproduce the bug"
+        },
+        "expectedBehavior": {
+          "type": "string",
+          "description": "What should have happened"
+        }
+      }
+    },
+    "investigation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hypothesis": { "type": "string" },
+          "test": { "type": "string" },
+          "result": {
+            "type": "string",
+            "enum": ["Confirmed", "Rejected", "Partial"]
+          },
+          "evidence": { "type": "string" }
+        }
+      },
+      "description": "List of hypotheses tested during investigation"
+    },
+    "rootCause": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "File path and line number"
+        },
+        "whatWentWrong": {
+          "type": "string",
+          "description": "Technical explanation of the bug"
+        },
+        "whyItHappened": {
+          "type": "string",
+          "description": "Context on how this bug was introduced"
+        },
+        "problematicCode": {
+          "type": "string",
+          "description": "Code snippet causing the issue"
+        }
+      }
+    },
+    "fix": {
+      "type": "object",
+      "properties": {
+        "solution": {
+          "type": "string",
+          "description": "Description of the fix approach"
+        },
+        "changesMade": {
+          "type": "string",
+          "description": "Code changes made to fix the issue"
+        },
+        "verificationCommand": {
+          "type": "string",
+          "description": "Command to verify the fix"
+        },
+        "result": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"]
+        }
+      }
+    },
+    "prevention": {
+      "type": "object",
+      "properties": {
+        "testsAdded": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "codeQualityImprovements": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "documentationUpdates": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "related": {
+      "type": "object",
+      "properties": {
+        "issue": { "type": "string" },
+        "pr": { "type": "string" },
+        "similarBugs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "issueTitle": "Profile page crashes for new users",
+      "status": "Fixed",
+      "severity": "High",
+      "timeSpent": "45 minutes",
+      "symptom": {
+        "description": "New users see a blank page when accessing /profile",
+        "errorMessage": "TypeError: Cannot read property 'name' of undefined",
+        "stepsToReproduce": ["Create a new account", "Navigate to /profile"],
+        "expectedBehavior": "Show profile page with placeholder data"
+      },
+      "rootCause": {
+        "location": "src/components/ProfileHeader.tsx:15",
+        "whatWentWrong": "Component assumes user.profile always exists"
+      },
+      "fix": {
+        "solution": "Add null check with fallback values",
+        "result": "PASS"
+      }
+    }
+  ]
+}

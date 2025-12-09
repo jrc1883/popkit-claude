@@ -1,0 +1,75 @@
+{
+  "$schema": "https://claude.ai/schemas/mcp.json",
+  "version": "1.0.0",
+  "name": "popkit",
+  "displayName": "Pop Toolkit",
+  "description": "AI-powered development workflows through skills, agents, commands, and hooks",
+  "publisher": "jrc1883",
+  "repository": "https://github.com/jrc1883/popkit",
+  "license": "MIT",
+  "mcpServers": {
+    "project-health": {
+      "command": "node",
+      "args": ["templates/mcp-server/dist/index.js"],
+      "cwd": "${workspaceFolder}",
+      "description": "Project health checks, git tools, and quality metrics",
+      "capabilities": ["tools", "resources"],
+      "enabled": false,
+      "autostart": false
+    }
+  },
+  "tools": {
+    "health-check": {
+      "description": "Run comprehensive project health checks",
+      "server": "project-health"
+    },
+    "git-status": {
+      "description": "Get current git repository status",
+      "server": "project-health"
+    },
+    "git-diff": {
+      "description": "Show git diff for staged/unstaged changes",
+      "server": "project-health"
+    },
+    "recent-commits": {
+      "description": "List recent git commits",
+      "server": "project-health"
+    },
+    "typecheck": {
+      "description": "Run TypeScript type checking",
+      "server": "project-health"
+    },
+    "lint": {
+      "description": "Run ESLint on the codebase",
+      "server": "project-health"
+    },
+    "test": {
+      "description": "Run project tests",
+      "server": "project-health"
+    }
+  },
+  "resources": {
+    "project-context": {
+      "description": "Current project context and configuration",
+      "server": "project-health"
+    },
+    "agent-registry": {
+      "description": "Registry of available agents and their capabilities",
+      "server": "project-health"
+    }
+  },
+  "settings": {
+    "observability": {
+      "enabled": true,
+      "endpoint": "http://localhost:8001/events"
+    },
+    "orchestration": {
+      "enabled": true,
+      "endpoint": "http://localhost:8005"
+    },
+    "logging": {
+      "level": "info",
+      "directory": "logs"
+    }
+  }
+}

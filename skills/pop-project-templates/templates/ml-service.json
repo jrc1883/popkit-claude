@@ -1,0 +1,256 @@
+{
+  "$schema": "../schema.json",
+  "id": "ml-service",
+  "name": "ML/AI Service",
+  "description": "Machine learning inference API with model serving, suitable for AI products",
+  "version": "1.0.0",
+  "updated": "2024-12-03",
+
+  "questions": [
+    {
+      "id": "runtime",
+      "header": "Runtime",
+      "question": "Which runtime/framework should we use for the ML API?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "python-fastapi",
+          "label": "Python + FastAPI",
+          "description": "Native ML ecosystem, async support, auto-generated docs",
+          "pros": ["Native PyTorch/TensorFlow", "Async inference", "Auto OpenAPI docs", "Pydantic validation"],
+          "cons": ["Python GIL limitations", "Deployment complexity", "Memory management"],
+          "when": "PyTorch/TensorFlow models, need Python ML libraries, auto-docs important",
+          "ml_integration": "Native - direct model loading"
+        },
+        {
+          "value": "node-fastify-onnx",
+          "label": "Node.js + Fastify + ONNX",
+          "description": "TypeScript API with ONNX.js for model inference",
+          "pros": ["TypeScript codebase", "ONNX runtime fast", "Good for production", "Easier deployment"],
+          "cons": ["Must convert models to ONNX", "Some ops not supported", "Less ML tooling"],
+          "when": "TypeScript team, models can export to ONNX, need unified codebase",
+          "ml_integration": "ONNX Runtime - requires model conversion"
+        },
+        {
+          "value": "rust-axum",
+          "label": "Rust + Axum + candle/burn",
+          "description": "Maximum performance, Rust ML frameworks emerging",
+          "pros": ["Best performance", "Memory safe", "Low latency", "Small binaries"],
+          "cons": ["Rust learning curve", "Smaller ML ecosystem", "Model loading complexity"],
+          "when": "Extreme performance needs, Rust team, latency critical (<10ms)",
+          "ml_integration": "candle/burn - native Rust inference"
+        },
+        {
+          "value": "triton",
+          "label": "NVIDIA Triton Inference Server",
+          "description": "Production-grade model serving, multi-model, multi-framework",
+          "pros": ["Production battle-tested", "Multi-model serving", "Dynamic batching", "GPU optimization"],
+          "cons": ["Infrastructure complexity", "NVIDIA ecosystem lock-in", "Learning curve"],
+          "when": "Production ML at scale, multiple models, need GPU batching",
+          "ml_integration": "Native - designed for model serving"
+        }
+      ],
+      "default": "python-fastapi",
+      "research_sources": [
+        "ML Ops community surveys",
+        "Hugging Face deployment guides",
+        "NVIDIA Triton benchmarks"
+      ]
+    },
+    {
+      "id": "ml_framework",
+      "header": "ML Model",
+      "question": "Which ML framework will your model use?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "pytorch",
+          "label": "PyTorch",
+          "description": "Most popular for research and production, Hugging Face default",
+          "pros": ["Dynamic computation graphs", "Hugging Face ecosystem", "Best debugging", "Research to production"],
+          "cons": ["Slower than TensorFlow in some cases", "TorchScript complexity"],
+          "when": "Using Hugging Face models, research-based development, dynamic models",
+          "export_options": ["ONNX", "TorchScript", "Native PyTorch"]
+        },
+        {
+          "value": "tensorflow",
+          "label": "TensorFlow / Keras",
+          "description": "Production-focused, TensorFlow Serving, mobile deployment",
+          "pros": ["TensorFlow Serving", "TFLite for mobile", "TPU support", "Production tooling"],
+          "cons": ["Less intuitive than PyTorch", "Keras abstraction can hide issues"],
+          "when": "TensorFlow Serving, mobile deployment needed, TPU access",
+          "export_options": ["SavedModel", "ONNX", "TFLite"]
+        },
+        {
+          "value": "onnx",
+          "label": "ONNX (Pre-converted)",
+          "description": "Framework-agnostic model format, optimized inference",
+          "pros": ["Framework agnostic", "ONNX Runtime optimized", "Cross-platform", "Quantization support"],
+          "cons": ["Conversion can lose ops", "Not all models convert", "Debugging harder"],
+          "when": "Models already in ONNX, need cross-platform, optimization priority",
+          "export_options": ["Native ONNX"]
+        },
+        {
+          "value": "huggingface",
+          "label": "Hugging Face Transformers",
+          "description": "Pre-trained NLP/Vision models, easy deployment",
+          "pros": ["Thousands of pre-trained models", "Pipeline abstractions", "Active community"],
+          "cons": ["Large dependencies", "Memory intensive", "Can be slow without optimization"],
+          "when": "Using pre-trained models, NLP/vision tasks, rapid prototyping",
+          "export_options": ["ONNX", "PyTorch", "TensorFlow"]
+        }
+      ],
+      "default": "pytorch",
+      "research_sources": [
+        "Papers With Code trends",
+        "State of AI Report 2024",
+        "Hugging Face model hub statistics"
+      ]
+    },
+    {
+      "id": "inference_optimization",
+      "header": "Optimization",
+      "question": "What inference optimization strategy should we use?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "none",
+          "label": "No Optimization (MVP)",
+          "description": "Native model inference, optimize later based on bottlenecks",
+          "pros": ["Fastest development", "Simpler debugging", "Baseline metrics first"],
+          "cons": ["Higher latency", "Higher memory", "Higher costs at scale"],
+          "when": "MVP/prototype, need to ship fast, will optimize later"
+        },
+        {
+          "value": "quantization",
+          "label": "Quantization (INT8/FP16)",
+          "description": "Reduce precision for faster inference with minimal accuracy loss",
+          "pros": ["2-4x faster inference", "Lower memory", "Minimal accuracy loss (usually <1%)"],
+          "cons": ["Some accuracy loss", "Calibration needed", "Not all models quantize well"],
+          "when": "CPU deployment, memory constrained, latency sensitive"
+        },
+        {
+          "value": "onnx-runtime",
+          "label": "ONNX Runtime Optimization",
+          "description": "Graph optimizations, operator fusion, cross-platform",
+          "pros": ["Automatic optimizations", "Cross-platform", "CPU/GPU/NPU support"],
+          "cons": ["Model conversion required", "Some ops unsupported"],
+          "when": "Production deployment, need cross-platform, want automatic optimizations"
+        },
+        {
+          "value": "tensorrt",
+          "label": "TensorRT (NVIDIA GPU)",
+          "description": "NVIDIA's inference optimizer for maximum GPU performance",
+          "pros": ["Best GPU performance", "INT8/FP16 optimizations", "Dynamic batching"],
+          "cons": ["NVIDIA GPUs only", "Conversion complexity", "Version compatibility"],
+          "when": "NVIDIA GPUs available, maximum throughput needed, batch inference"
+        },
+        {
+          "value": "vllm",
+          "label": "vLLM (LLM Serving)",
+          "description": "Optimized LLM inference with PagedAttention",
+          "pros": ["Best LLM throughput", "PagedAttention memory efficiency", "OpenAI-compatible API"],
+          "cons": ["LLMs only", "GPU required", "Setup complexity"],
+          "when": "Serving LLMs, high concurrent requests, need OpenAI-compatible API"
+        }
+      ],
+      "default": "none",
+      "research_sources": [
+        "MLPerf Inference benchmarks",
+        "ONNX Runtime performance guide",
+        "vLLM benchmark results"
+      ]
+    },
+    {
+      "id": "deployment",
+      "header": "Deploy",
+      "question": "How should we deploy the ML service?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "modal",
+          "label": "Modal",
+          "description": "Serverless GPU compute, pay-per-second, excellent DX",
+          "pros": ["Pay-per-second GPUs", "Zero cold start option", "Excellent Python DX", "Auto-scaling"],
+          "cons": ["Vendor lock-in", "Newer platform", "Limited regions"],
+          "when": "Variable load, want serverless GPUs, Python codebase",
+          "pricing": "Pay per second of compute"
+        },
+        {
+          "value": "replicate",
+          "label": "Replicate",
+          "description": "Model hosting platform, easy deployment, pay-per-prediction",
+          "pros": ["Easy model deployment", "Cold boot optimization", "Pay per prediction", "Public model hosting"],
+          "cons": ["Less control", "Higher cost at scale", "Limited customization"],
+          "when": "Want managed hosting, sharing models publicly, simple deployment",
+          "pricing": "Pay per prediction"
+        },
+        {
+          "value": "runpod",
+          "label": "RunPod",
+          "description": "GPU cloud with serverless endpoints, good price/performance",
+          "pros": ["Competitive GPU pricing", "Serverless endpoints", "Persistent pods", "Multiple GPU types"],
+          "cons": ["Less polished than Modal", "More ops overhead", "Community GPUs variable"],
+          "when": "Cost sensitive, need persistent GPU, batch workloads",
+          "pricing": "Per-second GPU billing"
+        },
+        {
+          "value": "fly-gpu",
+          "label": "Fly.io GPU Machines",
+          "description": "Fly.io with GPU support, global edge deployment",
+          "pros": ["Global deployment", "Fly.io ecosystem", "Simple scaling", "Good DX"],
+          "cons": ["Limited GPU types", "Newer offering", "Regional availability"],
+          "when": "Need global distribution, using Fly.io ecosystem",
+          "pricing": "Per-second GPU billing"
+        },
+        {
+          "value": "self-hosted",
+          "label": "Self-hosted (K8s/Docker)",
+          "description": "Full control with Kubernetes or Docker deployment",
+          "pros": ["Full control", "No vendor lock-in", "Predictable costs", "Custom infrastructure"],
+          "cons": ["Ops overhead", "GPU management", "Scaling complexity"],
+          "when": "Have DevOps team, specific compliance needs, predictable high volume",
+          "pricing": "Infrastructure costs only"
+        }
+      ],
+      "default": "modal",
+      "research_sources": [
+        "ML deployment platform comparisons",
+        "GPU cloud pricing analysis",
+        "r/MachineLearning deployment threads"
+      ]
+    }
+  ],
+
+  "agents": {
+    "primary": ["ai-engineer", "code-architect"],
+    "supporting": ["performance-optimizer", "devops-automator"]
+  },
+
+  "quality_gates": [
+    "python-lint",
+    "type-check",
+    "model-test",
+    "latency-benchmark"
+  ],
+
+  "scaffolding": {
+    "directories": [
+      "src",
+      "src/models",
+      "src/inference",
+      "src/api",
+      "src/utils",
+      "models",
+      "tests",
+      "benchmarks"
+    ],
+    "files": [
+      "pyproject.toml",
+      "requirements.txt",
+      ".env.example",
+      "Dockerfile",
+      "README.md"
+    ]
+  }
+}

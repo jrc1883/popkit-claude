@@ -1,0 +1,205 @@
+{
+  "$schema": "https://claude.ai/schemas/hooks.json",
+  "version": "1.0.0",
+  "hooks": [
+    {
+      "name": "pre-tool-use",
+      "event": "PreToolUse",
+      "command": "python",
+      "args": ["hooks/pre-tool-use.py"],
+      "description": "Safety checks, agent coordination, and orchestration before tool execution",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["*"]
+    },
+    {
+      "name": "post-tool-use",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/post-tool-use.py"],
+      "description": "Cleanup, validation, and result processing after tool execution",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["*"]
+    },
+    {
+      "name": "quality-gate",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/quality-gate.py"],
+      "description": "Validate code integrity after file modifications (tsc, build, lint)",
+      "timeout": 180000,
+      "enabled": true,
+      "tools": ["Write", "Edit", "MultiEdit", "Delete"]
+    },
+    {
+      "name": "user-prompt-submit",
+      "event": "UserPromptSubmit",
+      "command": "python",
+      "args": ["hooks/user-prompt-submit.py"],
+      "description": "Process and enrich user prompts before sending to Claude",
+      "timeout": 3000,
+      "enabled": true
+    },
+    {
+      "name": "session-start",
+      "event": "SessionStart",
+      "command": "python",
+      "args": ["hooks/session-start.py"],
+      "description": "Initialize session context, load previous state, and set up environment",
+      "timeout": 10000,
+      "enabled": true
+    },
+    {
+      "name": "stop",
+      "event": "Stop",
+      "command": "python",
+      "args": ["hooks/stop.py"],
+      "description": "Save session state and perform cleanup on session end",
+      "timeout": 5000,
+      "enabled": true
+    },
+    {
+      "name": "subagent-stop",
+      "event": "SubagentStop",
+      "command": "python",
+      "args": ["hooks/subagent-stop.py"],
+      "description": "Handle subagent completion, collect results, and coordinate handoffs",
+      "timeout": 5000,
+      "enabled": true
+    },
+    {
+      "name": "output-validator",
+      "event": "SubagentStop",
+      "command": "python",
+      "args": ["hooks/output-validator.py"],
+      "description": "Validate agent outputs against their declared output_style schema",
+      "timeout": 5000,
+      "enabled": true
+    },
+    {
+      "name": "notification",
+      "event": "Notification",
+      "command": "python",
+      "args": ["hooks/notification.py"],
+      "description": "Process and route system notifications",
+      "timeout": 3000,
+      "enabled": true
+    },
+    {
+      "name": "agent-orchestrator",
+      "event": "PreToolUse",
+      "command": "python",
+      "args": ["hooks/agent-orchestrator.py"],
+      "description": "Route tasks to appropriate agents based on context and tool patterns",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["Task"]
+    },
+    {
+      "name": "agent-context-integration",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/agent-context-integration.py"],
+      "description": "Integrate agent results into shared context and coordinate state",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["Task"]
+    },
+    {
+      "name": "agent-observability",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/agent-observability.py"],
+      "description": "Track agent performance metrics and log events for debugging",
+      "timeout": 3000,
+      "enabled": true,
+      "tools": ["*"]
+    },
+    {
+      "name": "knowledge-sync",
+      "event": "SessionStart",
+      "command": "python",
+      "args": ["hooks/knowledge-sync.py"],
+      "description": "Sync external knowledge sources on session start with TTL-based caching",
+      "timeout": 10000,
+      "enabled": true
+    },
+    {
+      "name": "chain-validator",
+      "event": "PreToolUse",
+      "command": "python",
+      "args": ["hooks/chain-validator.py"],
+      "description": "Validate workflow chains before execution",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["Task"]
+    },
+    {
+      "name": "chain-metrics",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/chain-metrics.py"],
+      "description": "Track workflow execution metrics including timing and success rates",
+      "timeout": 3000,
+      "enabled": true,
+      "tools": ["Task"]
+    },
+    {
+      "name": "power-mode-checkin",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["power-mode/checkin-hook.py"],
+      "description": "Periodic agent check-ins via Redis pub/sub for multi-agent orchestration",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["*"],
+      "condition": "power_mode_enabled"
+    },
+    {
+      "name": "context-monitor",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/context-monitor.py"],
+      "description": "Track cumulative tokens and warn before context window exhaustion",
+      "timeout": 3000,
+      "enabled": true,
+      "tools": ["*"]
+    },
+    {
+      "name": "doc-sync",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/doc-sync.py"],
+      "description": "Detect documentation-impacting changes and suggest sync (Issue #82)",
+      "timeout": 3000,
+      "enabled": true,
+      "tools": ["Write", "Edit", "MultiEdit"]
+    },
+    {
+      "name": "command-learning",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/command-learning-hook.py"],
+      "description": "Learn from command failures and suggest corrections (Issue #89)",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["Bash"]
+    },
+    {
+      "name": "bug-reporter",
+      "event": "PostToolUse",
+      "command": "python",
+      "args": ["hooks/bug_reporter_hook.py"],
+      "description": "Automatic bug detection and logging with privacy-first defaults (Issue #90)",
+      "timeout": 5000,
+      "enabled": true,
+      "tools": ["Bash", "Task"]
+    }
+  ],
+  "settings": {
+    "continueOnError": false,
+    "logLevel": "info",
+    "metricsEnabled": true
+  }
+}

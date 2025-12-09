@@ -1,0 +1,118 @@
+{
+  "name": "agent-structure",
+  "description": "Tests for standardized agent directory structure and required sections",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "agent template exists",
+      "type": "file_exists",
+      "path": "agents/_templates/AGENT.template.md"
+    },
+    {
+      "name": "agent migration guide exists",
+      "type": "file_exists",
+      "path": "agents/_templates/README.md"
+    },
+    {
+      "name": "tier-1 agents exist",
+      "type": "directory_pattern",
+      "path": "agents/tier-1-always-active/*.md",
+      "min_count": 10,
+      "note": "Supports both flat files and directory/AGENT.md"
+    },
+    {
+      "name": "tier-2 agents exist",
+      "type": "directory_pattern",
+      "path": "agents/tier-2-on-demand/*.md",
+      "min_count": 15,
+      "note": "Supports both flat files and directory/AGENT.md"
+    },
+    {
+      "name": "feature-workflow agents exist",
+      "type": "directory_pattern",
+      "path": "agents/feature-workflow/*.md",
+      "min_count": 2
+    }
+  ],
+  "section_tests": {
+    "description": "Required sections for migrated agents (directory structure)",
+    "required_sections": [
+      "## Metadata",
+      "## Purpose",
+      "## Primary Capabilities",
+      "## Progress Tracking",
+      "## Circuit Breakers",
+      "## Systematic Approach",
+      "## Power Mode Integration",
+      "## Integration with Other Agents",
+      "## Output Format",
+      "## Success Criteria",
+      "## Value Delivery Tracking",
+      "## Completion Signal"
+    ],
+    "required_frontmatter": [
+      "name:",
+      "description:",
+      "tools:"
+    ],
+    "power_mode_subsections": [
+      "### Check-In Protocol",
+      "### PUSH",
+      "### PULL",
+      "### Progress Format",
+      "### Sync Barriers"
+    ]
+  },
+  "size_thresholds": {
+    "description": "Line count guidelines for AGENT.md files",
+    "ideal_min": 200,
+    "ideal_max": 500,
+    "warn_max": 800,
+    "error_max": 1000
+  },
+  "directory_structure": {
+    "description": "Expected structure for directory-based agents",
+    "required": ["AGENT.md"],
+    "optional": [
+      "references/",
+      "references/patterns.md",
+      "references/checklist.md",
+      "references/examples.md",
+      "scripts/",
+      "assets/"
+    ]
+  },
+  "metadata_fields": {
+    "description": "Required fields in Metadata section",
+    "required": [
+      "Name",
+      "Category",
+      "Type",
+      "Priority",
+      "Version",
+      "Tier"
+    ],
+    "optional": [
+      "Color"
+    ]
+  },
+  "circuit_breaker_requirements": {
+    "description": "Circuit breaker guidelines",
+    "min_count": 4,
+    "max_count": 8,
+    "recommended_types": [
+      "Max Files",
+      "Time Limit",
+      "Token Budget",
+      "Error Threshold",
+      "Scope Creep",
+      "Human Escalation"
+    ]
+  },
+  "validation_notes": [
+    "Run with: /popkit:plugin-test structure",
+    "This test suite validates agents that have been migrated to directory structure",
+    "Flat-file agents (legacy) are still supported but should be migrated",
+    "Use agents/_templates/README.md for migration instructions"
+  ]
+}

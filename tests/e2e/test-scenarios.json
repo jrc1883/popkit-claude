@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "end-to-end-scenarios",
+  "description": "Full workflow tests for popkit plugin functionality",
+  "version": "1.0.0",
+  "scenarios": [
+    {
+      "id": "E2E-001",
+      "name": "eslint-cleanup-routing",
+      "description": "Verify ESLint cleanup triggers correct specialists",
+      "category": "routing",
+      "priority": "high",
+      "setup": {
+        "worktree": true,
+        "files": [
+          {
+            "path": "src/example.ts",
+            "content": "const x = 1;\nconsole.log(x);"
+          },
+          {
+            "path": ".eslintrc.json",
+            "content": "{\"rules\": {\"no-console\": \"error\"}}"
+          }
+        ]
+      },
+      "prompt": "Clean up the ESLint errors in this project",
+      "expected": {
+        "agents_triggered": ["code-reviewer", "refactoring-expert"],
+        "keywords_matched": ["cleanup", "eslint"],
+        "output_style_validated": true
+      },
+      "timeout_seconds": 120
+    },
+    {
+      "id": "E2E-002",
+      "name": "bug-investigation-flow",
+      "description": "Verify bug keywords trigger bug-whisperer with proper output",
+      "category": "routing",
+      "priority": "high",
+      "setup": {
+        "worktree": false
+      },
+      "prompt": "Fix this bug in the authentication code where users can't login",
+      "expected": {
+        "agents_triggered": ["bug-whisperer"],
+        "keywords_matched": ["bug"],
+        "output_style": "debugging-report",
+        "required_fields": ["status", "severity", "symptom"]
+      },
+      "timeout_seconds": 180
+    },
+    {
+      "id": "E2E-003",
+      "name": "security-audit-flow",
+      "description": "Verify security keywords trigger security-auditor with proper output",
+      "category": "routing",
+      "priority": "high",
+      "setup": {
+        "worktree": false
+      },
+      "prompt": "Audit this code for security vulnerabilities",
+      "expected": {
+        "agents_triggered": ["security-auditor"],
+        "keywords_matched": ["security"],
+        "output_style": "security-audit-report",
+        "required_fields": ["auditDate", "scope", "securityScore", "recommendation"]
+      },
+      "timeout_seconds": 180
+    },
+    {
+      "id": "E2E-004",
+      "name": "code-exploration-handoff",
+      "description": "Verify code-explorer produces proper handoff output for code-architect",
+      "category": "workflow",
+      "priority": "medium",
+      "setup": {
+        "worktree": false
+      },
+      "prompt": "Explore the authentication implementation in this codebase",
+      "expected": {
+        "agents_triggered": ["code-explorer"],
+        "output_style": "agent-handoff",
+        "required_fields": ["from", "to", "task", "status", "confidence", "summary"]
+      },
+      "timeout_seconds": 120
+    },
+    {
+      "id": "E2E-005",
+      "name": "output-validation-enforcement",
+      "description": "Verify output-validator hook catches missing required fields",
+      "category": "validation",
+      "priority": "high",
+      "setup": {
+        "worktree": false,
+        "mock_agent_output": {
+          "agent": "test-agent",
+          "output_style": "agent-handoff",
+          "output": "Some incomplete output without required fields"
+        }
+      },
+      "expected": {
+        "validation_status": "invalid",
+        "missing_fields_detected": true
+      },
+      "timeout_seconds": 30
+    },
+    {
+      "id": "E2E-006",
+      "name": "error-tracking-integration",
+      "description": "Verify validation failures are tracked in STATUS.json",
+      "category": "error-tracking",
+      "priority": "medium",
+      "setup": {
+        "worktree": true,
+        "init_status_json": true
+      },
+      "trigger": {
+        "type": "validation_failure",
+        "agent": "test-agent",
+        "missing_fields": ["confidence", "status"]
+      },
+      "expected": {
+        "status_json_updated": true,
+        "error_log_entry_created": true
+      },
+      "timeout_seconds": 30
+    },
+    {
+      "id": "E2E-007",
+      "name": "feature-dev-workflow",
+      "description": "Verify 7-phase feature development workflow executes correctly",
+      "category": "workflow",
+      "priority": "high",
+      "setup": {
+        "worktree": true
+      },
+      "command": "/popkit:feature-dev",
+      "phases_expected": [
+        "Discovery",
+        "Exploration",
+        "Questions",
+        "Architecture",
+        "Implementation",
+        "Review",
+        "Summary"
+      ],
+      "agents_per_phase": {
+        "Exploration": ["code-explorer"],
+        "Architecture": ["code-architect"],
+        "Review": ["code-reviewer"]
+      },
+      "timeout_seconds": 600
+    },
+    {
+      "id": "E2E-008",
+      "name": "morning-health-check",
+      "description": "Verify morning health check command produces Ready to Code score",
+      "category": "command",
+      "priority": "medium",
+      "setup": {
+        "worktree": false
+      },
+      "command": "/popkit:morning",
+      "expected": {
+        "output_contains": ["Ready to Code", "Git Status", "Tests"],
+        "score_range": [0, 100]
+      },
+      "timeout_seconds": 120
+    },
+    {
+      "id": "E2E-009",
+      "name": "plugin-self-test",
+      "description": "Verify plugin self-test passes all checks",
+      "category": "self-test",
+      "priority": "critical",
+      "setup": {
+        "worktree": false
+      },
+      "command": "/popkit:plugin-test",
+      "expected": {
+        "all_tests_pass": true,
+        "test_categories": ["structure", "routing", "hooks"]
+      },
+      "timeout_seconds": 180
+    },
+    {
+      "id": "E2E-010",
+      "name": "sync-command-validation",
+      "description": "Verify sync command identifies and reports issues",
+      "category": "command",
+      "priority": "medium",
+      "setup": {
+        "worktree": true,
+        "create_issues": [
+          {
+            "type": "missing_frontmatter",
+            "file": "agents/test-agent.md"
+          }
+        ]
+      },
+      "command": "/popkit:sync",
+      "expected": {
+        "issues_detected": true,
+        "report_generated": true,
+        "recommendations_provided": true
+      },
+      "timeout_seconds": 120
+    }
+  ],
+  "test_infrastructure": {
+    "worktree_base": ".worktrees/e2e-tests",
+    "cleanup_after": true,
+    "parallel_execution": false,
+    "report_format": "json"
+  },
+  "metadata": {
+    "created": "2025-01-28",
+    "last_updated": "2025-01-28",
+    "author": "popkit-researcher"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "name": "agent-routing",
+  "description": "Tests for agent routing based on prompt keywords",
+  "tests": [
+    {
+      "name": "bug keywords route to bug-whisperer",
+      "prompt": "fix this bug in the authentication code",
+      "expected_agent": "bug-whisperer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "security keywords route to security-auditor",
+      "prompt": "audit this code for security vulnerabilities",
+      "expected_agent": "security-auditor",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "test keywords route to test-writer-fixer",
+      "prompt": "write unit tests for this function",
+      "expected_agent": "test-writer-fixer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "performance keywords route to performance-optimizer",
+      "prompt": "optimize this slow database query",
+      "expected_agent": "performance-optimizer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "review keywords route to code-reviewer",
+      "prompt": "review this pull request for best practices",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "prototype keywords route to rapid-prototyper",
+      "prompt": "quickly build a prototype for this feature",
+      "expected_agent": "rapid-prototyper",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "deploy keywords route to devops-automator",
+      "prompt": "set up CI/CD pipeline for deployment",
+      "expected_agent": "devops-automator",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "UI keywords route to ui-designer",
+      "prompt": "design the user interface for this feature",
+      "expected_agent": "ui-designer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "lint keywords route to code-reviewer",
+      "prompt": "fix the eslint errors and clean up the code",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "eslint keywords route to code-reviewer",
+      "prompt": "configure eslint for this project",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "cleanup keywords route to refactoring-expert",
+      "prompt": "cleanup this messy code and remove dead code",
+      "expected_agent": "refactoring-expert",
+      "min_confidence": 0.4
+    },
+    {
+      "name": "formatting keywords route to code-reviewer",
+      "prompt": "fix the prettier formatting issues",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "popkit",
+  "description": "Pop Toolkit - AI-powered development workflows with skills, agents, and automation for Claude Code",
+  "version": "0.9.9",
+  "author": {
+    "name": "Joseph Cannon",
+    "email": "joseph.cannon@outlook.com"
+  },
+  "homepage": "https://github.com/jrc1883/popkit",
+  "repository": "https://github.com/jrc1883/popkit",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "workflow",
+    "development",
+    "agents",
+    "skills",
+    "embeddings",
+    "semantic-search"
+  ]
+}

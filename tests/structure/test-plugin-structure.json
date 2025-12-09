@@ -1,0 +1,65 @@
+{
+  "name": "plugin-structure",
+  "description": "Tests for plugin file structure and integrity",
+  "tests": [
+    {
+      "name": "plugin.json exists and is valid",
+      "type": "file_exists",
+      "path": ".claude-plugin/plugin.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "marketplace.json exists and is valid",
+      "type": "file_exists",
+      "path": ".claude-plugin/marketplace.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "agents/config.json exists and is valid",
+      "type": "file_exists",
+      "path": "agents/config.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "hooks/hooks.json exists and is valid",
+      "type": "file_exists",
+      "path": "hooks/hooks.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": ".mcp.json exists and is valid",
+      "type": "file_exists",
+      "path": ".mcp.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "CLAUDE.md exists",
+      "type": "file_exists",
+      "path": "CLAUDE.md"
+    },
+    {
+      "name": "all skills have SKILL.md",
+      "type": "directory_pattern",
+      "path": "skills/*/SKILL.md",
+      "min_count": 20
+    },
+    {
+      "name": "all tier-1 agents have definitions",
+      "type": "directory_pattern",
+      "path": "agents/tier-1-always-active/*.md",
+      "min_count": 10
+    },
+    {
+      "name": "all hooks are Python files",
+      "type": "directory_pattern",
+      "path": "hooks/*.py",
+      "min_count": 10
+    },
+    {
+      "name": "all commands have definitions",
+      "type": "directory_pattern",
+      "path": "commands/*.md",
+      "min_count": 15
+    }
+  ]
+}

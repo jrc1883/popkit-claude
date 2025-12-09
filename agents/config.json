@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Agent configuration for popkit plugin",
+  "version": "1.1.0",
+
+  "structure": {
+    "description": "Agent file structure configuration",
+    "format": "directory",
+    "template_path": "_templates/AGENT.template.md",
+    "migration_guide": "_templates/README.md",
+    "legacy_support": false,
+    "migrated_agents": [
+      "code-reviewer",
+      "power-coordinator",
+      "code-explorer",
+      "code-architect",
+      "accessibility-guardian",
+      "data-integrity",
+      "meta-agent",
+      "rapid-prototyper",
+      "researcher",
+      "bug-whisperer",
+      "migration-specialist",
+      "query-optimizer",
+      "documentation-maintainer",
+      "bundle-analyzer",
+      "log-analyzer",
+      "rollback-specialist",
+      "deployment-validator",
+      "devops-automator",
+      "metrics-collector",
+      "ai-engineer",
+      "backup-coordinator",
+      "feedback-synthesizer",
+      "performance-optimizer",
+      "dead-code-eliminator",
+      "user-story-writer",
+      "feature-prioritizer",
+      "api-designer",
+      "security-auditor",
+      "test-writer-fixer",
+      "refactoring-expert"
+    ],
+    "required_sections": 12,
+    "power_mode_required": true,
+    "notes": {
+      "format": "directory = agents use subdirectories with AGENT.md; flat = single .md files",
+      "legacy_support": "When true, both flat files and directories are supported",
+      "migrated_agents": "List of agents that have been migrated to directory structure"
+    }
+  },
+
+  "tiers": {
+    "tier-1-always-active": {
+      "description": "Core agents always available for routing",
+      "agents": [
+        "code-reviewer",
+        "bug-whisperer",
+        "security-auditor",
+        "test-writer-fixer",
+        "api-designer",
+        "performance-optimizer",
+        "refactoring-expert",
+        "documentation-maintainer",
+        "query-optimizer",
+        "migration-specialist",
+        "accessibility-guardian"
+      ]
+    },
+    "tier-2-on-demand": {
+      "description": "Specialized agents activated on specific triggers",
+      "agents": [
+        "ai-engineer",
+        "deployment-validator",
+        "feature-prioritizer",
+        "rapid-prototyper",
+        "backup-coordinator",
+        "meta-agent",
+        "researcher",
+        "user-story-writer",
+        "devops-automator",
+        "bundle-analyzer",
+        "log-analyzer",
+        "metrics-collector",
+        "feedback-synthesizer",
+        "rollback-specialist",
+        "data-integrity",
+        "dead-code-eliminator",
+        "power-coordinator"
+      ]
+    },
+    "feature-workflow": {
+      "description": "Agents for 7-phase feature development",
+      "agents": [
+        "code-explorer",
+        "code-architect",
+        "code-reviewer"
+      ]
+    }
+  },
+
+  "routing": {
+    "keywords": {
+      "bug": ["bug-whisperer", "test-writer-fixer"],
+      "error": ["bug-whisperer", "log-analyzer"],
+      "security": ["security-auditor"],
+      "performance": ["performance-optimizer", "bundle-analyzer"],
+      "test": ["test-writer-fixer"],
+      "api": ["api-designer"],
+      "refactor": ["refactoring-expert"],
+      "docs": ["documentation-maintainer"],
+      "database": ["query-optimizer"],
+      "migration": ["migration-specialist"],
+      "accessibility": ["accessibility-guardian"],
+      "deploy": ["deployment-validator", "devops-automator"],
+      "backup": ["backup-coordinator"],
+      "ai": ["ai-engineer"],
+      "prototype": ["rapid-prototyper"],
+      "feature": ["feature-prioritizer", "user-story-writer"],
+      "metrics": ["metrics-collector"],
+      "logs": ["log-analyzer"],
+      "rollback": ["rollback-specialist"],
+      "lint": ["code-reviewer", "refactoring-expert"],
+      "eslint": ["code-reviewer", "refactoring-expert"],
+      "linting": ["code-reviewer", "refactoring-expert"],
+      "prettier": ["code-reviewer"],
+      "format": ["code-reviewer"],
+      "style": ["code-reviewer"],
+      "cleanup": ["refactoring-expert", "dead-code-eliminator"],
+      "power": ["power-coordinator"],
+      "orchestrate": ["power-coordinator"],
+      "coordinate": ["power-coordinator"],
+      "parallel": ["power-coordinator"],
+      "mesh": ["power-coordinator"],
+      "multi-agent": ["power-coordinator"]
+    },
+
+    "filePatterns": {
+      "*.test.ts": ["test-writer-fixer"],
+      "*.spec.ts": ["test-writer-fixer"],
+      "*.tsx": ["code-reviewer", "accessibility-guardian"],
+      "*.sql": ["query-optimizer"],
+      "*.md": ["documentation-maintainer"],
+      "package.json": ["bundle-analyzer"],
+      "Dockerfile": ["devops-automator"],
+      ".env*": ["security-auditor"],
+      ".eslintrc*": ["code-reviewer"],
+      "eslint.config.*": ["code-reviewer"],
+      ".prettierrc*": ["code-reviewer"],
+      "*.config.js": ["code-reviewer"],
+      "*.config.ts": ["code-reviewer"],
+      "tsconfig*.json": ["code-reviewer"]
+    },
+
+    "errorPatterns": {
+      "TypeError": ["bug-whisperer"],
+      "SyntaxError": ["code-reviewer"],
+      "SecurityError": ["security-auditor"],
+      "PerformanceWarning": ["performance-optimizer"],
+      "DeprecationWarning": ["migration-specialist"]
+    }
+  },
+
+  "workflows": {
+    "feature-dev": {
+      "phases": [
+        {"name": "Discovery", "agents": []},
+        {"name": "Exploration", "agents": ["code-explorer"]},
+        {"name": "Questions", "agents": []},
+        {"name": "Architecture", "agents": ["code-architect"]},
+        {"name": "Implementation", "agents": []},
+        {"name": "Review", "agents": ["code-reviewer"]},
+        {"name": "Summary", "agents": []}
+      ]
+    },
+    "debug": {
+      "agents": ["bug-whisperer", "log-analyzer"],
+      "sequential": true
+    },
+    "security-audit": {
+      "agents": ["security-auditor"],
+      "sequential": false
+    }
+  },
+
+  "confidence": {
+    "threshold": 80,
+    "levels": {
+      "0": "Not a real problem",
+      "25": "Possibly valid",
+      "50": "Moderately confident",
+      "75": "Highly confident",
+      "100": "Absolutely certain"
+    }
+  },
+
+  "skill_enforcement": {
+    "description": "Per-skill enforcement levels: 'suggest' (default) or 'require' (blocks until used)",
+    "default_level": "suggest",
+    "skills": {
+      "pop-systematic-debugging": "suggest",
+      "pop-test-driven-development": "suggest",
+      "pop-code-review": "suggest",
+      "pop-root-cause-tracing": "suggest",
+      "pop-verify-completion": "suggest",
+      "pop-brainstorming": "suggest"
+    },
+    "notes": {
+      "suggest": "Skill reminder shown in HTML comments, Claude can proceed without using it",
+      "require": "Execution blocked until skill is invoked (future: not yet implemented)",
+      "usage": "Override in project's .claude/config.json or set POPKIT_SKILL_ENFORCEMENT env var"
+    }
+  },
+
+  "effort": {
+    "description": "Claude API effort parameter per agent. Set based on what 80% of scenarios require.",
+    "levels": ["low", "medium", "high"],
+    "default": "medium",
+    "agents": {
+      "tier-1-always-active": {
+        "code-reviewer": "medium",
+        "bug-whisperer": "high",
+        "security-auditor": "high",
+        "test-writer-fixer": "medium",
+        "api-designer": "medium",
+        "performance-optimizer": "high",
+        "refactoring-expert": "medium",
+        "documentation-maintainer": "low",
+        "query-optimizer": "high",
+        "migration-specialist": "high",
+        "accessibility-guardian": "medium"
+      },
+      "tier-2-on-demand": {
+        "ai-engineer": "high",
+        "deployment-validator": "medium",
+        "feature-prioritizer": "low",
+        "rapid-prototyper": "low",
+        "backup-coordinator": "medium",
+        "meta-agent": "medium",
+        "researcher": "medium",
+        "user-story-writer": "low",
+        "devops-automator": "medium",
+        "bundle-analyzer": "medium",
+        "log-analyzer": "medium",
+        "metrics-collector": "medium",
+        "feedback-synthesizer": "low",
+        "rollback-specialist": "high",
+        "data-integrity": "medium",
+        "dead-code-eliminator": "medium",
+        "power-coordinator": "high"
+      },
+      "feature-workflow": {
+        "code-explorer": "medium",
+        "code-architect": "high"
+      }
+    },
+    "notes": {
+      "high": "80% of tasks require deep analysis (debugging, security, architecture)",
+      "medium": "Balanced - handles most common scenarios effectively",
+      "low": "80% of tasks are straightforward (writing, organizing, quick prototypes)"
+    }
+  },
+
+  "model": {
+    "description": "Claude model assignment per agent based on task complexity and cost requirements",
+    "models": ["haiku", "sonnet", "opus"],
+    "default": "sonnet",
+    "agents": {
+      "tier-1-always-active": {
+        "code-reviewer": "sonnet",
+        "bug-whisperer": "opus",
+        "security-auditor": "opus",
+        "test-writer-fixer": "sonnet",
+        "api-designer": "sonnet",
+        "performance-optimizer": "opus",
+        "refactoring-expert": "sonnet",
+        "documentation-maintainer": "haiku",
+        "query-optimizer": "opus",
+        "migration-specialist": "opus",
+        "accessibility-guardian": "sonnet"
+      },
+      "tier-2-on-demand": {
+        "ai-engineer": "opus",
+        "deployment-validator": "sonnet",
+        "feature-prioritizer": "haiku",
+        "rapid-prototyper": "haiku",
+        "backup-coordinator": "sonnet",
+        "meta-agent": "sonnet",
+        "researcher": "sonnet",
+        "user-story-writer": "haiku",
+        "devops-automator": "sonnet",
+        "bundle-analyzer": "sonnet",
+        "log-analyzer": "sonnet",
+        "metrics-collector": "sonnet",
+        "feedback-synthesizer": "haiku",
+        "rollback-specialist": "opus",
+        "data-integrity": "sonnet",
+        "dead-code-eliminator": "sonnet",
+        "power-coordinator": "opus"
+      },
+      "feature-workflow": {
+        "code-explorer": "sonnet",
+        "code-architect": "opus"
+      }
+    },
+    "heuristics": {
+      "haiku": "Writing-focused tasks (docs, comments, user stories), quick prototypes",
+      "sonnet": "Balanced analysis and implementation (review, testing, most development)",
+      "opus": "Deep reasoning (architecture, security audits, complex debugging, migrations)"
+    },
+    "flags": {
+      "--model": "Override model for any agent (e.g., --model opus)"
+    }
+  },
+
+  "tool_choice": {
+    "description": "Claude API tool_choice parameter for forcing specific tool execution",
+    "modes": {
+      "auto": "Let Claude choose the best tool (default)",
+      "required": "Force tool use, Claude must use a tool",
+      "specific": "Force use of a specific tool by name"
+    },
+    "workflow_steps": {
+      "git-commit": {
+        "description": "Git commit workflow",
+        "steps": [
+          { "action": "gather_status", "tool_choice": "auto" },
+          { "action": "stage_files", "tool_choice": { "type": "tool", "name": "Bash" } },
+          { "action": "create_commit", "tool_choice": { "type": "tool", "name": "Bash" } }
+        ]
+      },
+      "file-edit": {
+        "description": "Read before edit enforcement",
+        "steps": [
+          { "action": "read_file", "tool_choice": { "type": "tool", "name": "Read" } },
+          { "action": "edit_file", "tool_choice": { "type": "tool", "name": "Edit" } }
+        ]
+      },
+      "verification": {
+        "description": "Run verification commands",
+        "steps": [
+          { "action": "run_tests", "tool_choice": { "type": "tool", "name": "Bash" } },
+          { "action": "run_lint", "tool_choice": { "type": "tool", "name": "Bash" } }
+        ]
+      }
+    },
+    "skill_requirements": {
+      "pop-verify-completion": {
+        "required_tools": ["Bash"],
+        "description": "Must run verification commands before claiming completion"
+      },
+      "pop-test-driven-development": {
+        "required_tools": ["Bash", "Write", "Edit"],
+        "description": "Must run tests and write code"
+      },
+      "pop-session-capture": {
+        "required_tools": ["Write"],
+        "description": "Must write STATUS.json"
+      }
+    },
+    "notes": {
+      "usage": "Hooks can read this config and pass tool_choice to API calls",
+      "override": "Commands can override with --tool=<name> flag",
+      "enforcement": "Currently advisory - full enforcement requires hook implementation"
+    }
+  },
+
+  "thinking": {
+    "description": "Extended thinking configuration per model and agent",
+    "models": {
+      "sonnet": {
+        "enabled": true,
+        "default_budget_tokens": 10000,
+        "notes": "Extended thinking ON by default for Sonnet"
+      },
+      "opus": {
+        "enabled": false,
+        "flag_enabled": true,
+        "notes": "Thinking OFF by default, enable with -T flag"
+      },
+      "haiku": {
+        "enabled": true,
+        "default_budget_tokens": 5000,
+        "notes": "Haiku 4.5 now supports extended thinking"
+      }
+    },
+    "flags": {
+      "-T": "Force thinking on for any model",
+      "--thinking": "Alias for -T",
+      "--no-thinking": "Force thinking off"
+    },
+    "high_thinking_agents": [
+      "code-architect",
+      "power-coordinator"
+    ],
+    "high_thinking_skills": [
+      "pop-brainstorming",
+      "pop-writing-plans"
+    ]
+  }
+}

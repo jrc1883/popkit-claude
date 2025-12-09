@@ -1,3 +1,8 @@
+---
+name: feedback-report
+description: "Use when analyzing user feedback data - generates analytics and insights from collected ratings to identify agent performance, improvement areas, and trends. Do NOT use for collecting feedback (that happens automatically via hooks)."
+---
+
 # Feedback Report
 
 Generate analytics and insights from collected user feedback.

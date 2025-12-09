@@ -113,6 +113,7 @@
       "docs": ["documentation-maintainer"],
       "database": ["query-optimizer"],
       "migration": ["migration-specialist"],
+      "migrate": ["migration-specialist"],
       "accessibility": ["accessibility-guardian"],
       "deploy": ["deployment-validator", "devops-automator"],
       "backup": ["backup-coordinator"],

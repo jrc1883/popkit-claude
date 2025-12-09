@@ -41,7 +41,7 @@
       "subcommands": ["morning", "nightly"],
       "sub_subcommands": ["run", "quick", "generate", "list", "set", "edit", "delete"],
       "skills_invoked": ["popkit:pop-morning-generator", "popkit:pop-nightly-generator"],
-      "required_sections": ["Usage", "Subcommands"]
+      "required_sections": ["Usage", "Primary Subcommands"]
     },
     {
       "name": "/popkit:power command structure",
@@ -104,7 +104,8 @@
       "file": "commands/knowledge.md",
       "subcommands": ["list", "add", "remove", "sync", "search"],
       "skills_invoked": ["popkit:pop-knowledge-lookup"],
-      "required_sections": ["Usage", "Subcommands"]
+      "required_sections": ["Usage", "Subcommand: List"],
+      "note": "Uses individual Subcommand sections per action"
     },
     {
       "name": "/popkit:next command structure",

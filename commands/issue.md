@@ -36,6 +36,7 @@ List repository issues with Power Mode recommendations.
 /popkit:issue                         # List open issues
 /popkit:issue list                    # Same as above
 /popkit:issue list --power            # Only issues recommending Power Mode
+/popkit:issue list --votes            # Sort by vote score
 /popkit:issue list --label bug        # Filter by label
 /popkit:issue list --state all        # All issues (open + closed)
 /popkit:issue list --assignee @me     # Assigned to me
@@ -48,6 +49,7 @@ List repository issues with Power Mode recommendations.
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--power` | `-p` | Show only issues recommending Power Mode |
+| `--votes` | `-v` | Sort by community vote score |
 | `--label` | `-l` | Filter by label |
 | `--state` | | `open` (default), `closed`, `all` |
 | `--assignee` | | Filter by assignee |
@@ -56,6 +58,7 @@ List repository issues with Power Mode recommendations.
 
 ### Output Format
 
+**Standard Format:**
 ```
 Open Issues with Power Mode Recommendations:
 
@@ -72,6 +75,36 @@ Legend:
 
 Hint: Use /popkit:dev work #11 to start working
       Use /popkit:dev work #11 -p to force Power Mode
+```
+
+**With --votes flag:**
+```
+Open Issues (sorted by community votes):
+
+| #   | Title                          | Votes                  | Score |
+|-----|--------------------------------|------------------------|-------|
+| 88  | [Epic] Self-Improvement System | 👍12 ❤️3 🚀2           | 24    |
+| 75  | Team Coordination Features     | 👍8  ❤️5 🚀1           | 21    |
+| 66  | Power Mode v2                  | 👍6  ❤️2               | 10    |
+| 92  | Vote-Based Prioritization      | 👍3                    | 3     |
+
+Vote Weights: 👍 +1 | ❤️ +2 | 🚀 +3 | 👎 -1
+```
+
+### Process with Votes
+
+When `--votes` flag is provided:
+
+```python
+from priority_scorer import get_priority_scorer, fetch_open_issues
+
+# Fetch and rank by priority score
+scorer = get_priority_scorer()
+issues = fetch_open_issues(limit=20)
+ranked = scorer.rank_issues(issues)
+
+# Display sorted by score
+print(scorer.format_ranked_list(ranked, max_items=10))
 ```
 
 ### Process
@@ -443,6 +476,8 @@ gh issue comment 45 --body "..."
 |-----------|-------------|
 | Issue Fetching | `gh issue view/list` via GitHub CLI |
 | PopKit Guidance Parser | `hooks/utils/github_issues.py` |
+| Vote Fetching | `hooks/utils/vote_fetcher.py` |
+| Priority Scoring | `hooks/utils/priority_scorer.py` |
 | Flag Parsing | `hooks/utils/flag_parser.py` |
 | Issue Templates | `.github/ISSUE_TEMPLATE/*.md` |
 | Phase Tracking | `STATUS.json` integration |

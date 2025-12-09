@@ -67,8 +67,33 @@ Identify what kind of project and what state it's in:
 | Ahead of remote | Ready to push/PR | MEDIUM |
 | TypeScript errors | Build broken | HIGH |
 | Open issues | Known work items | MEDIUM |
+| **Issue votes** | Community priority | MEDIUM |
 | TECHNICAL_DEBT.md | Documented debt | MEDIUM |
 | Recent commits | Active development | LOW |
+
+### Step 2.5: Fetch Issue Votes (NEW)
+
+If GitHub issues exist, fetch community votes to prioritize:
+
+```python
+from priority_scorer import get_priority_scorer, fetch_open_issues
+
+# Fetch and rank issues by combined priority score
+scorer = get_priority_scorer()
+issues = fetch_open_issues(limit=10)
+ranked = scorer.rank_issues(issues)
+
+# Top-voted issues get recommendation priority
+for issue in ranked[:3]:
+    # issue.priority_score combines votes, staleness, labels, epic status
+    print(f"#{issue.number} {issue.title} - Score: {issue.priority_score}")
+```
+
+**Vote Weights:**
+- 👍 (+1) = 1 point (community interest)
+- ❤️ (heart) = 2 points (strong support)
+- 🚀 (rocket) = 3 points (approved/prioritized)
+- 👎 (-1) = -1 point (deprioritize)
 
 ### Step 3: Score Recommendations
 
@@ -174,9 +199,25 @@ Based on your context, you could also:
 ```markdown
 ### 2. Work on Open Issue
 **Command:** `/popkit:dev work #[number]`
-**Why:** Issue #[X] "[title]" is high priority
+**Why:** Issue #[X] "[title]" is high priority (Score: XX)
+**Votes:** 👍5 ❤️2 🚀1
 **What it does:** Issue-driven development workflow
-**Benefit:** Structured progress on known work
+**Benefit:** Structured progress on community-prioritized work
+```
+
+When multiple issues exist, use priority scoring to recommend the best one:
+
+```python
+from priority_scorer import get_priority_scorer
+
+scorer = get_priority_scorer()
+ranked = scorer.rank_issues(issues)
+
+# Recommend highest-scored issue
+top = ranked[0]
+print(f"Work on #{top.number} '{top.title}' (Score: {top.priority_score:.1f})")
+if top.vote_breakdown:
+    print(f"Community votes: {scorer.vote_fetcher.format_vote_display(top, compact=True)}")
 ```
 
 ### If No Urgent Items
@@ -219,3 +260,5 @@ When called with `quick` argument, provide condensed output:
 - `/popkit:routine morning` - Detailed health check
 - `/popkit:dev brainstorm` - For when direction is truly unclear
 - `user-prompt-submit.py` - Uncertainty trigger patterns
+- `hooks/utils/vote_fetcher.py` - GitHub reaction fetching
+- `hooks/utils/priority_scorer.py` - Combined priority calculation

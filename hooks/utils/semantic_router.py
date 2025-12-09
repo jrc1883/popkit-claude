@@ -8,6 +8,7 @@ Supports project-aware routing with priority for project-local items.
 
 Part of PopKit Issue #19 (Embeddings Enhancement).
 Updated for Issue #48 (Project Awareness).
+Updated for Issue #101 (Upstash Vector Integration) - Cloud semantic search.
 """
 
 import os
@@ -22,6 +23,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from embedding_store import EmbeddingStore
 from voyage_client import VoyageClient, is_available
+from cloud_agent_search import (
+    search_agents as cloud_search_agents,
+    is_available as cloud_is_available
+)
 
 # =============================================================================
 # CONFIGURATION
@@ -135,6 +140,12 @@ class SemanticRouter:
         """
         Route query to best matching agents.
 
+        Routing priority:
+        1. Cloud semantic search (Upstash Vector) - fastest, best quality
+        2. Local semantic search (Voyage AI) - requires local API key
+        3. File/error pattern matching
+        4. Keyword fallback
+
         Args:
             query: User request or context
             top_k: Number of agents to return
@@ -147,10 +158,16 @@ class SemanticRouter:
         context = context or {}
         results = []
 
-        # Try semantic routing first (if embeddings available)
-        if self.client and self.client.is_available and self.store.count("agent") > 0:
-            semantic_results = self._semantic_route(query, top_k, min_confidence)
-            results.extend(semantic_results)
+        # Try cloud semantic search first (Issue #101)
+        if cloud_is_available():
+            cloud_results = self._cloud_route(query, top_k, min_confidence)
+            results.extend(cloud_results)
+
+        # Fall back to local semantic routing if cloud didn't return enough
+        if len(results) < top_k:
+            if self.client and self.client.is_available and self.store.count("agent") > 0:
+                semantic_results = self._semantic_route(query, top_k - len(results), min_confidence)
+                results.extend(semantic_results)
 
         # Check file patterns
         file_path = context.get("file_path", "")
@@ -212,6 +229,7 @@ class SemanticRouter:
             "query": query,
             "context": context,
             "project_path": self.project_path,
+            "cloud_available": cloud_is_available(),
             "semantic_available": bool(self.client and self.client.is_available),
             "embedding_count": self.store.count("agent"),
             "project_embedding_count": project_count,
@@ -220,6 +238,12 @@ class SemanticRouter:
         }
 
         # Try each method and record results
+        # Cloud semantic search first (Issue #101)
+        if cloud_is_available():
+            explanation["methods_tried"].append("cloud_semantic")
+            cloud_results = self._cloud_route(query, 5, 0.0)
+            explanation["cloud_results"] = [r.to_dict() for r in cloud_results]
+
         if self.client and self.client.is_available and self.store.count("agent") > 0:
             explanation["methods_tried"].append("semantic")
             semantic = self._semantic_route(query, 5, 0.0)
@@ -280,6 +304,47 @@ class SemanticRouter:
     # =========================================================================
     # ROUTING METHODS
     # =========================================================================
+
+    def _cloud_route(
+        self,
+        query: str,
+        top_k: int,
+        min_confidence: float
+    ) -> List[RoutingResult]:
+        """
+        Route using cloud semantic search (Upstash Vector).
+
+        Part of Issue #101 (Upstash Vector Integration).
+        This is the primary routing method when POPKIT_API_KEY is set.
+        """
+        try:
+            result = cloud_search_agents(
+                query=query,
+                top_k=top_k,
+                min_score=min_confidence
+            )
+
+            if result.error:
+                # Log but don't fail - will fall back to local
+                print(f"Cloud search warning: {result.error}")
+                return []
+
+            # Convert to RoutingResult
+            routing_results = []
+            for match in result.matches:
+                routing_results.append(RoutingResult(
+                    agent=match.agent,
+                    confidence=match.score,
+                    reason=f"Cloud semantic: {match.description[:60]}..." if match.description else "Semantic match",
+                    method="cloud_semantic",
+                    is_project_item=False
+                ))
+
+            return routing_results
+
+        except Exception as e:
+            print(f"Cloud routing error: {e}")
+            return []
 
     def _semantic_route(
         self,

@@ -702,6 +702,283 @@ class PopKitCloudClient:
         return False
 
     # =========================================================================
+    # INTER-AGENT MESSAGING (Issue #109)
+    # =========================================================================
+
+    def publish_message(
+        self,
+        message_type: str,
+        payload: Dict,
+        tags: List[str],
+        session_id: str,
+        agent_id: str,
+        to_agents: Optional[List[str]] = None,
+        priority: str = "normal"
+    ) -> Optional[str]:
+        """
+        Publish a message to other agents via QStash.
+
+        Args:
+            message_type: Type of message (DISCOVERY, INSIGHT, RESULT, etc.)
+            payload: Message payload (type-specific)
+            tags: Tags for routing/filtering
+            session_id: Power Mode session ID
+            agent_id: This agent's ID
+            to_agents: Target agent IDs (None for broadcast/auto-routing)
+            priority: Message priority (low, normal, high)
+
+        Returns:
+            Message ID if successful, None otherwise
+        """
+        if not self.connected:
+            return None
+
+        try:
+            message = {
+                "type": message_type,
+                "fromAgent": agent_id,
+                "sessionId": session_id,
+                "timestamp": datetime.now().isoformat(),
+                "payload": payload,
+                "tags": tags,
+                "priority": priority
+            }
+
+            if to_agents:
+                message["toAgents"] = to_agents
+
+            response = self._request("POST", "/messages/publish", message)
+            return response.get("messageId")
+
+        except Exception as e:
+            print(f"Failed to publish message: {e}", file=sys.stderr)
+            return None
+
+    def broadcast_message(
+        self,
+        message_type: str,
+        payload: Dict,
+        tags: List[str],
+        session_id: str,
+        agent_id: str,
+        priority: str = "normal"
+    ) -> Optional[str]:
+        """
+        Broadcast a message to all agents in the session.
+
+        Args:
+            message_type: Type of message
+            payload: Message payload
+            tags: Tags for filtering
+            session_id: Power Mode session ID
+            agent_id: This agent's ID
+            priority: Message priority
+
+        Returns:
+            Message ID if successful, None otherwise
+        """
+        if not self.connected:
+            return None
+
+        try:
+            message = {
+                "type": message_type,
+                "fromAgent": agent_id,
+                "sessionId": session_id,
+                "timestamp": datetime.now().isoformat(),
+                "payload": payload,
+                "tags": tags,
+                "priority": priority
+            }
+
+            response = self._request("POST", "/messages/broadcast", message)
+            return response.get("messageId")
+
+        except Exception as e:
+            print(f"Failed to broadcast message: {e}", file=sys.stderr)
+            return None
+
+    def poll_messages(
+        self,
+        agent_id: str,
+        session_id: str,
+        limit: int = 10,
+        mark_read: bool = True
+    ) -> List[Dict]:
+        """
+        Poll for messages in agent's inbox.
+
+        Args:
+            agent_id: This agent's ID
+            session_id: Power Mode session ID
+            limit: Maximum messages to return
+            mark_read: Whether to mark messages as read
+
+        Returns:
+            List of messages (newest first)
+        """
+        if not self.connected:
+            return []
+
+        try:
+            params = f"?sessionId={session_id}&limit={limit}&markRead={'true' if mark_read else 'false'}"
+            response = self._request("GET", f"/messages/poll/{agent_id}{params}")
+            return response.get("messages", [])
+
+        except Exception as e:
+            print(f"Failed to poll messages: {e}", file=sys.stderr)
+            return []
+
+    def clear_inbox(self, agent_id: str) -> bool:
+        """
+        Clear an agent's inbox.
+
+        Args:
+            agent_id: Agent ID whose inbox to clear
+
+        Returns:
+            True if successful
+        """
+        if not self.connected:
+            return False
+
+        try:
+            self._request("DELETE", f"/messages/clear/{agent_id}")
+            return True
+        except Exception:
+            return False
+
+    def share_discovery(
+        self,
+        agent_id: str,
+        session_id: str,
+        content: str,
+        file_path: Optional[str] = None,
+        confidence: float = 0.8,
+        tags: Optional[List[str]] = None
+    ) -> Optional[str]:
+        """
+        Share a discovery with other agents.
+
+        Convenience method for publishing DISCOVERY messages.
+
+        Args:
+            agent_id: This agent's ID
+            session_id: Power Mode session ID
+            content: What was discovered
+            file_path: Related file path (optional)
+            confidence: Confidence level (0.0-1.0)
+            tags: Additional tags for routing
+
+        Returns:
+            Message ID if successful
+        """
+        payload = {
+            "content": content,
+            "confidence": confidence
+        }
+        if file_path:
+            payload["filePath"] = file_path
+
+        all_tags = tags or []
+        if file_path:
+            # Add file extension as tag
+            ext = file_path.split(".")[-1] if "." in file_path else None
+            if ext:
+                all_tags.append(ext)
+
+        return self.broadcast_message(
+            message_type="DISCOVERY",
+            payload=payload,
+            tags=all_tags,
+            session_id=session_id,
+            agent_id=agent_id
+        )
+
+    def share_insight(
+        self,
+        agent_id: str,
+        session_id: str,
+        content: str,
+        category: str,
+        relevant_to: Optional[List[str]] = None,
+        tags: Optional[List[str]] = None
+    ) -> Optional[str]:
+        """
+        Share an insight with other agents.
+
+        Convenience method for publishing INSIGHT messages.
+
+        Args:
+            agent_id: This agent's ID
+            session_id: Power Mode session ID
+            content: The insight
+            category: Insight category (security, performance, pattern, etc.)
+            relevant_to: Agent types this is relevant to
+            tags: Additional tags
+
+        Returns:
+            Message ID if successful
+        """
+        payload = {
+            "content": content,
+            "category": category,
+            "relevantTo": relevant_to or []
+        }
+
+        all_tags = list(tags or [])
+        all_tags.append(category)
+
+        return self.broadcast_message(
+            message_type="INSIGHT",
+            payload=payload,
+            tags=all_tags,
+            session_id=session_id,
+            agent_id=agent_id
+        )
+
+    def share_result(
+        self,
+        agent_id: str,
+        session_id: str,
+        summary: str,
+        files: List[str],
+        metrics: Optional[Dict[str, float]] = None,
+        tags: Optional[List[str]] = None
+    ) -> Optional[str]:
+        """
+        Share work results with other agents.
+
+        Convenience method for publishing RESULT messages.
+
+        Args:
+            agent_id: This agent's ID
+            session_id: Power Mode session ID
+            summary: Summary of what was done
+            files: Files modified/created
+            metrics: Optional metrics (e.g., coverage, score)
+            tags: Additional tags
+
+        Returns:
+            Message ID if successful
+        """
+        payload = {
+            "summary": summary,
+            "files": files
+        }
+        if metrics:
+            payload["metrics"] = metrics
+
+        return self.broadcast_message(
+            message_type="RESULT",
+            payload=payload,
+            tags=tags or [],
+            session_id=session_id,
+            agent_id=agent_id,
+            priority="high"  # Results are important
+        )
+
+    # =========================================================================
     # INTERNAL HTTP CLIENT
     # =========================================================================
 

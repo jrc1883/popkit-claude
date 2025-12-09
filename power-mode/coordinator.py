@@ -733,9 +733,179 @@ class PowerModeCoordinator:
             try:
                 self._check_agent_health()
                 self._cleanup_expired_barriers()
+                # Issue #109: Poll for cloud messages
+                self._poll_cloud_messages()
                 time.sleep(CONFIG.get("intervals", {}).get("heartbeat_seconds", 15))
             except Exception as e:
                 print(f"Monitor error: {e}", file=sys.stderr)
+
+    # =========================================================================
+    # CLOUD MESSAGING INTEGRATION (Issue #109)
+    # =========================================================================
+
+    def _poll_cloud_messages(self):
+        """
+        Poll for messages from cloud and distribute to agents.
+
+        Part of Issue #109 (Inter-Agent Communication Protocol).
+        Called periodically in the monitor loop.
+        """
+        if not self.cloud_client or not self.cloud_client.connected:
+            return
+
+        try:
+            # Poll for coordinator messages
+            messages = self.cloud_client.poll_messages(
+                agent_id="coordinator",
+                session_id=self.session_id,
+                limit=20,
+                mark_read=True
+            )
+
+            for msg in messages:
+                self._handle_cloud_message(msg)
+
+        except Exception as e:
+            print(f"Cloud message polling error: {e}", file=sys.stderr)
+
+    def _handle_cloud_message(self, msg: Dict):
+        """
+        Handle a message received from cloud.
+
+        Converts cloud message format to internal Message type
+        and routes it appropriately.
+        """
+        msg_type_str = msg.get("type", "")
+        payload = msg.get("payload", {})
+        from_agent = msg.get("fromAgent", "unknown")
+        tags = msg.get("tags", [])
+
+        # Map cloud message types to internal handlers
+        if msg_type_str == "DISCOVERY":
+            # Share discovery as insight with all relevant agents
+            insight = Insight(
+                id=msg.get("id", ""),
+                type=InsightType.DISCOVERY,
+                content=payload.get("content", ""),
+                source_agent=from_agent,
+                relevance_tags=tags,
+                confidence=payload.get("confidence", 0.8),
+                context={"filePath": payload.get("filePath")} if payload.get("filePath") else {}
+            )
+            self.insight_pool.add(insight)
+
+        elif msg_type_str == "INSIGHT":
+            insight = Insight(
+                id=msg.get("id", ""),
+                type=InsightType.DISCOVERY,
+                content=payload.get("content", ""),
+                source_agent=from_agent,
+                relevance_tags=tags + [payload.get("category", "")],
+                confidence=0.8,
+                context={"relevantTo": payload.get("relevantTo", [])}
+            )
+            self.insight_pool.add(insight)
+
+        elif msg_type_str == "RESULT":
+            # Store as phase result
+            phase = self.objective.phases[self.current_phase] if self.objective else "default"
+            if phase not in self.phase_results:
+                self.phase_results[phase] = []
+            self.phase_results[phase].append({
+                "agent": from_agent,
+                "result": payload,
+                "timestamp": msg.get("timestamp", datetime.now().isoformat())
+            })
+            self._check_phase_completion()
+
+        elif msg_type_str == "SYNC_REQUEST":
+            # Handle sync barrier request from cloud
+            barrier_id = payload.get("barrier")
+            agent_id = from_agent
+            if barrier_id:
+                self.sync_manager.acknowledge(barrier_id, agent_id)
+
+        elif msg_type_str in ("DRIFT_ALERT", "HUMAN_REQUIRED", "BOUNDARY_ALERT"):
+            # Store for human review
+            self.human_pending.append(Message(
+                id=msg.get("id", ""),
+                type=MessageType.HUMAN_REQUIRED,
+                from_agent=from_agent,
+                to_agent="coordinator",
+                payload={
+                    "alertType": msg_type_str,
+                    "description": payload.get("description", ""),
+                    "severity": payload.get("severity", "warning"),
+                    "context": payload.get("context", {})
+                }
+            ))
+
+    def broadcast_to_cloud(
+        self,
+        message_type: str,
+        payload: Dict,
+        tags: List[str],
+        priority: str = "normal"
+    ) -> Optional[str]:
+        """
+        Broadcast a message to all agents via cloud.
+
+        Convenience method for coordinator to send messages.
+
+        Args:
+            message_type: Type of message
+            payload: Message payload
+            tags: Tags for routing
+            priority: Message priority
+
+        Returns:
+            Message ID if successful
+        """
+        if not self.cloud_client or not self.cloud_client.connected:
+            return None
+
+        return self.cloud_client.broadcast_message(
+            message_type=message_type,
+            payload=payload,
+            tags=tags,
+            session_id=self.session_id,
+            agent_id="coordinator",
+            priority=priority
+        )
+
+    def send_to_agent_via_cloud(
+        self,
+        agent_id: str,
+        message_type: str,
+        payload: Dict,
+        tags: List[str],
+        priority: str = "normal"
+    ) -> Optional[str]:
+        """
+        Send a message to a specific agent via cloud.
+
+        Args:
+            agent_id: Target agent ID
+            message_type: Type of message
+            payload: Message payload
+            tags: Tags for filtering
+            priority: Message priority
+
+        Returns:
+            Message ID if successful
+        """
+        if not self.cloud_client or not self.cloud_client.connected:
+            return None
+
+        return self.cloud_client.publish_message(
+            message_type=message_type,
+            payload=payload,
+            tags=tags,
+            session_id=self.session_id,
+            agent_id="coordinator",
+            to_agents=[agent_id],
+            priority=priority
+        )
 
     def _handle_message(self, channel: str, data: str):
         """Handle an incoming message."""

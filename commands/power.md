@@ -1,5 +1,5 @@
 ---
-description: "start | stop | status | init | widgets | consensus [--consensus, --agents N]"
+description: "start | stop | status | init | metrics | widgets | consensus [--consensus, --agents N]"
 ---
 
 # /popkit:power - Power Mode Management
@@ -20,6 +20,7 @@ Manage multi-agent orchestration via Redis pub/sub for complex tasks requiring p
 | `start` | Start Power Mode with objective |
 | `stop` | Stop Power Mode gracefully |
 | `init` | Initialize Redis infrastructure |
+| `metrics` | View quantifiable value metrics (#108) |
 | `widgets` | Manage status line widgets (Issue #79) |
 | `consensus` | Manage consensus mode for multi-agent decisions (Issue #86) |
 
@@ -193,6 +194,128 @@ Session transcript saved to:
 
 Resume later with:
   /popkit:issue work #11
+```
+
+---
+
+## Subcommand: metrics
+
+View quantifiable value metrics for Power Mode sessions (#108).
+
+```
+/popkit:power metrics              # Current session metrics
+/popkit:power metrics --session ID # Specific session
+/popkit:power metrics --compare    # Compare with single-agent baseline
+/popkit:power metrics --export     # Export as JSON
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--session ID` | View metrics for a specific session |
+| `--compare` | Show comparison with single-agent baseline |
+| `--export` | Export metrics as JSON |
+| `--history N` | Show last N sessions (default: 5) |
+
+### Metrics Categories
+
+#### Time Metrics
+| Metric | Description |
+|--------|-------------|
+| **Phase Duration** | Time spent in each development phase |
+| **Task Completion** | Average time per task |
+| **Total Session Time** | End-to-end duration |
+
+#### Quality Metrics
+| Metric | Description |
+|--------|-------------|
+| **First-Pass Success** | % of tasks completed without rework |
+| **Code Review Score** | Average confidence from code-reviewer |
+| **Test Coverage Delta** | Coverage improvement during session |
+| **Bugs Detected** | Issues caught before commit |
+
+#### Coordination Metrics
+| Metric | Description |
+|--------|-------------|
+| **Insights Shared** | Discoveries shared between agents |
+| **Context Reuses** | Times shared context prevented duplicate work |
+| **Sync Wait Time** | Time agents spent waiting at barriers |
+| **Conflicts Resolved** | Overlapping changes handled |
+
+#### Resource Metrics
+| Metric | Description |
+|--------|-------------|
+| **Token Efficiency** | Tokens per task completed |
+| **Agent Utilization** | Active time vs idle time % |
+| **Peak Concurrent** | Maximum agents working in parallel |
+
+### Output
+
+```
+============================================================
+  POWER MODE METRICS REPORT
+============================================================
+
+Session: abc123
+Duration: 15m 32s
+
+--- TIME METRICS ---
+  Tasks completed: 8
+  Average task time: 1m 56s
+  Phase breakdown:
+    - exploration: 3m 12s
+    - implementation: 8m 45s
+    - testing: 3m 35s
+
+--- QUALITY METRICS ---
+  First-pass success: 87.5%
+  Avg code review score: 82
+  Bugs detected: 2
+  Rework needed: 1 tasks
+
+--- COORDINATION METRICS ---
+  Insights shared: 5
+  Context reuses: 3
+  Avg sync wait: 2.3s
+  Conflicts resolved: 1
+
+--- RESOURCE METRICS ---
+  Agents used: 3
+  Peak concurrent: 2
+  Agent utilization: 72.5%
+  Total tokens: 45,230
+  Token efficiency: 5,654 tokens/task
+
+--- VALUE SUMMARY ---
+  Overall Score: 78/100 (Good)
+
+  Highlights:
+    + 87.5% first-pass success rate
+    + 5 insights shared between agents
+    + 2 bugs caught before commit
+    + Up to 2 agents working in parallel
+
+============================================================
+```
+
+### Process
+
+1. Load metrics from Redis or cloud storage
+2. Calculate derived values (efficiency, utilization)
+3. Generate value summary score
+4. Format and display report
+
+### Implementation
+
+Uses `power-mode/metrics.py`:
+
+```python
+from metrics import MetricsCollector
+
+collector = MetricsCollector(session_id)
+report = collector.generate_report()
+print(collector.format_cli_report())
 ```
 
 ---

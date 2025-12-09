@@ -36,6 +36,12 @@ from protocol import (
 )
 from stream_manager import StreamManager, StreamSession
 
+try:
+    from metrics import MetricsCollector, save_session_metrics
+    METRICS_AVAILABLE = True
+except ImportError:
+    METRICS_AVAILABLE = False
+
 
 # =============================================================================
 # CONFIGURATION
@@ -549,6 +555,12 @@ class PowerModeCoordinator:
         self._listener_thread: Optional[threading.Thread] = None
         self._monitor_thread: Optional[threading.Thread] = None
 
+        # Metrics collector (Issue #108)
+        if METRICS_AVAILABLE:
+            self.metrics_collector = MetricsCollector(self.session_id)
+        else:
+            self.metrics_collector = None
+
     def connect(self) -> bool:
         """Connect to Redis."""
         if not REDIS_AVAILABLE:
@@ -694,6 +706,14 @@ class PowerModeCoordinator:
         if self.cloud_client and self.cloud_workflow_id:
             self._update_cloud_workflow()
             self.cloud_client.disconnect()
+
+        # Issue #108: End session and save metrics
+        if self.metrics_collector:
+            self.metrics_collector.end_session()
+            if self.redis:
+                save_session_metrics(self.metrics_collector.metrics, self.redis)
+            # Print metrics report
+            print(self.metrics_collector.format_cli_report())
 
         print("Coordinator stopped.")
 
@@ -847,6 +867,12 @@ class PowerModeCoordinator:
 
         complete = self.sync_manager.acknowledge(barrier_id, agent_id)
         if complete:
+            # Issue #108: Track sync barrier wait time
+            if self.metrics_collector and barrier_id in self.sync_manager.barriers:
+                barrier = self.sync_manager.barriers[barrier_id]
+                wait_time = (datetime.now() - barrier.created_at).total_seconds()
+                self.metrics_collector.record_sync_barrier_wait(wait_time)
+
             # Broadcast that barrier is complete
             self._broadcast(Message(
                 id=hashlib.md5(f"sync-complete-{barrier_id}".encode()).hexdigest()[:12],
@@ -1025,6 +1051,10 @@ class PowerModeCoordinator:
         Callback when an insight is added to the pool.
         Tracks documentation-related insights for the DocumentationBarrier (Issue #87).
         """
+        # Issue #108: Track insight sharing
+        if self.metrics_collector:
+            self.metrics_collector.record_insight_shared()
+
         # Check for documentation-related insight types
         if insight.type == InsightType.DOCS_NEEDED:
             self.documentation_barrier.record_docs_needed(
@@ -1054,6 +1084,10 @@ class PowerModeCoordinator:
     def _handle_agent_failure(self, agent: RegisteredAgent):
         """Handle an agent that has failed."""
         self.registry.mark_inactive(agent.identity.id)
+
+        # Issue #108: Track agent stop
+        if self.metrics_collector:
+            self.metrics_collector.agent_stopped(agent.identity.id)
 
         # Broadcast agent down
         self._broadcast(Message(
@@ -1128,6 +1162,11 @@ class PowerModeCoordinator:
         if not self.objective:
             return
 
+        # Issue #108: End previous phase timing
+        if self.metrics_collector and self.current_phase < len(self.objective.phases):
+            prev_phase = self.objective.phases[self.current_phase]
+            self.metrics_collector.end_phase(prev_phase)
+
         self.current_phase += 1
 
         if self.current_phase >= len(self.objective.phases):
@@ -1152,6 +1191,10 @@ class PowerModeCoordinator:
 
     def _start_phase(self, phase_name: str):
         """Start a new phase."""
+        # Issue #108: Track phase timing
+        if self.metrics_collector:
+            self.metrics_collector.start_phase(phase_name)
+
         # Aggregate insights from previous phase
         recommendations = self.pattern_learner.get_recommendations(phase_name)
 
@@ -1231,6 +1274,11 @@ class PowerModeCoordinator:
             session_id=self.session_id
         )
         self.registry.register(identity)
+
+        # Issue #108: Track agent start
+        if self.metrics_collector:
+            self.metrics_collector.agent_started(identity.id)
+
         return identity
 
     def assign_task(self, agent_id: str, task: Dict):
@@ -1300,6 +1348,18 @@ class PowerModeCoordinator:
                 ))
                 break
 
+    def get_metrics_report(self) -> Optional[Dict]:
+        """Get the current metrics report (Issue #108)."""
+        if self.metrics_collector:
+            return self.metrics_collector.generate_report()
+        return None
+
+    def get_metrics_cli_report(self) -> Optional[str]:
+        """Get CLI-formatted metrics report (Issue #108)."""
+        if self.metrics_collector:
+            return self.metrics_collector.format_cli_report()
+        return None
+
     def get_status(self) -> Dict:
         """Get coordinator status."""
         status = {
@@ -1341,10 +1401,11 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Pop Power Mode Coordinator")
-    parser.add_argument("command", choices=["start", "status", "stop"])
+    parser.add_argument("command", choices=["start", "status", "stop", "metrics"])
     parser.add_argument("--objective", help="Objective description")
     parser.add_argument("--phases", nargs="+", help="Phase names")
     parser.add_argument("--success-criteria", nargs="+", help="Success criteria")
+    parser.add_argument("--session", help="Session ID for metrics lookup")
 
     args = parser.parse_args()
 
@@ -1391,6 +1452,35 @@ def main():
         r = redis.Redis(decode_responses=True)
         r.publish("pop:coordinator", json.dumps({"command": "stop"}))
         print("Stop signal sent")
+
+    elif args.command == "metrics":
+        # Issue #108: Display metrics for a session
+        if not REDIS_AVAILABLE:
+            print("Redis not available")
+            sys.exit(1)
+
+        r = redis.Redis(decode_responses=True)
+
+        if args.session:
+            # Load specific session
+            data = load_session_metrics(args.session, r)
+            if data:
+                # Create collector from loaded data and display
+                collector = MetricsCollector(args.session)
+                collector.metrics = SessionMetrics(**data) if isinstance(data, dict) else data
+                print(collector.format_cli_report())
+            else:
+                print(f"No metrics found for session: {args.session}")
+        else:
+            # List available sessions
+            keys = r.keys("popkit:metrics:*")
+            if keys:
+                print("Available sessions:")
+                for key in keys:
+                    session_id = key.replace("popkit:metrics:", "")
+                    print(f"  - {session_id}")
+            else:
+                print("No metrics sessions found")
 
 
 if __name__ == "__main__":

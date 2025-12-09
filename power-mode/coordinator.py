@@ -22,6 +22,12 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
 
+try:
+    from cloud_client import PopKitCloudClient, CloudConfig
+    CLOUD_CLIENT_AVAILABLE = True
+except ImportError:
+    CLOUD_CLIENT_AVAILABLE = False
+
 from protocol import (
     Message, MessageType, MessageFactory,
     Objective, AgentState, Insight, InsightType,
@@ -528,6 +534,11 @@ class PowerModeCoordinator:
         self.redis: Optional[redis.Redis] = None
         self.pubsub: Optional[redis.client.PubSub] = None
 
+        # Cloud workflow integration (Issue #103 Phase 3)
+        self.cloud_client: Optional[PopKitCloudClient] = None
+        self.cloud_workflow_id: Optional[str] = None
+        self.use_cloud_workflows: bool = CONFIG.get("cloud", {}).get("use_workflows", True)
+
         # State
         self.is_running = False
         self.current_phase = 0
@@ -592,8 +603,79 @@ class PowerModeCoordinator:
                 json.dumps(self.objective.to_dict())
             )
 
+        # Issue #103 Phase 3: Start cloud workflow for durable tracking
+        if self.use_cloud_workflows and CLOUD_CLIENT_AVAILABLE:
+            self._start_cloud_workflow()
+
         print(f"Coordinator started. Session: {self.session_id}")
         return True
+
+    def _start_cloud_workflow(self):
+        """
+        Start a cloud workflow for durable state tracking.
+
+        Issue #103 Phase 3: Cloud workflows provide:
+        - Durable state persistence (survives crashes)
+        - Progress tracking across sessions
+        - Coordination between phases
+        - Crash recovery
+        """
+        config = CloudConfig.from_env()
+        if not config:
+            return
+
+        self.cloud_client = PopKitCloudClient(config)
+        if not self.cloud_client.connect():
+            self.cloud_client = None
+            return
+
+        # Get agent names from registry
+        agent_names = [
+            agent.identity.name
+            for agent in self.registry.get_active_agents()
+        ]
+
+        # If no agents yet, use objective phases as placeholder
+        if not agent_names and self.objective:
+            agent_names = self.objective.phases[:3]  # First 3 phases
+
+        task_description = self.objective.description if self.objective else "Power Mode session"
+
+        result = self.cloud_client.start_power_mode_workflow(
+            task=task_description,
+            agents=agent_names or ["coordinator"],
+            session_id=self.session_id,
+            consensus_threshold=CONFIG.get("consensus", {}).get("threshold", 0.7)
+        )
+
+        if result:
+            self.cloud_workflow_id = result.get("workflowId")
+            print(f"Cloud workflow started: {self.cloud_workflow_id}")
+
+    def _update_cloud_workflow(self, agent_results: Optional[List[Dict]] = None):
+        """
+        Push local progress to cloud workflow.
+
+        Called when agents complete work to sync state with cloud.
+        """
+        if not self.cloud_client or not self.cloud_workflow_id:
+            return
+
+        # Gather agent results from registry
+        if agent_results is None:
+            agent_results = []
+            for agent in self.registry.get_active_agents():
+                if agent.state and agent.state.progress >= 1.0:
+                    agent_results.append({
+                        "agent": agent.identity.name,
+                        "output": json.dumps(agent.assigned_task) if agent.assigned_task else "",
+                        "confidence": agent.state.progress if agent.state else 0.5
+                    })
+
+        self.cloud_client.update_workflow(
+            run_id=self.cloud_workflow_id,
+            agent_results=agent_results
+        )
 
     def stop(self):
         """Stop the coordinator."""
@@ -607,6 +689,11 @@ class PowerModeCoordinator:
 
         if self._monitor_thread:
             self._monitor_thread.join(timeout=2)
+
+        # Issue #103 Phase 3: Final sync to cloud workflow
+        if self.cloud_client and self.cloud_workflow_id:
+            self._update_cloud_workflow()
+            self.cloud_client.disconnect()
 
         print("Coordinator stopped.")
 
@@ -718,6 +805,16 @@ class PowerModeCoordinator:
                 outcome="success" if result.get("success") else "failed",
                 confidence=result.get("confidence", 0.5)
             )
+
+        # Issue #103 Phase 3: Sync result to cloud workflow
+        if self.cloud_client and self.cloud_workflow_id:
+            agent = self.registry.get_agent(agent_id)
+            agent_name = agent.identity.name if agent else agent_id
+            self._update_cloud_workflow([{
+                "agent": agent_name,
+                "output": json.dumps(result) if isinstance(result, dict) else str(result),
+                "confidence": result.get("confidence", 0.8) if isinstance(result, dict) else 0.8
+            }])
 
         # Check if phase is complete
         self._check_phase_completion()
@@ -1146,6 +1243,18 @@ class PowerModeCoordinator:
     def create_sync_barrier(self, name: str, agents: List[str]) -> str:
         """Create a sync barrier and notify agents."""
         barrier_id = f"{name}-{hashlib.md5(datetime.now().isoformat().encode()).hexdigest()[:6]}"
+
+        # Issue #103 Phase 3: Use cloud sync barrier if available
+        if self.cloud_client and self.cloud_client.connected:
+            result = self.cloud_client.create_sync_barrier(
+                barrier_id=barrier_id,
+                required_agents=agents,
+                timeout_seconds=CONFIG.get("intervals", {}).get("sync_timeout_seconds", 120)
+            )
+            if result:
+                print(f"Cloud sync barrier created: {barrier_id}")
+
+        # Also create local barrier for redundancy
         self.sync_manager.create_barrier(barrier_id, agents)
 
         msg = MessageFactory.sync(barrier_id, agents)
@@ -1193,7 +1302,7 @@ class PowerModeCoordinator:
 
     def get_status(self) -> Dict:
         """Get coordinator status."""
-        return {
+        status = {
             "session_id": self.session_id,
             "is_running": self.is_running,
             "objective": self.objective.description if self.objective else None,
@@ -1205,6 +1314,22 @@ class PowerModeCoordinator:
             "human_pending": len(self.human_pending),
             "violations": len(self.guardrails.violations)
         }
+
+        # Issue #103 Phase 3: Include cloud workflow status
+        if self.cloud_workflow_id:
+            status["cloud_workflow"] = {
+                "id": self.cloud_workflow_id,
+                "connected": self.cloud_client.connected if self.cloud_client else False
+            }
+
+            # Fetch cloud status if available
+            if self.cloud_client and self.cloud_client.connected:
+                cloud_status = self.cloud_client.get_workflow_status(self.cloud_workflow_id)
+                if cloud_status:
+                    status["cloud_workflow"]["status"] = cloud_status.get("status")
+                    status["cloud_workflow"]["currentPhase"] = cloud_status.get("currentPhase")
+
+        return status
 
 
 # =============================================================================

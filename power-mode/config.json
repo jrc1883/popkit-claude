@@ -160,5 +160,22 @@
     "pattern_retention_hours": 24,
     "share_patterns_across_sessions": false,
     "success_pattern_threshold": 0.8
+  },
+
+  "cloud": {
+    "use_workflows": true,
+    "api_url": "https://popkit-cloud-api.joseph-cannon.workers.dev/v1",
+    "fallback_to_local": true,
+    "sync_on_result": true,
+    "sync_on_phase_change": true
+  },
+
+  "consensus": {
+    "threshold": 0.7,
+    "require_unanimous_for": [
+      "delete_files",
+      "modify_security",
+      "push_changes"
+    ]
   }
 }

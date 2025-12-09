@@ -421,6 +421,287 @@ class PopKitCloudClient:
             return None
 
     # =========================================================================
+    # WORKFLOW INTEGRATION (Issue #103 Phase 3)
+    # =========================================================================
+
+    def start_power_mode_workflow(
+        self,
+        task: str,
+        agents: List[str],
+        session_id: str,
+        consensus_threshold: float = 0.7
+    ) -> Optional[Dict]:
+        """
+        Start a Power Mode workflow on PopKit Cloud.
+
+        This creates a durable workflow that tracks agent coordination.
+        The actual work is still done locally by Claude Code.
+
+        Args:
+            task: Task description
+            agents: List of agent names participating
+            session_id: Local session ID for correlation
+            consensus_threshold: Required agreement level (0.0-1.0)
+
+        Returns:
+            Dict with workflowId and status, or None if failed
+        """
+        if not self.connected:
+            return None
+
+        try:
+            response = self._request("POST", "/workflows/power-mode", {
+                "task": task,
+                "agents": agents,
+                "sessionId": session_id,
+                "userId": self.config.user_id or "anonymous",
+                "consensusThreshold": consensus_threshold
+            })
+            return response
+        except Exception as e:
+            print(f"Failed to start workflow: {e}", file=sys.stderr)
+            return None
+
+    def update_workflow(
+        self,
+        run_id: str,
+        phase: Optional[str] = None,
+        result: Optional[str] = None,
+        agent_results: Optional[List[Dict]] = None
+    ) -> bool:
+        """
+        Update a running workflow with results from local Claude Code session.
+
+        Args:
+            run_id: Workflow run ID from start_power_mode_workflow
+            phase: Current phase name
+            result: Phase result/output
+            agent_results: List of agent results for power mode
+
+        Returns:
+            True if update succeeded
+        """
+        if not self.connected:
+            return False
+
+        body: Dict[str, Any] = {}
+        if phase:
+            body["phase"] = phase
+        if result:
+            body["result"] = result
+        if agent_results:
+            body["agentResults"] = agent_results
+
+        try:
+            self._request("POST", f"/workflows/update/{run_id}", body)
+            return True
+        except Exception as e:
+            print(f"Failed to update workflow: {e}", file=sys.stderr)
+            return False
+
+    def get_workflow_status(self, run_id: str) -> Optional[Dict]:
+        """
+        Get status of a workflow.
+
+        Args:
+            run_id: Workflow run ID
+
+        Returns:
+            Workflow status dict or None if not found
+        """
+        if not self.connected:
+            return None
+
+        try:
+            return self._request("GET", f"/workflows/status/{run_id}")
+        except Exception:
+            return None
+
+    def list_workflows(self) -> List[Dict]:
+        """
+        List recent workflows.
+
+        Returns:
+            List of workflow summaries
+        """
+        if not self.connected:
+            return []
+
+        try:
+            response = self._request("GET", "/workflows/list")
+            return response.get("workflows", [])
+        except Exception:
+            return []
+
+    def start_feature_dev_workflow(
+        self,
+        feature: str,
+        project_path: str,
+        session_id: str,
+        phase_results: Optional[Dict[str, str]] = None
+    ) -> Optional[Dict]:
+        """
+        Start a Feature Development workflow on PopKit Cloud.
+
+        This creates a durable 7-phase workflow tracking.
+
+        Args:
+            feature: Feature description
+            project_path: Project directory path
+            session_id: Local session ID
+            phase_results: Optional pre-filled phase results
+
+        Returns:
+            Dict with workflowId or None if failed
+        """
+        if not self.connected:
+            return None
+
+        try:
+            response = self._request("POST", "/workflows/feature-dev", {
+                "feature": feature,
+                "projectPath": project_path,
+                "sessionId": session_id,
+                "userId": self.config.user_id or "anonymous",
+                "phaseResults": phase_results or {}
+            })
+            return response
+        except Exception as e:
+            print(f"Failed to start feature-dev workflow: {e}", file=sys.stderr)
+            return None
+
+    # =========================================================================
+    # SYNC BARRIERS (Issue #103 Phase 3)
+    # =========================================================================
+
+    def create_sync_barrier(
+        self,
+        barrier_id: str,
+        required_agents: List[str],
+        timeout_seconds: int = 120
+    ) -> Optional[Dict]:
+        """
+        Create a cloud-based sync barrier for agent coordination.
+
+        Replaces local Redis pub/sub sync barriers with durable cloud storage.
+
+        Args:
+            barrier_id: Unique identifier for the barrier
+            required_agents: List of agent IDs that must acknowledge
+            timeout_seconds: Barrier expiration time
+
+        Returns:
+            Dict with barrier status or None if failed
+        """
+        if not self.connected:
+            return None
+
+        try:
+            return self._request("POST", "/workflows/sync/create", {
+                "barrierId": barrier_id,
+                "requiredAgents": required_agents,
+                "timeoutSeconds": timeout_seconds
+            })
+        except Exception as e:
+            print(f"Failed to create sync barrier: {e}", file=sys.stderr)
+            return None
+
+    def acknowledge_sync_barrier(
+        self,
+        barrier_id: str,
+        agent_id: str
+    ) -> Optional[Dict]:
+        """
+        Acknowledge a sync barrier.
+
+        Args:
+            barrier_id: Barrier ID to acknowledge
+            agent_id: Agent ID acknowledging the barrier
+
+        Returns:
+            Dict with isComplete flag and barrier status
+        """
+        if not self.connected:
+            return None
+
+        try:
+            return self._request("POST", f"/workflows/sync/ack/{barrier_id}", {
+                "agentId": agent_id
+            })
+        except Exception as e:
+            print(f"Failed to acknowledge barrier: {e}", file=sys.stderr)
+            return None
+
+    def get_sync_barrier_status(self, barrier_id: str) -> Optional[Dict]:
+        """
+        Get status of a sync barrier.
+
+        Args:
+            barrier_id: Barrier ID to check
+
+        Returns:
+            Dict with barrier status including acknowledged/missing agents
+        """
+        if not self.connected:
+            return None
+
+        try:
+            return self._request("GET", f"/workflows/sync/status/{barrier_id}")
+        except Exception:
+            return None
+
+    def wait_for_sync_barrier(
+        self,
+        barrier_id: str,
+        agent_id: str,
+        poll_interval: float = 2.0,
+        max_wait: float = 120.0
+    ) -> bool:
+        """
+        Wait for a sync barrier to complete (blocking).
+
+        This is a polling-based implementation. Acknowledges the barrier
+        and polls until all agents have acknowledged.
+
+        Args:
+            barrier_id: Barrier ID to wait for
+            agent_id: This agent's ID
+            poll_interval: Seconds between status checks
+            max_wait: Maximum seconds to wait
+
+        Returns:
+            True if barrier completed, False if timed out
+        """
+        if not self.connected:
+            return False
+
+        # First, acknowledge
+        result = self.acknowledge_sync_barrier(barrier_id, agent_id)
+        if not result:
+            return False
+
+        if result.get("isComplete"):
+            return True
+
+        # Poll for completion
+        start_time = time.time()
+        while time.time() - start_time < max_wait:
+            time.sleep(poll_interval)
+
+            status = self.get_sync_barrier_status(barrier_id)
+            if not status:
+                return False
+
+            if status.get("status") == "complete":
+                return True
+
+            if status.get("status") == "not_found":
+                # Barrier expired
+                return False
+
+        return False
+
+    # =========================================================================
     # INTERNAL HTTP CLIENT
     # =========================================================================
 
@@ -602,6 +883,40 @@ if __name__ == "__main__":
         print("\nTesting pull_insights...")
         insights = client.pull_insights(["test"], "other-agent", 3)
         print(f"✓ Pulled {len(insights)} insights")
+
+        # Test workflow integration (Issue #103 Phase 3)
+        print("\nTesting workflows...")
+
+        # Start a power mode workflow
+        workflow = client.start_power_mode_workflow(
+            task="Test workflow from cloud client",
+            agents=["code-reviewer", "test-writer"],
+            session_id="test-session-001",
+            consensus_threshold=0.7
+        )
+        if workflow:
+            print(f"✓ Started workflow: {workflow.get('workflowId', 'unknown')}")
+
+            # Check status
+            run_id = workflow.get("workflowId")
+            if run_id:
+                status = client.get_workflow_status(run_id)
+                if status:
+                    print(f"  Status: {status.get('status', 'unknown')}")
+
+                # Update with agent result
+                client.update_workflow(run_id, agent_results=[{
+                    "agent": "code-reviewer",
+                    "output": "Review complete",
+                    "confidence": 0.85
+                }])
+                print("✓ Workflow updated")
+        else:
+            print("! Workflow test skipped (endpoint may not be available)")
+
+        # List workflows
+        workflows = client.list_workflows()
+        print(f"  Recent workflows: {len(workflows)}")
 
         # Show usage
         print(f"\nUsage: {client.get_usage()}")

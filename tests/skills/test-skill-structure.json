@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "skill-structure",
+  "description": "Tests for all PopKit skills - validates SKILL.md format, descriptions, and invocability",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "pop-analyze-project skill",
+      "skill": "pop-analyze-project",
+      "file": "skills/pop-analyze-project/SKILL.md",
+      "description_pattern": "Use when.*project.*analysis",
+      "category": "project"
+    },
+    {
+      "name": "pop-auto-docs skill",
+      "skill": "pop-auto-docs",
+      "file": "skills/pop-auto-docs/SKILL.md",
+      "description_pattern": "Use when.*documentation",
+      "category": "documentation"
+    },
+    {
+      "name": "pop-brainstorming skill",
+      "skill": "pop-brainstorming",
+      "file": "skills/pop-brainstorming/SKILL.md",
+      "description_pattern": "Use when.*design|brainstorm",
+      "category": "design"
+    },
+    {
+      "name": "pop-bug-reporter skill",
+      "skill": "pop-bug-reporter",
+      "file": "skills/pop-bug-reporter/SKILL.md",
+      "description_pattern": "Use when.*bug|report",
+      "category": "debugging"
+    },
+    {
+      "name": "pop-chain-management skill",
+      "skill": "pop-chain-management",
+      "file": "skills/pop-chain-management/SKILL.md",
+      "description_pattern": "Use when.*workflow|chain",
+      "category": "workflow"
+    },
+    {
+      "name": "pop-checkpoint skill",
+      "skill": "pop-checkpoint",
+      "file": "skills/pop-checkpoint/SKILL.md",
+      "description_pattern": "Use when.*checkpoint|save",
+      "category": "power-mode"
+    },
+    {
+      "name": "pop-code-review skill",
+      "skill": "pop-code-review",
+      "file": "skills/pop-code-review/SKILL.md",
+      "description_pattern": "Use when.*review|code quality",
+      "category": "quality"
+    },
+    {
+      "name": "pop-context-restore skill",
+      "skill": "pop-context-restore",
+      "file": "skills/pop-context-restore/SKILL.md",
+      "description_pattern": "Use when.*context|restore",
+      "category": "session"
+    },
+    {
+      "name": "pop-defense-in-depth skill",
+      "skill": "pop-defense-in-depth",
+      "file": "skills/pop-defense-in-depth/SKILL.md",
+      "description_pattern": "Use when.*validation|defense",
+      "category": "debugging"
+    },
+    {
+      "name": "pop-doc-sync skill",
+      "skill": "pop-doc-sync",
+      "file": "skills/pop-doc-sync/SKILL.md",
+      "description_pattern": "Use when.*documentation.*sync",
+      "category": "documentation"
+    },
+    {
+      "name": "pop-embed-content skill",
+      "skill": "pop-embed-content",
+      "file": "skills/pop-embed-content/SKILL.md",
+      "description_pattern": "Use when.*embed",
+      "category": "semantic"
+    },
+    {
+      "name": "pop-embed-project skill",
+      "skill": "pop-embed-project",
+      "file": "skills/pop-embed-project/SKILL.md",
+      "description_pattern": "Use when.*embed.*project",
+      "category": "semantic"
+    },
+    {
+      "name": "pop-executing-plans skill",
+      "skill": "pop-executing-plans",
+      "file": "skills/pop-executing-plans/SKILL.md",
+      "description_pattern": "Use when.*execute.*plan",
+      "category": "development"
+    },
+    {
+      "name": "pop-feedback-report skill",
+      "skill": "pop-feedback-report",
+      "file": "skills/pop-feedback-report/SKILL.md",
+      "description_pattern": "Use when.*feedback",
+      "category": "feedback"
+    },
+    {
+      "name": "pop-finish-branch skill",
+      "skill": "pop-finish-branch",
+      "file": "skills/pop-finish-branch/SKILL.md",
+      "description_pattern": "Use when.*finish|complete.*branch",
+      "category": "git"
+    },
+    {
+      "name": "pop-heartbeat skill",
+      "skill": "pop-heartbeat",
+      "file": "skills/pop-heartbeat/SKILL.md",
+      "description_pattern": "Use when.*heartbeat|health",
+      "category": "power-mode"
+    },
+    {
+      "name": "pop-knowledge-lookup skill",
+      "skill": "pop-knowledge-lookup",
+      "file": "skills/pop-knowledge-lookup/SKILL.md",
+      "description_pattern": "Use when.*knowledge|documentation",
+      "category": "knowledge"
+    },
+    {
+      "name": "pop-mcp-generator skill",
+      "skill": "pop-mcp-generator",
+      "file": "skills/pop-mcp-generator/SKILL.md",
+      "description_pattern": "Use when.*MCP|server",
+      "category": "project"
+    },
+    {
+      "name": "pop-morning-generator skill",
+      "skill": "pop-morning-generator",
+      "file": "skills/pop-morning-generator/SKILL.md",
+      "description_pattern": "Use when.*morning|health check",
+      "category": "routine"
+    },
+    {
+      "name": "pop-next-action skill",
+      "skill": "pop-next-action",
+      "file": "skills/pop-next-action/SKILL.md",
+      "description_pattern": "Use when.*next.*action|recommend",
+      "category": "workflow"
+    },
+    {
+      "name": "pop-nightly-generator skill",
+      "skill": "pop-nightly-generator",
+      "file": "skills/pop-nightly-generator/SKILL.md",
+      "description_pattern": "Use when.*nightly|cleanup",
+      "category": "routine"
+    },
+    {
+      "name": "pop-plugin-test skill",
+      "skill": "pop-plugin-test",
+      "file": "skills/pop-plugin-test/SKILL.md",
+      "description_pattern": "Use when.*test|verify.*plugin",
+      "category": "testing"
+    },
+    {
+      "name": "pop-power-mode skill",
+      "skill": "pop-power-mode",
+      "file": "skills/pop-power-mode/SKILL.md",
+      "description_pattern": "Use when.*power mode|multi-agent",
+      "category": "power-mode"
+    },
+    {
+      "name": "pop-project-init skill",
+      "skill": "pop-project-init",
+      "file": "skills/pop-project-init/SKILL.md",
+      "description_pattern": "Use when.*init|setup.*project",
+      "category": "project"
+    },
+    {
+      "name": "pop-project-templates skill",
+      "skill": "pop-project-templates",
+      "file": "skills/pop-project-templates/SKILL.md",
+      "description_pattern": "Use when.*template|project type",
+      "category": "project"
+    },
+    {
+      "name": "pop-root-cause-tracing skill",
+      "skill": "pop-root-cause-tracing",
+      "file": "skills/pop-root-cause-tracing/SKILL.md",
+      "description_pattern": "Use when.*root cause|trace",
+      "category": "debugging"
+    },
+    {
+      "name": "pop-routing-debug skill",
+      "skill": "pop-routing-debug",
+      "file": "skills/pop-routing-debug/SKILL.md",
+      "description_pattern": "Use when.*routing|agent.*selection",
+      "category": "debugging"
+    },
+    {
+      "name": "pop-security-scan skill",
+      "skill": "pop-security-scan",
+      "file": "skills/pop-security-scan/SKILL.md",
+      "description_pattern": "Use when.*security|scan",
+      "category": "security"
+    },
+    {
+      "name": "pop-session-capture skill",
+      "skill": "pop-session-capture",
+      "file": "skills/pop-session-capture/SKILL.md",
+      "description_pattern": "Use when.*session|capture|save",
+      "category": "session"
+    },
+    {
+      "name": "pop-session-resume skill",
+      "skill": "pop-session-resume",
+      "file": "skills/pop-session-resume/SKILL.md",
+      "description_pattern": "Use when.*session|resume",
+      "category": "session"
+    },
+    {
+      "name": "pop-simplify-cascade skill",
+      "skill": "pop-simplify-cascade",
+      "file": "skills/pop-simplify-cascade/SKILL.md",
+      "description_pattern": "Use when.*simplify|complexity",
+      "category": "refactoring"
+    },
+    {
+      "name": "pop-skill-generator skill",
+      "skill": "pop-skill-generator",
+      "file": "skills/pop-skill-generator/SKILL.md",
+      "description_pattern": "Use when.*generate.*skill",
+      "category": "meta"
+    },
+    {
+      "name": "pop-smoke-test skill",
+      "skill": "pop-smoke-test",
+      "file": "skills/pop-smoke-test/SKILL.md",
+      "description_pattern": "Use when.*smoke test|quick test",
+      "category": "testing"
+    },
+    {
+      "name": "pop-subagent-dev skill",
+      "skill": "pop-subagent-dev",
+      "file": "skills/pop-subagent-dev/SKILL.md",
+      "description_pattern": "Use when.*subagent|agent dev",
+      "category": "meta"
+    },
+    {
+      "name": "pop-systematic-debugging skill",
+      "skill": "pop-systematic-debugging",
+      "file": "skills/pop-systematic-debugging/SKILL.md",
+      "description_pattern": "Use when.*debug|systematic",
+      "category": "debugging"
+    },
+    {
+      "name": "pop-test-driven-development skill",
+      "skill": "pop-test-driven-development",
+      "file": "skills/pop-test-driven-development/SKILL.md",
+      "description_pattern": "Use when.*TDD|test.*first",
+      "category": "testing"
+    },
+    {
+      "name": "pop-validation-engine skill",
+      "skill": "pop-validation-engine",
+      "file": "skills/pop-validation-engine/SKILL.md",
+      "description_pattern": "Use when.*validation|validate",
+      "category": "quality"
+    },
+    {
+      "name": "pop-verify-completion skill",
+      "skill": "pop-verify-completion",
+      "file": "skills/pop-verify-completion/SKILL.md",
+      "description_pattern": "Use when.*verify|completion",
+      "category": "quality"
+    },
+    {
+      "name": "pop-worktrees skill",
+      "skill": "pop-worktrees",
+      "file": "skills/pop-worktrees/SKILL.md",
+      "description_pattern": "Use when.*worktree|isolated",
+      "category": "git"
+    },
+    {
+      "name": "pop-writing-plans skill",
+      "skill": "pop-writing-plans",
+      "file": "skills/pop-writing-plans/SKILL.md",
+      "description_pattern": "Use when.*plan|implementation",
+      "category": "development"
+    }
+  ],
+  "validation_rules": {
+    "file_must_exist": true,
+    "frontmatter_required": true,
+    "description_starts_with_use_when": true,
+    "name_matches_directory": true
+  },
+  "categories": {
+    "project": "Project setup and analysis",
+    "documentation": "Documentation generation and sync",
+    "design": "Design and brainstorming",
+    "debugging": "Bug fixing and tracing",
+    "workflow": "Workflow management",
+    "power-mode": "Multi-agent coordination",
+    "quality": "Code quality and review",
+    "session": "Session state management",
+    "semantic": "Embeddings and semantic search",
+    "development": "Feature development",
+    "feedback": "User feedback handling",
+    "git": "Git operations",
+    "knowledge": "Knowledge base management",
+    "routine": "Daily routines",
+    "testing": "Test execution",
+    "security": "Security scanning",
+    "refactoring": "Code simplification",
+    "meta": "Agent/skill generation"
+  },
+  "metadata": {
+    "created": "2025-12-09",
+    "total_skills": 40,
+    "issue": "#105",
+    "author": "popkit"
+  }
+}

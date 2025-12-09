@@ -1,0 +1,114 @@
+{
+  "timestamp": "2025-12-09T12:06:34.085155",
+  "summary": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 2.7920000000000003
+  },
+  "results": [
+    {
+      "name": "plugin.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "marketplace.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "agents/config.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "hooks/hooks.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": ".mcp.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "CLAUDE.md exists at repo root",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "all skills have SKILL.md",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 41 files"
+    },
+    {
+      "name": "all tier-1 agents have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 11 files"
+    },
+    {
+      "name": "all tier-2 agents have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 17 files"
+    },
+    {
+      "name": "all feature-workflow agents have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 2 files"
+    },
+    {
+      "name": "all hooks are Python files",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 23 files"
+    },
+    {
+      "name": "all hook utils are Python files",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 39 files (expected 24)"
+    },
+    {
+      "name": "all commands have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 16 files"
+    },
+    {
+      "name": "all output styles have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 19 files"
+    },
+    {
+      "name": "power-mode config exists",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "power-mode coordinator exists",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "MCP server template exists",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    }
+  ]
+}

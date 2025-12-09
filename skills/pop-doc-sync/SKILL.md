@@ -11,17 +11,40 @@ Synchronize documentation by reading source-of-truth files and updating auto-gen
 
 **Announce at start:** "I'm using the doc-sync skill to check documentation synchronization."
 
+## Monorepo Structure Awareness
+
+PopKit uses a monorepo structure. Source-of-truth files are located in:
+
+```
+popkit/
+├── CLAUDE.md                    # Root project instructions
+├── CHANGELOG.md                 # Version history (separate file)
+├── packages/
+│   └── plugin/                  # Main plugin package
+│       ├── .claude-plugin/
+│       │   ├── plugin.json      # Plugin version
+│       │   └── marketplace.json # Marketplace version (must match)
+│       ├── agents/
+│       │   └── config.json      # Agent counts per tier
+│       ├── hooks/
+│       │   ├── hooks.json       # Hook count
+│       │   └── utils/*.py       # Utility module count
+│       ├── skills/*/SKILL.md    # Skill count
+│       └── commands/*.md        # Command count
+```
+
 ## Source of Truth Files
 
-| File | Provides |
-|------|----------|
-| `.claude-plugin/plugin.json` | Plugin version |
-| `.claude-plugin/marketplace.json` | Marketplace version (should match) |
-| `agents/config.json` | Agent counts per tier |
-| `hooks/hooks.json` | Hook count |
-| `skills/*/SKILL.md` | Skill count (count directories) |
-| `commands/*.md` | Command count (grep for deprecated) |
-| `hooks/utils/*.py` | Utility module count |
+| File | Location | Provides |
+|------|----------|----------|
+| `plugin.json` | `packages/plugin/.claude-plugin/` | Plugin version |
+| `marketplace.json` | `packages/plugin/.claude-plugin/` | Marketplace version (should match) |
+| `config.json` | `packages/plugin/agents/` | Agent counts per tier |
+| `hooks.json` | `packages/plugin/hooks/` | Hook count |
+| `SKILL.md` | `packages/plugin/skills/*/` | Skill count (count directories) |
+| `*.md` | `packages/plugin/commands/` | Command count (grep for deprecated) |
+| `*.py` | `packages/plugin/hooks/utils/` | Utility module count |
+| `CHANGELOG.md` | Root | Version history |
 
 ## Target Sections
 
@@ -33,22 +56,63 @@ CLAUDE.md contains these auto-generated markers:
 | `AUTO-GEN:REPO-STRUCTURE` | Directory tree with file/component counts |
 | `AUTO-GEN:KEY-FILES` | Important plugin files table |
 
+**Note:** Version history is now in CHANGELOG.md, not CLAUDE.md.
+
 ## Process
 
 ### 1. Gather Current Counts
 
 ```python
-# Read source files and count:
-plugin_version = read_json(".claude-plugin/plugin.json")["version"]
-marketplace_version = read_json(".claude-plugin/marketplace.json")["version"]
+import os
+import json
+from pathlib import Path
+
+# Base paths (monorepo-aware)
+root_path = "."  # or detected git root
+plugin_path = os.path.join(root_path, "packages", "plugin")
+
+# Read versions
+plugin_json = os.path.join(plugin_path, ".claude-plugin", "plugin.json")
+marketplace_json = os.path.join(plugin_path, ".claude-plugin", "marketplace.json")
+
+with open(plugin_json) as f:
+    plugin_version = json.load(f)["version"]
+with open(marketplace_json) as f:
+    marketplace_version = json.load(f)["plugins"][0]["version"]
+
+# Read agent config
+config_path = os.path.join(plugin_path, "agents", "config.json")
+with open(config_path) as f:
+    config = json.load(f)
+
 tier1_count = len(config["tiers"]["tier-1-always-active"]["agents"])
 tier2_count = len(config["tiers"]["tier-2-on-demand"]["agents"])
 feature_count = len(config["tiers"]["feature-workflow"]["agents"])
-hook_count = len(hooks_json["hooks"])
-skill_count = count_dirs("skills/*/SKILL.md")
-command_count = count_files("commands/*.md")
-deprecated_count = grep_count("deprecated", "commands/*.md")
-utils_count = count_files("hooks/utils/*.py")
+
+# Count hooks
+hooks_json = os.path.join(plugin_path, "hooks", "hooks.json")
+with open(hooks_json) as f:
+    hook_count = len(json.load(f)["hooks"])
+
+# Count skills (directories with SKILL.md)
+skills_path = os.path.join(plugin_path, "skills")
+skill_count = len(list(Path(skills_path).glob("*/SKILL.md")))
+
+# Count commands (exclude deprecated)
+commands_path = os.path.join(plugin_path, "commands")
+command_files = list(Path(commands_path).glob("*.md"))
+active_commands = 0
+deprecated_commands = 0
+for cmd in command_files:
+    content = cmd.read_text()
+    if "deprecated: true" in content.lower() or "DEPRECATED" in content:
+        deprecated_commands += 1
+    else:
+        active_commands += 1
+
+# Count utils
+utils_path = os.path.join(plugin_path, "hooks", "utils")
+utils_count = len(list(Path(utils_path).glob("*.py")))
 ```
 
 ### 2. Parse Documented Values
@@ -64,19 +128,20 @@ Documentation Sync Report
 =========================
 
 Version Sync:
-  plugin.json:      0.9.8
-  marketplace.json: 0.9.8 ✓
+  plugin.json:      0.9.10
+  marketplace.json: 0.9.10 ✓
+  CHANGELOG.md:     0.9.10 ✓
 
 Agent Counts:
   Tier 1: config=11, docs=11 ✓
   Tier 2: config=17, docs=17 ✓
-  Feature: config=2, docs=2 ✓
+  Feature: config=3, docs=3 ✓
 
 Component Counts:
-  Skills: found=35, docs=35 ✓
-  Commands: found=22, docs=22 ✓
+  Skills: found=36, docs=36 ✓
+  Commands: found=15 active (7 deprecated), docs=15 ✓
   Hooks: found=18, docs=18 ✓
-  Utils: found=22, docs=22 ✓
+  Utils: found=24, docs=24 ✓
 
 Status: All synchronized ✓
 ```
@@ -129,9 +194,9 @@ Invoke skill: pop-doc-sync --verbose
 **When synchronized:**
 ```
 [doc-sync] All documentation synchronized ✓
-  Version: 0.9.8
-  Agents: 30 (11 tier-1, 17 tier-2, 2 feature)
-  Skills: 35, Commands: 22, Hooks: 18
+  Version: 0.9.10
+  Agents: 31 (11 tier-1, 17 tier-2, 3 feature)
+  Skills: 36, Commands: 15 active, Hooks: 18
 ```
 
 **When drift detected:**
@@ -144,8 +209,8 @@ Invoke skill: pop-doc-sync --verbose
     Fix: Update CLAUDE.md line 98
 
   DRIFT: Skills count
-    Source: Found 35 skill directories
-    Docs: CLAUDE.md says "34 reusable skills"
+    Source: Found 36 skill directories
+    Docs: CLAUDE.md says "35 reusable skills"
     Fix: Update CLAUDE.md line 96
 
 Run with --fix to automatically update.
@@ -155,10 +220,28 @@ Run with --fix to automatically update.
 ```
 [doc-sync] Fixed 2 drift issues:
   ✓ Updated hooks count: 19 → 18
-  ✓ Updated skills count: 34 → 35
+  ✓ Updated skills count: 35 → 36
 
 CLAUDE.md has been updated.
 ```
+
+## CHANGELOG.md Sync
+
+The version history is now in a separate CHANGELOG.md file. When checking versions:
+
+1. **Check CLAUDE.md** has correct current version reference:
+   ```markdown
+   **Current Version:** 0.9.10 (User Feedback & Vote-Based Prioritization)
+   ```
+
+2. **Check CHANGELOG.md** has matching version as first entry:
+   ```markdown
+   ## [0.9.10] - Current
+   ```
+
+3. **Check plugin.json and marketplace.json** versions match
+
+If mismatched, report which files need updating.
 
 ## Integration Points
 
@@ -190,6 +273,8 @@ Can span multiple lines
 ### Regex Patterns
 
 ```python
+import re
+
 # Find marker sections
 MARKER_PATTERN = r'<!-- AUTO-GEN:(\w+[-\w]*) START -->(.*?)<!-- AUTO-GEN:\1 END -->'
 
@@ -210,6 +295,7 @@ COUNT_PATTERNS = {
 - Missing source file → Report error, skip that check
 - Missing marker → Report "marker not found", suggest adding
 - Parse failure → Report raw content for manual review
+- Monorepo not detected → Fall back to single-package paths
 
 ## Example Session
 
@@ -217,33 +303,16 @@ COUNT_PATTERNS = {
 User: Check if documentation is in sync
 Claude: I'm using the doc-sync skill to check documentation synchronization.
 
-[Reads source files, compares to CLAUDE.md]
+[Reads source files from packages/plugin/, compares to CLAUDE.md]
 
 Documentation Sync Report
 =========================
 
-Version: 0.9.8 ✓
-Agents: 30 (11 tier-1, 17 tier-2, 2 feature) ✓
-Skills: 35 ✓, Commands: 22 ✓, Hooks: 18 ✓
+Version: 0.9.10 ✓
+Agents: 31 (11 tier-1, 17 tier-2, 3 feature) ✓
+Skills: 36 ✓, Commands: 15 active ✓, Hooks: 18 ✓
 
 All documentation synchronized ✓
-```
-
-```
-User: The hooks count is wrong, please fix it
-
-Claude: I'm using the doc-sync skill with --fix to update documentation.
-
-[Reads hooks.json: 18 hooks]
-[Reads CLAUDE.md: says "19 Python hooks"]
-
-DRIFT detected: Hooks count (19 → 18)
-
-Fixing...
-[Updates CLAUDE.md AUTO-GEN:REPO-STRUCTURE section]
-
-Fixed 1 drift issue:
-  ✓ Updated hooks count: 19 → 18
 ```
 
 ## Related Skills
@@ -259,17 +328,22 @@ Fixed 1 drift issue:
 ```
 doc-sync skill
      │
+     ├── Detect monorepo structure
+     │   └── packages/plugin/ or root
+     │
      ├── Read source files
-     │   ├── .claude-plugin/plugin.json
-     │   ├── .claude-plugin/marketplace.json
-     │   ├── agents/config.json
-     │   ├── hooks/hooks.json
+     │   ├── packages/plugin/.claude-plugin/plugin.json
+     │   ├── packages/plugin/.claude-plugin/marketplace.json
+     │   ├── packages/plugin/agents/config.json
+     │   ├── packages/plugin/hooks/hooks.json
      │   └── (count directories/files)
      │
      ├── Parse CLAUDE.md markers
      │   ├── AUTO-GEN:TIER-COUNTS
      │   ├── AUTO-GEN:REPO-STRUCTURE
      │   └── AUTO-GEN:KEY-FILES
+     │
+     ├── Check CHANGELOG.md version
      │
      ├── Compare values
      │   └── Generate drift report

@@ -1,43 +1,56 @@
 ---
 name: project-init
-description: "Use when starting a new project or setting up Claude Code integration - initializes .claude/ directory structure including agents, skills, commands, hooks, and project documentation templates. Creates CLAUDE.md, STATUS.json, settings.json with optional Power Mode setup. Do NOT use if .claude/ already exists - use analyze-project instead to understand existing configuration."
+description: "Use when starting a new project or setting up Claude Code integration - initializes .claude/ directory structure and surgically adds PopKit section to CLAUDE.md without overwriting existing content. Detects plugin conflicts and recommends resolutions. Do NOT use if .claude/ already exists - use analyze-project instead to understand existing configuration."
 ---
 
 # Project Initialization
 
 ## Overview
 
-Scaffold a new project with complete Claude Code configuration including agents, skills, commands, and documentation.
+Scaffold a new project with complete Claude Code configuration. **Surgically adds PopKit configuration** without overwriting existing user content in CLAUDE.md.
 
-**Core principle:** Every project gets a consistent, well-organized .claude/ structure.
+**Core principle:** Never destroy user content. Add what's needed, preserve what exists.
 
-**Trigger:** `/init-project` command or when starting work on a new project
+**Trigger:** `/popkit:project init` command or when starting work on a new project
 
-## Directory Structure Created
+## Critical Rules
 
-```
-.claude/
-├── agents/                    # Project-specific agents
-│   └── README.md
-├── commands/                  # Slash commands
-│   └── README.md
-├── hooks/                     # Hook scripts (pre-tool-use, etc.)
-│   └── README.md
-├── skills/                    # Project-specific skills
-│   └── README.md
-├── scripts/                   # Utility scripts
-│   ├── session-start.ps1     # Session startup script
-│   └── session-end.ps1       # Session cleanup script
-├── logs/                      # Log files
-│   └── .gitkeep
-├── plans/                     # Implementation plans
-│   └── .gitkeep
-├── STATUS.json               # Session continuity state
-└── settings.json             # Claude Code settings
-CLAUDE.md                     # Project instructions
-```
+1. **NEVER overwrite existing CLAUDE.md** - Only add the PopKit section
+2. **Check for plugin conflicts** before proceeding
+3. **Use AskUserQuestion** for all user decisions
+4. **Preserve existing .claude/ content** if present
 
 ## Initialization Process
+
+### Step 0: Check for Plugin Conflicts
+
+**ALWAYS run this first** using the plugin conflict detector:
+
+```python
+from plugin_detector import run_detection, format_conflict_report, format_quick_summary
+
+result, plugins = run_detection()
+
+if result["total"] > 0:
+    # Show conflicts to user
+    print(format_conflict_report(result, plugins))
+```
+
+If conflicts detected, use AskUserQuestion:
+
+```
+Use AskUserQuestion tool with:
+- question: "Plugin conflicts detected. How would you like to proceed?"
+- header: "Conflicts"
+- options:
+  - label: "View details"
+    description: "Show full conflict report before continuing"
+  - label: "Continue anyway"
+    description: "Proceed with initialization (conflicts may cause issues)"
+  - label: "Cancel"
+    description: "Stop and resolve conflicts first"
+- multiSelect: false
+```
 
 ### Step 1: Detect Project Type
 
@@ -56,97 +69,150 @@ else
 fi
 ```
 
-### Step 2: Create Directory Structure
+### Step 2: Create Directory Structure (if needed)
+
+Only create directories that don't exist:
 
 ```bash
-mkdir -p .claude/{agents,commands,hooks,skills,scripts,logs,plans}
-touch .claude/logs/.gitkeep
-touch .claude/plans/.gitkeep
+# Create .claude/ structure only if it doesn't exist
+[ -d ".claude" ] || mkdir -p .claude/{agents,commands,hooks,skills,scripts,logs,plans,popkit}
+touch .claude/logs/.gitkeep 2>/dev/null
+touch .claude/plans/.gitkeep 2>/dev/null
 ```
 
-### Step 3: Create CLAUDE.md
+### Step 3: Surgically Update CLAUDE.md
 
-Generate project instructions template:
+**This is the critical part.** Do NOT overwrite the file. Instead:
+
+1. **Check if CLAUDE.md exists**
+2. **Check if PopKit section already exists**
+3. **If no PopKit section, append it at the end**
+4. **If PopKit section exists, update only that section**
+
+#### PopKit Section Format
+
+The PopKit section uses markers for surgical updates:
 
 ```markdown
-# [Project Name] - Claude Instructions
+<!-- POPKIT:START -->
+## PopKit Integration
 
-## Project Identity
-- **Name**: [Project Name]
-- **Type**: [Detected type]
-- **Stack**: [Detected tech stack]
+This project uses [PopKit](https://github.com/jrc1883/popkit) for AI-powered development workflows.
 
-## Quick Start
-\`\`\`bash
-# Development
-[Project-specific dev commands]
-\`\`\`
+### Quick Commands
 
-## Key Files
-- [Main entry point]
-- [Configuration files]
-- [Test directories]
+| Command | Description |
+|---------|-------------|
+| `/popkit:next` | Get context-aware recommendations |
+| `/popkit:routine morning` | Daily health check |
+| `/popkit:dev work #N` | Start working on issue #N |
+| `/popkit:git commit` | Smart commit with message generation |
 
-## Current Focus
-[Area currently being worked on]
+### Project Configuration
 
-## Important Notes
-- [Project-specific rules]
-- [Things to avoid]
+- **Power Mode:** [Not configured / File-based / Redis]
+- **Custom Routines:** `.claude/popkit/routines/`
+- **Project Skills:** `.claude/skills/`
+
+### Resources
+
+- [PopKit Documentation](https://github.com/jrc1883/popkit)
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+<!-- POPKIT:END -->
 ```
 
-### Step 4: Create STATUS.json
+#### Surgical Update Logic
 
-Initialize empty status:
+```python
+def update_claude_md(project_path: str, power_mode: str = "not_configured"):
+    """Surgically add or update PopKit section in CLAUDE.md."""
+    claude_md_path = os.path.join(project_path, "CLAUDE.md")
 
-```json
-{
-  "lastUpdate": "[ISO timestamp]",
-  "project": "[project-name]",
-  "sessionType": "Fresh",
-  "git": {
-    "branch": "main",
-    "lastCommit": "",
-    "uncommittedFiles": 0
-  },
-  "tasks": {
-    "inProgress": [],
-    "completed": []
-  },
-  "services": {},
-  "context": {
-    "focusArea": "",
-    "nextAction": ""
-  }
-}
+    popkit_section = generate_popkit_section(power_mode)
+
+    if not os.path.exists(claude_md_path):
+        # No CLAUDE.md - create minimal file with just PopKit section
+        with open(claude_md_path, 'w') as f:
+            f.write(f"# {os.path.basename(project_path)}\n\n")
+            f.write("Project instructions for Claude Code.\n\n")
+            f.write(popkit_section)
+        return "created"
+
+    # Read existing content
+    with open(claude_md_path, 'r') as f:
+        content = f.read()
+
+    # Check for existing PopKit section
+    start_marker = "<!-- POPKIT:START -->"
+    end_marker = "<!-- POPKIT:END -->"
+
+    if start_marker in content and end_marker in content:
+        # Update existing section
+        import re
+        pattern = f"{re.escape(start_marker)}.*?{re.escape(end_marker)}"
+        new_content = re.sub(pattern, popkit_section, content, flags=re.DOTALL)
+
+        with open(claude_md_path, 'w') as f:
+            f.write(new_content)
+        return "updated"
+    else:
+        # Append new section at end
+        with open(claude_md_path, 'a') as f:
+            f.write("\n\n")
+            f.write(popkit_section)
+        return "appended"
 ```
 
-### Step 5: Create settings.json
+### Step 4: Create STATUS.json (if not exists)
 
-```json
-{
-  "model": "claude-sonnet-4-20250514",
-  "maxTokens": 8192,
-  "permissions": {
-    "allowBash": true,
-    "allowFileOperations": true,
-    "allowGit": true
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "python power-mode/statusline.py",
-    "padding": 0
-  }
-}
+Only create if it doesn't exist:
+
+```python
+status_path = ".claude/STATUS.json"
+if not os.path.exists(status_path):
+    status = {
+        "lastUpdate": datetime.now().isoformat(),
+        "project": os.path.basename(os.getcwd()),
+        "sessionType": "Fresh",
+        "git": {
+            "branch": "main",
+            "lastCommit": "",
+            "uncommittedFiles": 0
+        },
+        "tasks": {
+            "inProgress": [],
+            "completed": []
+        },
+        "services": {},
+        "context": {
+            "focusArea": "",
+            "nextAction": ""
+        }
+    }
+    with open(status_path, 'w') as f:
+        json.dump(status, f, indent=2)
 ```
 
-**Note:** The statusLine configuration enables Power Mode status display when active. It shows:
-- `[POP] #N Phase: X (N/M) [####------] 40%` when Power Mode is running
-- Empty when Power Mode is inactive (no visual clutter)
+### Step 5: Create settings.json (if not exists)
+
+```python
+settings_path = ".claude/settings.json"
+if not os.path.exists(settings_path):
+    settings = {
+        "model": "claude-sonnet-4-20250514",
+        "permissions": {
+            "allowBash": True,
+            "allowFileOperations": True,
+            "allowGit": True
+        }
+    }
+    with open(settings_path, 'w') as f:
+        json.dump(settings, f, indent=2)
+```
 
 ### Step 6: Ask About Power Mode Setup
 
-Offer Power Mode setup for multi-agent orchestration using AskUserQuestion:
+Use AskUserQuestion:
 
 ```
 Use AskUserQuestion tool with:
@@ -162,83 +228,43 @@ Use AskUserQuestion tool with:
 - multiSelect: false
 ```
 
-**NEVER present as plain text** like "1. Redis, 2. File, 3. Skip".
-
-**If Redis Mode selected:**
-```bash
-# Copy docker-compose.yml template
-cp power-mode/docker-compose.yml .claude/docker-compose.yml
-echo "[+] docker-compose.yml created"
-echo "Run 'docker compose -f .claude/docker-compose.yml up -d' to start Redis"
-```
-
-**If File Mode selected:**
-```bash
-# Create initial power mode state file
-cat > .claude/power-mode-state.json << 'EOF'
-{
-  "active": false,
-  "session_id": null,
-  "mode": "file",
-  "note": "File-based Power Mode. Activate with /popkit:issue work #N -p"
-}
-EOF
-echo "[+] Power Mode configured for file-based coordination"
-```
+**Based on selection, update the PopKit section in CLAUDE.md** with the appropriate Power Mode status.
 
 ### Step 7: Update .gitignore
 
-Add to .gitignore:
+Only add lines that don't already exist:
 
-```
+```python
+gitignore_additions = """
 # Claude Code - Runtime/session files
 .claude/logs/
 .claude/STATUS.json
 .claude/power-mode-state.json
+.claude/popkit/state.json
 .worktrees/
 
-# Claude Code - Development-only content (not for distribution)
-# Uses .local suffix pattern like Claude Code's settings.local.json
-commands.local/
-skills.local/
-agents.local/
-hooks.local/
-
-# Claude Code - Generated content from /popkit:generate-* commands
+# Claude Code - Generated content
 .generated/
+"""
+
+gitignore_path = ".gitignore"
+if os.path.exists(gitignore_path):
+    with open(gitignore_path, 'r') as f:
+        existing = f.read()
+
+    # Only add lines not already present
+    for line in gitignore_additions.strip().split('\n'):
+        if line and not line.startswith('#') and line not in existing:
+            with open(gitignore_path, 'a') as f:
+                f.write(f"\n{line}")
+else:
+    with open(gitignore_path, 'w') as f:
+        f.write(gitignore_additions)
 ```
 
-### Step 8: Create README Files
+### Step 8: Post-Init Recommendations
 
-Create README.md in each subdirectory explaining purpose and how to add items.
-
-## Project-Type Specific Setup
-
-### Node.js Projects
-
-- Add npm/yarn run commands to CLAUDE.md
-- Detect test framework (jest, mocha, vitest)
-- Note port from package.json scripts
-
-### Python Projects
-
-- Add pip/poetry commands
-- Detect test framework (pytest, unittest)
-- Note virtual environment
-
-### Rust Projects
-
-- Add cargo commands
-- Note workspace structure
-
-### Go Projects
-
-- Add go commands
-- Note module structure
-
-## Post-Init Recommendations
-
-After initialization, present next steps using AskUserQuestion:
+Use AskUserQuestion:
 
 ```
 Use AskUserQuestion tool with:
@@ -252,14 +278,64 @@ Use AskUserQuestion tool with:
   - label: "View issues"
     description: "Run /popkit:issue list to see GitHub issues"
   - label: "Done for now"
-    description: "I'll customize CLAUDE.md manually"
+    description: "I'll explore on my own"
 - multiSelect: false
+```
+
+## Output Format
+
+```
+PopKit Project Initialization
+═════════════════════════════
+
+[1/4] Checking for plugin conflicts...
+      ✓ No conflicts detected (1 plugin: popkit)
+
+[2/4] Detecting project type...
+      ✓ Node.js (Next.js 14) detected
+
+[3/4] Creating .claude/ structure...
+      ✓ Directories created (5 new)
+      ✓ STATUS.json initialized
+      ✓ settings.json created
+
+[4/4] Updating CLAUDE.md...
+      ✓ PopKit section appended (existing content preserved)
+
+Summary:
+  - CLAUDE.md: PopKit section added (lines 145-175)
+  - Power Mode: Not configured
+  - Ready for: /popkit:routine morning
+
+What would you like to do next?
+```
+
+## If CLAUDE.md Already Has PopKit Section
+
+```
+PopKit Project Initialization
+═════════════════════════════
+
+[1/4] Checking for plugin conflicts...
+      ✓ No conflicts detected
+
+[2/4] Detecting project type...
+      ✓ Node.js detected
+
+[3/4] Creating .claude/ structure...
+      ✓ Already exists (skipped)
+
+[4/4] Updating CLAUDE.md...
+      ✓ PopKit section updated (existing user content preserved)
+
+Note: Your existing CLAUDE.md content was preserved.
+      Only the <!-- POPKIT:START --> to <!-- POPKIT:END --> section was updated.
 ```
 
 ## Integration
 
 **Triggers:**
-- `/popkit:init-project` command
+- `/popkit:project init` command
 - Manual skill invocation
 
 **Followed by:**
@@ -268,3 +344,11 @@ Use AskUserQuestion tool with:
 - **/popkit:project setup** - Configure pre-commit hooks
 - **/popkit:power init** - Start Redis for Power Mode
 - **/popkit:issue list** - View issues with orchestration recommendations
+
+## Related Skills
+
+| Skill | Relationship |
+|-------|--------------|
+| `pop-analyze-project` | Run after init for deep analysis |
+| `pop-doc-sync` | Keeps PopKit section in sync |
+| `pop-plugin-test` | Validates plugin integrity |

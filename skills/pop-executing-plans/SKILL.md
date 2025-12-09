@@ -63,6 +63,33 @@ After all tasks complete and verified:
 - Use finishing-a-development-branch skill
 - Follow that skill to verify tests, present options, execute choice
 
+### Step 6: Next Action Loop (CRITICAL - Issue #118)
+
+**After completion, ALWAYS present next actions:**
+
+```
+Use AskUserQuestion tool with:
+- question: "What would you like to do next?"
+- header: "Next Action"
+- options:
+  - label: "Work on another issue"
+    description: "Continue with another GitHub issue"
+  - label: "Run tests/checks"
+    description: "Run test suite or quality checks"
+  - label: "Session capture and exit"
+    description: "Save state for later continuation"
+- multiSelect: false
+```
+
+**NEVER end execution without presenting next step options.**
+
+If user selects "Work on another issue", fetch prioritized open issues:
+```bash
+gh issue list --state open --milestone v1.0.0 --json number,title,labels --limit 5
+```
+
+Then present specific issue options via AskUserQuestion.
+
 ## When to Stop and Ask for Help
 
 **STOP executing immediately when:**

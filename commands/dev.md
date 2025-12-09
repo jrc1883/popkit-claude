@@ -284,6 +284,31 @@ Issue-driven development with optional Power Mode.
 3. **Determine Mode**: Apply decision priority
 4. **Create Todo List**: Generate todos from phases
 5. **Begin Work**: Start first phase (brainstorming if required)
+6. **Execute All Phases**: Work through each phase until complete
+7. **Complete Work**: Invoke `pop-finish-branch` skill for merge/PR options
+8. **Next Action Loop**: Present context-aware next actions using AskUserQuestion
+
+### Completion (CRITICAL - Issue #118)
+
+**After all phases complete**, you MUST:
+
+1. Use `pop-finish-branch` skill to:
+   - Verify tests pass
+   - Present merge/PR/keep/discard options
+   - Execute user's choice
+
+2. Then present next actions using AskUserQuestion:
+```
+Use AskUserQuestion tool with:
+- question: "What would you like to do next?"
+- header: "Next Action"
+- options: [dynamically generated from open issues]
+  - Top 3 prioritized issues as "Work on #N: [title]"
+  - "Session capture and exit" as final option
+- multiSelect: false
+```
+
+**NEVER end a workflow without presenting next step options to the user.**
 
 ### Output (Power Mode)
 

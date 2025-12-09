@@ -1,10 +1,10 @@
 ---
-description: "init | analyze | embed | generate | mcp | setup | skills [--power, --json]"
+description: "init | analyze | embed | generate | mcp | setup | skills | observe [--power, --json]"
 ---
 
 # /popkit:project - Project Analysis & Setup
 
-Complete project lifecycle tools: initialization, analysis, configuration, and customization.
+Complete project lifecycle tools: initialization, analysis, configuration, customization, and cross-project observability.
 
 ## Usage
 
@@ -23,6 +23,7 @@ Complete project lifecycle tools: initialization, analysis, configuration, and c
 | `mcp` | Generate project-specific MCP server |
 | `setup` | Configure pre-commit hooks and quality gates |
 | `skills` | Generate custom skills from project patterns |
+| `observe` | Cross-project dashboard (from monorepo) |
 
 ---
 
@@ -692,3 +693,226 @@ This command covers the full project lifecycle:
 | `/popkit:routine morning` | Daily health check |
 | `/popkit:power init` | Start/stop Redis for Power Mode |
 | `/popkit:next` | Context-aware recommendations |
+
+---
+
+## Subcommand: observe
+
+Cross-project observability dashboard. View all projects using PopKit Cloud from the main monorepo.
+
+```
+/popkit:project observe                 # Show dashboard
+/popkit:project observe --active        # Only show active projects (24h)
+/popkit:project observe --summary       # Quick summary stats
+/popkit:project observe --project <id>  # View specific project details
+```
+
+### Prerequisites
+
+Requires `POPKIT_API_KEY` environment variable set. This feature uses PopKit Cloud to aggregate data across all projects registered to your API key.
+
+### Process
+
+Calls the PopKit Cloud Project Registry API:
+
+1. **Fetch All Projects**
+   - Lists all registered projects
+   - Sorted by last activity (most recent first)
+
+2. **Display Dashboard**
+   - Project name and anonymized path
+   - Last active timestamp
+   - Session count
+   - Tool call count
+   - Recent agents used
+   - Recent commands used
+   - Power Mode status
+   - Health score (from morning routine)
+
+3. **Show Summary Stats**
+   - Total projects registered
+   - Active in last 24h
+   - Total tool calls across all projects
+   - Total sessions
+   - Average health score
+   - Projects with Power Mode active
+
+### Output
+
+```
+/popkit:project observe
+
+═══════════════════════════════════════════════════════════════
+                  PopKit Cross-Project Dashboard
+═══════════════════════════════════════════════════════════════
+
+Summary:
+  Total Projects: 5
+  Active (24h):   3
+  Tool Calls:     1,247
+  Sessions:       42
+  Avg Health:     78
+  Power Mode:     1 active
+
+───────────────────────────────────────────────────────────────
+Projects (sorted by last activity)
+───────────────────────────────────────────────────────────────
+
+1. popkit
+   Path: .../elshaddai/popkit
+   Last Active: 2 minutes ago
+   Sessions: 18 | Tools: 543 | Health: 85
+   Recent Agents: code-reviewer, bug-whisperer, test-writer-fixer
+   Recent Commands: /popkit:dev, /popkit:git pr
+   Power Mode: Redis (2 agents)
+
+2. my-saas-app
+   Path: .../projects/my-saas-app
+   Last Active: 3 hours ago
+   Sessions: 12 | Tools: 389 | Health: 72
+   Recent Agents: api-designer, performance-optimizer
+   Recent Commands: /popkit:routine morning, /popkit:issue list
+   Power Mode: Off
+
+3. client-dashboard
+   Path: .../clients/dashboard
+   Last Active: Yesterday
+   Sessions: 8 | Tools: 215 | Health: 65
+   Recent Agents: ui-designer, accessibility-guardian
+   Recent Commands: /popkit:git commit
+   Power Mode: Off
+
+───────────────────────────────────────────────────────────────
+Projects Inactive > 7 days (may need attention)
+───────────────────────────────────────────────────────────────
+
+4. old-project
+   Path: .../archive/old-project
+   Last Active: 15 days ago
+   Health: 45
+
+5. experiment
+   Path: .../scratch/experiment
+   Last Active: 23 days ago
+   Health: 0 (never ran morning routine)
+```
+
+### Summary Output
+
+```
+/popkit:project observe --summary
+
+PopKit Cloud Summary
+════════════════════
+
+Total Projects:      5
+Active (24h):        3 (60%)
+Total Tool Calls:    1,247
+Total Sessions:      42
+Average Health:      78/100
+Power Mode Active:   1
+
+Most Active Projects:
+  1. popkit (543 tool calls)
+  2. my-saas-app (389 tool calls)
+  3. client-dashboard (215 tool calls)
+
+Recent Agent Usage:
+  1. code-reviewer (127 times)
+  2. bug-whisperer (89 times)
+  3. test-writer-fixer (67 times)
+
+Top Commands:
+  1. /popkit:git commit (156 times)
+  2. /popkit:dev full (89 times)
+  3. /popkit:routine morning (45 times)
+```
+
+### Project Detail Output
+
+```
+/popkit:project observe --project abc123
+
+Project: popkit
+═══════════════
+
+ID: abc123def456789
+Path: .../elshaddai/popkit
+Platform: win32
+PopKit Version: 0.9.10
+Registered: 2025-01-15T10:00:00Z
+
+Activity:
+  Last Active: 2 minutes ago
+  Sessions: 18
+  Tool Calls: 543
+
+Health:
+  Score: 85/100
+  Last Check: Today 09:15
+
+Agents Used (last 10):
+  - code-reviewer
+  - bug-whisperer
+  - test-writer-fixer
+  - api-designer
+  - security-auditor
+
+Commands Used (last 10):
+  - /popkit:dev full
+  - /popkit:git pr
+  - /popkit:routine morning
+  - /popkit:issue list
+
+Power Mode:
+  Status: Active (Redis)
+  Agents: 2
+```
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--active` | Only show projects active in last 24h |
+| `--summary` | Show quick summary statistics only |
+| `--project <id>` | Show details for specific project |
+| `--json` | Output as JSON for scripting |
+
+### Use Cases
+
+1. **Development Team Visibility**
+   - See which projects are actively being developed
+   - Identify stale projects that may need attention
+   - Track tool and agent usage patterns
+
+2. **Pattern Analysis**
+   - Discover which agents are most useful across projects
+   - See which commands drive productivity
+   - Identify projects that could benefit from Power Mode
+
+3. **Health Monitoring**
+   - Track health scores across all projects
+   - Find projects with low scores that need maintenance
+   - Ensure morning routines are being run
+
+4. **Smoke Testing**
+   - After updating PopKit, check all projects still registering
+   - Verify activity is being tracked correctly
+   - Monitor for any errors or issues
+
+### Architecture Integration
+
+| Component | Integration |
+|-----------|-------------|
+| Cloud API | `packages/cloud/src/routes/projects.ts` |
+| Plugin Client | `hooks/utils/project_client.py` |
+| Registration Hook | `hooks/session-start.py` (auto-registers) |
+| Activity Hook | `hooks/post-tool-use.py` (tracks activity) |
+
+### Related Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/popkit:routine morning` | Updates health score for current project |
+| `/popkit:privacy status` | View data collection settings |
+| `/popkit:privacy export` | Export all your PopKit Cloud data |

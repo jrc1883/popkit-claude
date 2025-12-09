@@ -15,6 +15,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
+# Import project activity tracking
+try:
+    from utils.project_client import ProjectClient, ProjectActivity
+    HAS_PROJECT_CLIENT = True
+except ImportError:
+    HAS_PROJECT_CLIENT = False
+
 class PostToolUseHook:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
@@ -507,8 +514,33 @@ class PostToolUseHook:
         if followup_agents:
             orchestration_result = self.request_followup_orchestration(tool_name, analysis, followup_agents)
             result["orchestration_result"] = orchestration_result
-        
+
+        # Track activity in PopKit Cloud (non-blocking)
+        self.record_cloud_activity(tool_name, followup_agents)
+
         return result
+
+    def record_cloud_activity(self, tool_name: str, followup_agents: List[str]):
+        """Record tool usage activity in PopKit Cloud for cross-project observability."""
+        if not HAS_PROJECT_CLIENT:
+            return
+
+        try:
+            client = ProjectClient()
+            if not client.is_available:
+                return
+
+            # Extract agent name from follow-up agents (if any)
+            agent_name = followup_agents[0] if followup_agents else None
+
+            activity = ProjectActivity(
+                tool_name=tool_name,
+                agent_name=agent_name
+            )
+
+            client.record_activity(activity)
+        except Exception:
+            pass  # Silent failure - never block tool execution
 
 def check_stop_reason(input_data: Dict[str, Any]) -> Dict[str, Any]:
     """Check and handle Claude API stop reasons.

@@ -16,6 +16,13 @@ try:
 except ImportError:
     HAS_VERSION_CHECK = False
 
+# Import project registration client
+try:
+    from utils.project_client import ProjectClient, ProjectRegistration
+    HAS_PROJECT_CLIENT = True
+except ImportError:
+    HAS_PROJECT_CLIENT = False
+
 def create_logs_directory():
     """Create logs directory if it doesn't exist."""
     logs_dir = Path("logs")
@@ -75,6 +82,36 @@ def check_plugin_updates():
     return None
 
 
+def register_project():
+    """Register this project with PopKit Cloud.
+
+    This is non-blocking - any errors are silently ignored.
+    Enables cross-project observability via /popkit:project observe.
+    """
+    if not HAS_PROJECT_CLIENT:
+        return None
+
+    try:
+        client = ProjectClient()
+
+        if not client.is_available:
+            return None
+
+        result = client.register_project()
+
+        if result:
+            print(f"Project registered with PopKit Cloud (session #{result.session_count})", file=sys.stderr)
+            return {
+                'project_id': result.project_id,
+                'session_count': result.session_count,
+                'status': result.status
+            }
+    except Exception:
+        pass  # Silent failure - never block session start
+
+    return None
+
+
 def main():
     """Main entry point for the hook - JSON stdin/stdout protocol"""
     try:
@@ -87,6 +124,9 @@ def main():
 
         # Check for updates (non-blocking)
         update_info = check_plugin_updates()
+
+        # Register project with PopKit Cloud (non-blocking)
+        project_info = register_project()
 
         # Print welcome message to stderr
         print("Session started - hooks system active", file=sys.stderr)
@@ -102,6 +142,10 @@ def main():
         # Include update info if available
         if update_info:
             response["update_check"] = update_info
+
+        # Include project registration info if available
+        if project_info:
+            response["project_registration"] = project_info
 
         print(json.dumps(response))
 

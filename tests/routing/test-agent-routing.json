@@ -22,7 +22,7 @@
     },
     {
       "name": "performance keywords route to performance-optimizer",
-      "prompt": "optimize this slow database query",
+      "prompt": "analyze and improve the performance of this slow function",
       "expected_agent": "performance-optimizer",
       "min_confidence": 0.4
     },
@@ -45,9 +45,9 @@
       "min_confidence": 0.4
     },
     {
-      "name": "UI keywords route to ui-designer",
-      "prompt": "design the user interface for this feature",
-      "expected_agent": "ui-designer",
+      "name": "accessibility keywords route to accessibility-guardian",
+      "prompt": "check the accessibility of this component for screen readers",
+      "expected_agent": "accessibility-guardian",
       "min_confidence": 0.4
     },
     {

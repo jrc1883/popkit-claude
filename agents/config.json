@@ -96,6 +96,17 @@
         "code-architect",
         "code-reviewer"
       ]
+    },
+    "assessors": {
+      "description": "Self-assessment agents for multi-perspective review",
+      "agents": [
+        "anthropic-engineer-assessor",
+        "security-auditor-assessor",
+        "performance-tester-assessor",
+        "ux-reviewer-assessor",
+        "technical-architect-assessor",
+        "documentation-auditor-assessor"
+      ]
     }
   },
 
@@ -138,7 +149,12 @@
       "coordinate": ["power-coordinator"],
       "parallel": ["power-coordinator"],
       "mesh": ["power-coordinator"],
-      "multi-agent": ["power-coordinator"]
+      "multi-agent": ["power-coordinator"],
+      "assess": ["anthropic-engineer-assessor", "documentation-auditor-assessor"],
+      "assessment": ["anthropic-engineer-assessor", "documentation-auditor-assessor"],
+      "audit": ["security-auditor-assessor", "documentation-auditor-assessor"],
+      "compliance": ["anthropic-engineer-assessor"],
+      "self-assessment": ["anthropic-engineer-assessor"]
     },
 
     "filePatterns": {

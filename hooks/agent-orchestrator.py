@@ -401,7 +401,7 @@ def main():
             response = {
                 "status": "error",
                 "error": "No prompt provided",
-                "decision": "allow"
+                "decision": "approve"
             }
             print(json.dumps(response))
             return 1
@@ -410,7 +410,7 @@ def main():
         result = orchestrator.execute(prompt)
 
         # Add decision field for hook protocol compliance
-        result["decision"] = "allow"
+        result["decision"] = "approve"
         result["status"] = "success"
         result["stop_info"] = stop_info
 
@@ -424,11 +424,11 @@ def main():
         return 0
 
     except json.JSONDecodeError as e:
-        response = {"status": "error", "error": f"Invalid JSON input: {e}", "decision": "allow"}
+        response = {"status": "error", "error": f"Invalid JSON input: {e}", "decision": "approve"}
         print(json.dumps(response))
         return 1
     except Exception as e:
-        response = {"status": "error", "error": str(e), "decision": "allow"}
+        response = {"status": "error", "error": str(e), "decision": "approve"}
         print(json.dumps(response))
         return 1
 

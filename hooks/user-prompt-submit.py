@@ -498,7 +498,7 @@ def main():
 
         # Build JSON response
         response = {
-            "decision": "allow" if result["action"] != "block" else "block",
+            "decision": "approve" if result["action"] != "block" else "block",
             "reason": None,
             "session_id": result.get("session_id"),
             "detected_agents": result.get("detected_agents", {}),
@@ -536,11 +536,11 @@ def main():
         print(json.dumps(response))
 
     except json.JSONDecodeError as e:
-        response = {"error": f"Invalid JSON input: {e}", "decision": "allow"}
+        response = {"error": f"Invalid JSON input: {e}", "decision": "approve"}
         print(json.dumps(response))
         sys.exit(0)  # Don't block on JSON errors
     except Exception as e:
-        response = {"error": str(e), "decision": "allow"}
+        response = {"error": str(e), "decision": "approve"}
         print(json.dumps(response))
         sys.exit(0)  # Don't block on errors
 

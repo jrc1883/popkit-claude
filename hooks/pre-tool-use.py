@@ -567,7 +567,7 @@ def main():
 
         # Build JSON response
         response = {
-            "decision": "allow" if result["action"] != "block" else "block",
+            "decision": "approve" if result["action"] != "block" else "block",
             "reason": None,
             "tool_name": tool_name,
             "session_id": result.get("session_id"),
@@ -634,7 +634,7 @@ def main():
         print(json.dumps(response))
         sys.exit(1)
     except Exception as e:
-        response = {"error": str(e), "decision": "allow"}
+        response = {"error": str(e), "decision": "approve"}
         print(json.dumps(response))
         sys.exit(0)  # Don't block on errors
 

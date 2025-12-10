@@ -1,5 +1,5 @@
 ---
-description: "init | analyze | embed | generate | mcp | setup | skills | observe [--power, --json]"
+description: "init | analyze | board | embed | generate | mcp | setup | skills | observe [--power, --json]"
 ---
 
 # /popkit:project - Project Analysis & Setup
@@ -18,6 +18,7 @@ Complete project lifecycle tools: initialization, analysis, configuration, custo
 |------------|-------------|
 | `init` | Initialize .claude/ structure with optional Power Mode |
 | `analyze` | Deep codebase analysis (default) |
+| `board` | GitHub Projects board view and management |
 | `embed` | Embed project items for semantic search |
 | `generate` | Full pipeline: analyze → skills → mcp → embed |
 | `mcp` | Generate project-specific MCP server |
@@ -206,6 +207,93 @@ Invokes the **pop-analyze-project** skill:
 | `-T`, `--thinking` | Enable extended thinking for deep analysis |
 | `--no-thinking` | Disable extended thinking (use default) |
 | `--think-budget N` | Set thinking token budget (default: 10000) |
+
+---
+
+## Subcommand: board
+
+View and manage GitHub Projects board for the current repository.
+
+```
+/popkit:project board                     # Show board with all items
+/popkit:project board --status todo       # Filter by status
+/popkit:project board --backlog           # Show backlog view
+/popkit:project board --sprint            # Show current sprint/iteration
+/popkit:project board add #45             # Add issue to project
+/popkit:project board move #45 --status "In Progress"
+```
+
+### Process
+
+Uses the `gh project` CLI commands:
+
+1. **List Items**
+   ```bash
+   gh project item-list 1 --owner jrc1883 --format json
+   ```
+
+2. **Add Items**
+   ```bash
+   gh project item-add 1 --owner jrc1883 --url <issue-url>
+   ```
+
+3. **Update Status**
+   ```bash
+   gh project item-edit --project-id <id> --id <item-id> --field-id <status-field> --single-select-option-id <option-id>
+   ```
+
+### Output
+
+```
+/popkit:project board
+
+═══════════════════════════════════════════════════════════════
+                 PopKit Development - Project Board
+═══════════════════════════════════════════════════════════════
+
+Todo (3 items)
+──────────────
+#149  Integrate GitHub Projects with PopKit     [P3-low, phase:next]
+#67   [Epic] PopKit Cloud: Monetization         [P2-medium, phase:future]
+#111  [Epic] Multi-Model Foundation             [P2-medium, phase:future]
+
+In Progress (0 items)
+─────────────────────
+(none)
+
+Done (0 items)
+──────────────
+(none)
+
+───────────────────────────────────────────────────────────────
+Total: 3 items | Project URL: https://github.com/users/jrc1883/projects/1
+```
+
+### Actions
+
+| Action | Command |
+|--------|---------|
+| View board | `/popkit:project board` |
+| Filter by status | `/popkit:project board --status "In Progress"` |
+| Add issue | `/popkit:project board add #123` |
+| Move item | `/popkit:project board move #123 --status Done` |
+| Remove item | `/popkit:project board remove #123` |
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--status <status>` | Filter by status (Todo, In Progress, Done) |
+| `--backlog` | Show items not in current sprint |
+| `--sprint` | Show current sprint/iteration items |
+| `--json` | Output as JSON |
+
+### Prerequisites
+
+Requires `gh` CLI with `project` scope:
+```bash
+gh auth refresh -h github.com -s project
+```
 
 ---
 
@@ -685,6 +773,7 @@ This command covers the full project lifecycle:
 | Skills Generator | `skills/pop-skill-generator/SKILL.md` |
 | Embedding Module | `hooks/utils/embedding_project.py` |
 | MCP Template | `templates/mcp-server/` |
+| Board View | `gh project` CLI commands |
 
 ## Related Commands
 

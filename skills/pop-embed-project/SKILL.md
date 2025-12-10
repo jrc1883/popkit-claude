@@ -1,11 +1,76 @@
 ---
 name: embed-project
 description: "Embed project-local skills, agents, and commands for semantic search. Use after creating items manually or to update embeddings."
+premium: true
+required_tier: pro
 ---
 
 # Embed Project Items
 
 Compute vector embeddings for project-local items to enable semantic discovery and routing.
+
+## Premium Feature
+
+This is a **Pro tier** feature. Free tier users can use basic file search instead.
+
+### Free Tier Fallback: Basic Search
+
+When a free tier user invokes this skill, provide basic search capabilities:
+
+```markdown
+## Basic Search (Free Tier)
+
+Project embeddings require PopKit Pro. However, you can still search your project!
+
+### Available Search Methods
+
+**Find skills:**
+```bash
+ls .claude/skills/*/SKILL.md 2>/dev/null
+```
+
+**Find agents:**
+```bash
+ls .claude/agents/*/AGENT.md 2>/dev/null
+```
+
+**Find commands:**
+```bash
+ls .claude/commands/*.md 2>/dev/null
+```
+
+**Search by keyword:**
+```bash
+grep -r "keyword" .claude/
+```
+
+### What Embeddings Would Provide
+
+With PopKit Pro, you'd get semantic embeddings including:
+- ✨ **Semantic search** - Find by meaning, not just keywords
+- 🔍 **Smart routing** - Auto-select best agent for task
+- ⚡ **Cross-project discovery** - Find patterns across codebases
+- 📊 **Relevance ranking** - Results sorted by semantic similarity
+
+Run `/popkit:upgrade` to unlock project embeddings.
+```
+
+### Fallback Implementation
+
+```python
+import sys
+sys.path.insert(0, "hooks/utils")
+from premium_checker import check_entitlement
+
+result = check_entitlement("pop-embed-project")
+if not result.allowed:
+    # Provide basic search alternatives
+    print("## Basic Search (Free Tier)")
+    print("\nProject embeddings require PopKit Pro.")
+    print("Use basic file search: `grep -r 'keyword' .claude/`")
+    print("\nRun `/popkit:upgrade` to unlock project embeddings.")
+    return
+```
 
 ## When to Use
 

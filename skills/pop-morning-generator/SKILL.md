@@ -1,6 +1,8 @@
 ---
 name: morning-generator
 description: "Use when you want to create a project-specific morning health check routine - analyzes the project's tech stack and generates customized health checks for services, databases, and domain-specific validations. Detects Next.js, Express, Supabase, Redis, etc. and creates appropriate checks. Do NOT use if the generic /popkit:routine morning is sufficient - only generate custom routines for projects with unique health check requirements."
+premium: true
+required_tier: pro
 ---
 
 # Morning Generator
@@ -12,6 +14,60 @@ Generate a project-specific morning health check command based on the project's 
 **Core principle:** Detect what matters for THIS project and check it every morning.
 
 **Trigger:** `/popkit:generate-morning` command or as part of `/popkit:init-project`
+
+## Premium Feature
+
+This is a **Pro tier** feature. Free tier users can use the default `/popkit:routine morning` command instead.
+
+### Free Tier Fallback: Default Morning Routine
+
+When a free tier user invokes this skill, redirect them to the default routine:
+
+```markdown
+## Default Morning Routine (Free Tier)
+
+Custom routine generation requires PopKit Pro. However, you can still use the default morning routine!
+
+### Available Commands
+
+Run the generic morning routine:
+```
+/popkit:routine morning
+```
+
+This provides:
+- ✅ Git status check
+- ✅ TypeScript/lint errors (if detected)
+- ✅ Basic dev server check
+- ✅ Ready to Code score
+
+### What Custom Generation Would Provide
+
+With PopKit Pro, you'd get a project-specific routine including:
+- ✨ **Service-specific checks** - Your exact ports and services
+- 🔍 **Database connectivity** - Supabase, PostgreSQL, MongoDB
+- ⚡ **API credential validation** - eBay OAuth, Stripe keys, etc.
+- 📊 **Domain-specific validations** - Tailored to your project type
+
+Run `/popkit:upgrade` to unlock custom routine generation.
+```
+
+### Fallback Implementation
+
+```python
+import sys
+sys.path.insert(0, "hooks/utils")
+from premium_checker import check_entitlement
+
+result = check_entitlement("pop-morning-generator")
+if not result.allowed:
+    # Redirect to default routine
+    print("## Default Morning Routine (Free Tier)")
+    print("\nCustom routine generation requires PopKit Pro.")
+    print("You can use the default routine: `/popkit:routine morning`")
+    print("\nRun `/popkit:upgrade` to unlock custom routine generation.")
+    return
+```
 
 ## What Gets Generated
 

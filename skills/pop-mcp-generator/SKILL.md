@@ -1,6 +1,8 @@
 ---
 name: mcp-generator
 description: "Use when setting up project-specific development tools or after analyzing a codebase - generates custom MCP server with semantic search, project-aware tools, and health monitoring capabilities. Do NOT use if generic popkit commands are sufficient or for small projects where MCP server overhead isn't justified - stick with built-in tools for simple workflows."
+premium: true
+required_tier: pro
 ---
 
 # MCP Server Generator
@@ -12,6 +14,65 @@ Generate a custom MCP (Model Context Protocol) server tailored to the specific p
 **Core principle:** Every project deserves tools that understand its unique architecture.
 
 **Trigger:** `/popkit:project mcp` command after project analysis
+
+## Premium Feature
+
+This is a **Pro tier** feature. Free tier users receive a basic project analysis instead.
+
+### Free Tier Fallback: Basic Project Analysis
+
+When a free tier user invokes this skill, provide valuable project insights without generating the MCP server:
+
+```markdown
+## Project Analysis (Free Tier)
+
+Since custom MCP server generation requires PopKit Pro, here's what I found about your project:
+
+### Tech Stack Detected
+- **Framework:** [detected framework]
+- **Language:** [language]
+- **Database:** [if detected]
+- **Testing:** [test framework]
+
+### Recommended Checks
+Based on your stack, these health checks would be useful:
+- [ ] [Service 1] on port [X]
+- [ ] [Service 2] on port [Y]
+- [ ] [Database] connectivity
+
+### Project Structure
+```
+[directory tree overview]
+```
+
+### What MCP Server Would Provide
+
+With PopKit Pro, you'd get a custom MCP server including:
+- ✨ **Semantic tool search** - Find tools by description
+- 🔍 **Project-specific health checks** - Monitor your services
+- ⚡ **Custom quality tools** - Typecheck, lint, test commands
+- 📊 **Embeddings** - Vector search across tools
+
+Run `/popkit:upgrade` to unlock custom MCP generation.
+```
+
+### Fallback Implementation
+
+Before proceeding with MCP generation, check user entitlement:
+
+```python
+import sys
+sys.path.insert(0, "hooks/utils")
+from premium_checker import check_entitlement
+
+result = check_entitlement("pop-mcp-generator")
+if not result.allowed:
+    # Execute fallback: basic project analysis
+    print("## Project Analysis (Free Tier)")
+    # ... show detection results without generating MCP
+    print("\nRun `/popkit:upgrade` to unlock custom MCP generation.")
+    return
+```
 
 ## Arguments
 

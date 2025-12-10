@@ -1,6 +1,8 @@
 ---
 name: nightly-generator
 description: "Use when you want to create a project-specific nightly cleanup and maintenance routine - analyzes the project's tech stack and generates customized cleanup routines for caches, build artifacts, and domain-specific maintenance. Detects Next.js, Node.js, Python, Rust, etc. and creates appropriate cleanup targets. Do NOT use if the generic /popkit:routine nightly is sufficient - only generate custom routines for projects with unique cleanup requirements or domain-specific maintenance needs."
+premium: true
+required_tier: pro
 ---
 
 # Nightly Generator
@@ -12,6 +14,60 @@ Generate a project-specific nightly cleanup and maintenance command based on the
 **Core principle:** Detect what needs cleanup for THIS project and automate it every night.
 
 **Trigger:** `/popkit:nightly generate` command or via `/popkit:morning generate --nightly`
+
+## Premium Feature
+
+This is a **Pro tier** feature. Free tier users can use the default `/popkit:routine nightly` command instead.
+
+### Free Tier Fallback: Default Nightly Routine
+
+When a free tier user invokes this skill, redirect them to the default routine:
+
+```markdown
+## Default Nightly Routine (Free Tier)
+
+Custom routine generation requires PopKit Pro. However, you can still use the default nightly routine!
+
+### Available Commands
+
+Run the generic nightly routine:
+```
+/popkit:routine nightly
+```
+
+This provides:
+- ✅ Git maintenance (gc, prune)
+- ✅ Session state capture
+- ✅ Basic cache cleanup hints
+- ✅ Sleep Score calculation
+
+### What Custom Generation Would Provide
+
+With PopKit Pro, you'd get a project-specific routine including:
+- ✨ **Stack-specific cleanup** - .next/, target/, __pycache__/
+- 🔍 **Smart cache management** - Know what's safe to delete
+- ⚡ **Domain-specific maintenance** - API token checks, backup verification
+- 📊 **Disk space recovery** - Automated artifact cleanup
+
+Run `/popkit:upgrade` to unlock custom routine generation.
+```
+
+### Fallback Implementation
+
+```python
+import sys
+sys.path.insert(0, "hooks/utils")
+from premium_checker import check_entitlement
+
+result = check_entitlement("pop-nightly-generator")
+if not result.allowed:
+    # Redirect to default routine
+    print("## Default Nightly Routine (Free Tier)")
+    print("\nCustom routine generation requires PopKit Pro.")
+    print("You can use the default routine: `/popkit:routine nightly`")
+    print("\nRun `/popkit:upgrade` to unlock custom routine generation.")
+    return
+```
 
 ## What Gets Generated
 

@@ -6,6 +6,34 @@ description: "start | stop | status | init | metrics | widgets | consensus [--co
 
 Manage multi-agent orchestration via Redis pub/sub for complex tasks requiring parallel agent collaboration.
 
+## Free vs Premium Tiers
+
+| Feature | Free Tier | Pro Tier ($9/mo) |
+|---------|-----------|------------------|
+| File-based coordination | ✅ 2-3 agents | ✅ Included |
+| Hosted Redis | ❌ | ✅ 6+ agents |
+| Persistent sessions | ❌ | ✅ |
+| Team coordination | ❌ | ✅ |
+| Advanced metrics | Basic | Full dashboard |
+
+### Free Tier: File-Based Mode
+
+Free tier users get file-based Power Mode automatically:
+- Works with 2-3 agents (sequential coordination)
+- Zero setup required (no Docker/Redis)
+- Good for learning and smaller tasks
+- Automatic fallback when Redis unavailable
+
+### Pro Tier: Hosted Redis Mode
+
+Pro users unlock full Power Mode capabilities:
+- 6+ agents working in parallel
+- Real-time pub/sub coordination
+- Persistent session state
+- Advanced metrics and insights
+
+Run `/popkit:upgrade` to unlock hosted Redis Power Mode.
+
 ## Usage
 
 ```

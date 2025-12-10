@@ -12,6 +12,7 @@ View and manage your PopKit account.
 | Subcommand | Description |
 |------------|-------------|
 | `status` (default) | Show current tier, usage, and subscription status |
+| `usage` | Detailed feature usage and rate limits (Issue #138) |
 | `keys` | List and manage your API keys |
 | `billing` | Open Stripe billing portal |
 | `logout` | Clear local session/cache |
@@ -21,6 +22,7 @@ View and manage your PopKit account.
 ```bash
 /popkit:account           # Show account status
 /popkit:account status    # Same as above
+/popkit:account usage     # Detailed usage stats
 /popkit:account keys      # List your API keys
 /popkit:account billing   # Open billing management
 /popkit:account logout    # Clear cached session
@@ -98,6 +100,80 @@ If no subscription or free tier:
 
 **Upgrade to Pro** for $9/month to unlock all features.
 Run `/popkit:upgrade pro` to get started.
+```
+
+---
+
+### Subcommand: usage (Issue #138)
+
+Show detailed feature usage and rate limits.
+
+#### Step 1: Query Usage Summary
+
+```bash
+curl -s -H "Authorization: Bearer $POPKIT_API_KEY" \
+  https://popkit-cloud-api.joseph-cannon.workers.dev/v1/usage/summary
+```
+
+#### Step 2: Display Usage
+
+**Pro tier example:**
+
+```markdown
+## Feature Usage
+
+**Tier:** Pro ⭐
+**Period:** December 2025
+
+### Today's Usage
+
+| Feature | Used | Limit | Status |
+|---------|------|-------|--------|
+| MCP Generator | 3 | ∞ | ✅ |
+| Project Embeddings | 45 | 1,000/day | ✅ |
+| Pattern Sharing | 12 | ∞ | ✅ |
+| Power Mode (Redis) | 5 | ∞ | ✅ |
+
+### Monthly Totals
+
+| Feature | This Month | Limit |
+|---------|------------|-------|
+| API Calls | 1,234 | ∞ |
+| Project Embeddings | 456 | 10,000 |
+| Total Features Used | 89 | ∞ |
+
+### Rate Limit Status
+
+All features within limits. ✅
+
+Pro tier has unlimited access to most features.
+```
+
+**Free tier example:**
+
+```markdown
+## Feature Usage
+
+**Tier:** Free
+**Period:** December 2025
+
+### Today's Usage
+
+| Feature | Used | Limit | Status |
+|---------|------|-------|--------|
+| API Calls | 45 | 100/day | ✅ |
+| Project Embeddings | 8 | 10/day | ⚠️ Near limit |
+| Pattern Search | 15 | 20/day | ✅ |
+
+### Upgrade Benefits
+
+With **Pro tier** ($9/mo) you get:
+- ∞ API calls
+- 1,000 embeddings/day
+- ∞ pattern sharing
+- Hosted Power Mode (6+ agents)
+
+Run `/popkit:upgrade` to unlock.
 ```
 
 ---

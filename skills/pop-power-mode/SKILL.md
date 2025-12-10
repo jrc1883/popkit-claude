@@ -9,6 +9,50 @@ Multi-agent orchestration using Redis pub/sub for parallel collaboration with sh
 
 **Core principle:** Agents work in parallel, check in periodically, share discoveries, and coordinate through a mesh network.
 
+## Free vs Premium Tiers
+
+| Feature | Free Tier | Pro Tier ($9/mo) |
+|---------|-----------|------------------|
+| File-based coordination | ✅ 2-3 agents | ✅ Included |
+| Hosted Redis | ❌ | ✅ 6+ agents |
+| Persistent sessions | ❌ | ✅ |
+| Advanced metrics | Basic | Full |
+
+### Free Tier: File-Based Fallback
+
+Free tier users automatically get file-based Power Mode:
+
+```markdown
+## File-Based Power Mode (Free Tier)
+
+Power Mode is working in file-based mode (Redis not available or not Pro tier).
+
+### What You Get
+- ✅ 2-3 agents working sequentially
+- ✅ Shared context via JSON files
+- ✅ Basic coordination
+
+### Limitations
+- Max 2-3 agents (sequential coordination)
+- No real-time pub/sub
+- Sessions not persisted
+
+### Files Used
+- `.claude/popkit/power-state.json` - Session state
+- `.claude/popkit/insights.json` - Shared discoveries
+
+This is great for learning Power Mode concepts!
+Run `/popkit:upgrade` to unlock hosted Redis with 6+ parallel agents.
+```
+
+### Pro Tier: Full Redis Mode
+
+Pro users get hosted Redis for full parallel coordination:
+- 6+ agents working in parallel
+- Real-time pub/sub messaging
+- Persistent session state
+- Advanced metrics dashboard
+
 ## Overview
 
 **Inspired by:**

@@ -1,10 +1,10 @@
 ---
-description: "test | docs | sync | detect [--verbose, --json]"
+description: "test | docs | sync | detect | version [--verbose, --json]"
 ---
 
 # /popkit:plugin - Plugin Management
 
-Manage the popkit plugin itself - run tests, generate docs, and validate integrity.
+Manage the popkit plugin itself - run tests, generate docs, validate integrity, and manage versions.
 
 ## Usage
 
@@ -20,6 +20,7 @@ Manage the popkit plugin itself - run tests, generate docs, and validate integri
 | `docs` | Generate and update documentation |
 | `sync` | Validate plugin integrity |
 | `detect` | Detect conflicts with other plugins |
+| `version` | Bump version with full release workflow |
 
 ---
 
@@ -416,6 +417,113 @@ If conflicts are detected:
 
 ---
 
+## Subcommand: version
+
+Bump the plugin version with a full release workflow: update version files, changelog, commit, push, and publish.
+
+```
+/popkit:plugin version                # Interactive bump (asks for type)
+/popkit:plugin version patch          # 1.0.0 → 1.0.1
+/popkit:plugin version minor          # 1.0.0 → 1.1.0
+/popkit:plugin version major          # 1.0.0 → 2.0.0
+/popkit:plugin version --dry-run      # Preview without changes
+```
+
+### Process
+
+1. **Determine Version Bump**
+   - If type provided (patch/minor/major), use it
+   - Otherwise, prompt with AskUserQuestion
+
+2. **Update Version Files**
+   - `packages/plugin/.claude-plugin/plugin.json`
+   - `packages/plugin/.claude-plugin/marketplace.json`
+
+3. **Update CHANGELOG.md**
+   - Add new version header with date
+   - Prompt for changelog summary or auto-generate from commits
+
+4. **Commit Changes**
+   ```bash
+   git add packages/plugin/.claude-plugin/*.json CHANGELOG.md
+   git commit -m "chore: bump version to X.Y.Z"
+   ```
+
+5. **Push to Origin**
+   ```bash
+   git push origin master
+   ```
+
+6. **Publish to Public Repo**
+   - Uses `git subtree split` to extract `packages/plugin/`
+   - Pushes to `jrc1883/popkit-claude` (public repo)
+   - Creates git tag for the version
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `patch` | Increment patch version (1.0.0 → 1.0.1) |
+| `minor` | Increment minor version (1.0.0 → 1.1.0) |
+| `major` | Increment major version (1.0.0 → 2.0.0) |
+| `--dry-run` | Show what would change without modifying files |
+| `--no-publish` | Skip publishing to public repo |
+| `--no-push` | Skip pushing to origin (local only) |
+| `--message "text"` | Custom changelog message |
+
+### Output
+
+```
+/popkit:plugin version minor
+
+PopKit Version Bump
+===================
+
+Current version: 1.0.0
+New version:     1.1.0
+
+Files to update:
+  - packages/plugin/.claude-plugin/plugin.json
+  - packages/plugin/.claude-plugin/marketplace.json
+  - CHANGELOG.md
+
+[1/5] Updating version files...     ✓
+[2/5] Adding changelog entry...     ✓
+[3/5] Committing changes...         ✓
+[4/5] Pushing to origin...          ✓
+[5/5] Publishing to popkit-claude...✓
+
+Release complete!
+  Tag: v1.1.0
+  Public repo: https://github.com/jrc1883/popkit-claude
+
+Users can update with:
+  /plugin update popkit@popkit-marketplace
+```
+
+### Changelog Entry Format
+
+The changelog entry follows this format:
+
+```markdown
+## [X.Y.Z] - Month Day, Year
+
+### Summary
+
+<User-provided or auto-generated summary>
+
+- **Feature/Fix Name**: Description
+```
+
+### Version Numbering
+
+Following semantic versioning:
+- **MAJOR** (X.0.0): Breaking changes to commands, agents, or hooks
+- **MINOR** (0.X.0): New features, commands, or agents (backward compatible)
+- **PATCH** (0.0.X): Bug fixes, documentation updates
+
+---
+
 ## Examples
 
 ```bash
@@ -439,6 +547,11 @@ If conflicts are detected:
 /popkit:plugin detect
 /popkit:plugin detect --quick
 /popkit:plugin detect --json
+
+# Version management
+/popkit:plugin version minor         # Bump minor version
+/popkit:plugin version patch         # Bump patch version
+/popkit:plugin version --dry-run     # Preview changes
 ```
 
 ---

@@ -74,6 +74,42 @@ if not result.allowed:
     return
 ```
 
+### Cloud API Integration (Premium)
+
+Premium users call the cloud API for server-side generation:
+
+```python
+import sys
+sys.path.insert(0, "hooks/utils")
+from premium_client import generate_mcp_server, is_premium
+
+if not is_premium():
+    # Show free tier fallback
+    return
+
+# Call cloud API for generation
+result = generate_mcp_server(
+    project_name="my-project",
+    tech_stack=["nextjs", "typescript", "prisma"],
+    dev_port=3000,
+    db_port=5432,
+    include_embeddings=True,
+    include_routines=True
+)
+
+if result.success:
+    # Write generated files to disk
+    for file in result.files:
+        path = Path(f".claude/mcp-servers/{project_name}-dev/{file.path}")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(file.content)
+
+    print(result.instructions)
+    print(f"\nGenerated {len(result.tools)} tools: {', '.join(result.tools)}")
+else:
+    print(f"Generation failed: {result.error}")
+```
+
 ## Arguments
 
 | Flag | Description |

@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/pre-tool-use.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.py\"",
             "timeout": 5000
           }
         ]
@@ -18,12 +18,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/agent-orchestrator.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/agent-orchestrator.py\"",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "python hooks/chain-validator.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/chain-validator.py\"",
             "timeout": 5000
           }
         ]
@@ -35,17 +35,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/post-tool-use.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.py\"",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "python hooks/agent-observability.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/agent-observability.py\"",
             "timeout": 3000
           },
           {
             "type": "command",
-            "command": "python hooks/context-monitor.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/context-monitor.py\"",
             "timeout": 3000
           }
         ]
@@ -55,12 +55,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/quality-gate.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/quality-gate.py\"",
             "timeout": 180000
           },
           {
             "type": "command",
-            "command": "python hooks/doc-sync.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/doc-sync.py\"",
             "timeout": 3000
           }
         ]
@@ -70,12 +70,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/agent-context-integration.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/agent-context-integration.py\"",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "python hooks/chain-metrics.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/chain-metrics.py\"",
             "timeout": 3000
           }
         ]
@@ -85,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/command-learning-hook.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/command-learning-hook.py\"",
             "timeout": 5000
           }
         ]
@@ -95,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/bug_reporter_hook.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/bug_reporter_hook.py\"",
             "timeout": 5000
           }
         ]
@@ -107,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/user-prompt-submit.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.py\"",
             "timeout": 3000
           }
         ]
@@ -119,12 +119,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/session-start.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.py\"",
             "timeout": 10000
           },
           {
             "type": "command",
-            "command": "python hooks/knowledge-sync.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-sync.py\"",
             "timeout": 10000
           }
         ]
@@ -136,7 +136,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/stop.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.py\"",
             "timeout": 5000
           }
         ]
@@ -148,12 +148,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/subagent-stop.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.py\"",
             "timeout": 5000
           },
           {
             "type": "command",
-            "command": "python hooks/output-validator.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/output-validator.py\"",
             "timeout": 5000
           }
         ]
@@ -165,7 +165,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python hooks/notification.py",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/notification.py\"",
             "timeout": 3000
           }
         ]

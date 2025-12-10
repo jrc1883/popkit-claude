@@ -632,7 +632,8 @@ This command uses `git subtree split` to extract `packages/plugin/` and push to 
 
 3. **Push to Public Repo**
    ```bash
-   git push plugin-public plugin-public-split:main --force
+   # IMPORTANT: Public repo uses 'main' branch (not 'master')
+   git push plugin-public $(git subtree split --prefix=packages/plugin):main --force
    ```
 
 4. **Optional: Create Release Tag**
@@ -762,6 +763,9 @@ This is automatically set up when running `/popkit:git publish` for the first ti
 **"Dirty working tree"**: Commit or stash changes in `packages/plugin/` first.
 
 **"History diverged"**: Use `--force` if public repo has changes not in monorepo (rare).
+
+**"Branch mismatch"**: The private monorepo uses `master`, the public repo uses `main`.
+Always push to `main` branch: `git push plugin-public <sha>:main`
 
 ---
 

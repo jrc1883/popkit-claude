@@ -30,6 +30,13 @@ try:
 except ImportError:
     PREMIUM_CHECKER_AVAILABLE = False
 
+# Import skill state tracker for AskUserQuestion enforcement (Issue #159)
+try:
+    from skill_state import get_tracker, SkillStateTracker
+    SKILL_STATE_AVAILABLE = True
+except ImportError:
+    SKILL_STATE_AVAILABLE = False
+
 class PreToolUseHook:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
@@ -460,6 +467,43 @@ class PreToolUseHook:
             "limit": result.limit
         }
 
+    def track_skill_invocation(self, tool_name: str, tool_args: Dict[str, Any]) -> Dict[str, Any]:
+        """Track skill invocations for AskUserQuestion enforcement (Issue #159).
+
+        Follows Anthropic's recommendation from the Hooks Guide:
+        "By encoding these rules as hooks rather than prompting instructions,
+        you turn suggestions into app-level code that executes every time."
+
+        Args:
+            tool_name: Name of tool being invoked
+            tool_args: Tool arguments
+
+        Returns:
+            Dict with tracking info and any required decision prompts
+        """
+        if not SKILL_STATE_AVAILABLE:
+            return {"tracked": False}
+
+        tracker = get_tracker()
+
+        # If this is a Skill invocation, start tracking it
+        if tool_name == "Skill":
+            skill_name = tool_args.get("skill", "")
+            tracker.start_skill(skill_name)
+            return {"tracked": True, "skill_started": skill_name}
+
+        # If this is AskUserQuestion, record the decision
+        if tool_name == "AskUserQuestion":
+            questions = tool_args.get("questions", [])
+            if questions:
+                header = questions[0].get("header", "")
+                tracker.record_decision_by_header(header)
+            return {"tracked": True, "decision_recorded": True}
+
+        # Record this tool use for tracking
+        tracker.record_tool_use(tool_name)
+        return {"tracked": True}
+
     def process_tool_request(self, tool_name: str, tool_args: Dict[str, Any]) -> Dict[str, Any]:
         """Main processing function for tool requests"""
         result = {
@@ -476,6 +520,10 @@ class PreToolUseHook:
 
         # Environment context detection
         environment_context = self.detect_environment_context()
+
+        # Skill state tracking for AskUserQuestion enforcement (Issue #159)
+        skill_tracking = self.track_skill_invocation(tool_name, tool_args)
+        result["skill_tracking"] = skill_tracking
 
         # Safety checks
         safety_violations = self.check_safety_violations(tool_name, tool_args)

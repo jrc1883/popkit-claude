@@ -22,6 +22,14 @@ try:
 except ImportError:
     HAS_PROJECT_CLIENT = False
 
+# Import skill state tracker for AskUserQuestion enforcement (Issue #159)
+sys.path.insert(0, str(Path(__file__).parent / "utils"))
+try:
+    from skill_state import get_tracker, SkillStateTracker
+    SKILL_STATE_AVAILABLE = True
+except ImportError:
+    SKILL_STATE_AVAILABLE = False
+
 class PostToolUseHook:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
@@ -520,6 +528,40 @@ class PostToolUseHook:
 
         return result
 
+    def check_pending_skill_decisions(self, tool_name: str) -> Dict[str, Any]:
+        """Check for pending completion decisions from active skill (Issue #159).
+
+        This implements the enforcement side of AskUserQuestion requirements.
+        When a skill has pending decisions, we output a reminder to stderr.
+
+        Returns:
+            Dict with pending decision info if any
+        """
+        if not SKILL_STATE_AVAILABLE:
+            return {"has_pending": False}
+
+        tracker = get_tracker()
+
+        # Skip check for AskUserQuestion tool (it's being used, that's good)
+        if tool_name == "AskUserQuestion":
+            return {"has_pending": False, "recording_decision": True}
+
+        # Check if there's an active skill with pending decisions
+        if not tracker.is_skill_active():
+            return {"has_pending": False}
+
+        pending = tracker.get_pending_completion_decisions()
+        if not pending:
+            return {"has_pending": False}
+
+        # Return info about first pending decision
+        first_pending = pending[0]
+        return {
+            "has_pending": True,
+            "skill_name": tracker.get_active_skill(),
+            "decision": first_pending
+        }
+
     def record_cloud_activity(self, tool_name: str, followup_agents: List[str]):
         """Record tool usage activity in PopKit Cloud for cross-project observability."""
         if not HAS_PROJECT_CLIENT:
@@ -606,6 +648,10 @@ def main():
         hook = PostToolUseHook()
         result = hook.process_tool_completion(tool_name, tool_args, tool_result, execution_time)
 
+        # Check for pending skill decisions (Issue #159)
+        pending_decision = hook.check_pending_skill_decisions(tool_name)
+        result["pending_skill_decision"] = pending_decision
+
         # Add stop reason info to result
         result["stop_info"] = stop_info
 
@@ -643,6 +689,20 @@ def main():
             print(f"⚡ Quality Score: {quality_score:.1f} - Consider review", file=sys.stderr)
         elif quality_score > 0.8:
             print(f"✨ Quality Score: {quality_score:.1f} - Excellent", file=sys.stderr)
+
+        # Output pending skill decision reminder if applicable (Issue #159)
+        if pending_decision.get("has_pending"):
+            decision = pending_decision.get("decision", {})
+            skill_name = pending_decision.get("skill_name", "unknown")
+            print(f"", file=sys.stderr)
+            print(f"🤔 User Decision Required ({skill_name})", file=sys.stderr)
+            print(f"   {decision.get('question', 'No question specified')}", file=sys.stderr)
+            if decision.get("options"):
+                print(f"   Options:", file=sys.stderr)
+                for opt in decision["options"]:
+                    print(f"     • {opt.get('label')}: {opt.get('description', '')}", file=sys.stderr)
+            print(f"   💡 Use AskUserQuestion tool to get user input", file=sys.stderr)
+            print(f"", file=sys.stderr)
 
         print(f"✅ Tool {tool_name} analysis complete", file=sys.stderr)
 

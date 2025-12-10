@@ -419,5 +419,95 @@
       "pop-brainstorming",
       "pop-writing-plans"
     ]
+  },
+
+  "skill_decisions": {
+    "description": "Required AskUserQuestion decision points per skill (Issue #159)",
+    "notes": {
+      "purpose": "Enforce consistent UX by requiring skills to prompt for user decisions",
+      "philosophy": "Per Anthropic: 'encode rules as hooks rather than prompting instructions'",
+      "triggers": "Only 'start' and 'completion' triggers are enforced; mid-flow is skill-dependent"
+    },
+    "enforcement": "require",
+    "skills": {
+      "pop-project-init": {
+        "description": "Project initialization requires user to choose next action",
+        "completion_decisions": [
+          {
+            "id": "next_action",
+            "question": "Project initialized. What would you like to do next?",
+            "header": "Next Step",
+            "options": [
+              {"label": "Analyze codebase", "description": "Run /popkit:project analyze for deep analysis"},
+              {"label": "Setup quality gates", "description": "Run /popkit:project setup for pre-commit hooks"},
+              {"label": "View issues", "description": "Run /popkit:issue list to see GitHub issues"},
+              {"label": "Done for now", "description": "I'll explore on my own"}
+            ]
+          }
+        ]
+      },
+      "pop-brainstorming": {
+        "description": "Brainstorming requires user to choose implementation path",
+        "completion_decisions": [
+          {
+            "id": "implementation_choice",
+            "question": "Design complete. Would you like to continue to implementation?",
+            "header": "Next Step",
+            "options": [
+              {"label": "Create plan", "description": "Use pop-writing-plans to create detailed implementation plan"},
+              {"label": "Create worktree", "description": "Set up isolated workspace first"},
+              {"label": "Done for now", "description": "I'll review the design first"}
+            ]
+          }
+        ]
+      },
+      "pop-writing-plans": {
+        "description": "Plan writing requires user to choose execution approach",
+        "completion_decisions": [
+          {
+            "id": "execution_choice",
+            "question": "Plan complete. Ready to begin implementation?",
+            "header": "Execute",
+            "options": [
+              {"label": "Execute now", "description": "Start implementing the plan immediately"},
+              {"label": "Review first", "description": "I want to review the plan before executing"},
+              {"label": "Done for now", "description": "I'll execute later"}
+            ]
+          }
+        ]
+      },
+      "pop-executing-plans": {
+        "description": "Plan execution requires user to choose what's next",
+        "completion_decisions": [
+          {
+            "id": "post_execution",
+            "question": "Implementation complete. What would you like to do next?",
+            "header": "Complete",
+            "options": [
+              {"label": "Run tests", "description": "Verify implementation with test suite"},
+              {"label": "Code review", "description": "Use code-reviewer agent for quality check"},
+              {"label": "Finish branch", "description": "Prepare for merge or PR"},
+              {"label": "Done for now", "description": "I'll continue later"}
+            ]
+          }
+        ]
+      },
+      "pop-finish-branch": {
+        "description": "Branch completion requires user to choose integration method",
+        "completion_decisions": [
+          {
+            "id": "integration_method",
+            "question": "How would you like to integrate this work?",
+            "header": "Integrate",
+            "options": [
+              {"label": "Merge locally", "description": "Merge branch into main/master locally"},
+              {"label": "Create PR", "description": "Push and create a pull request"},
+              {"label": "Keep as-is", "description": "Leave branch for now"},
+              {"label": "Discard", "description": "Delete branch and changes"}
+            ]
+          }
+        ]
+      }
+    }
   }
 }

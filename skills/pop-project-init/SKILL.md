@@ -15,11 +15,13 @@ Scaffold a new project with complete Claude Code configuration. **Surgically add
 
 ## Critical Rules
 
-1. **NEVER overwrite existing CLAUDE.md** - Only add/update the PopKit section using markers
-2. **ALWAYS create `.claude/popkit/` directory** - Required for deploy, routines, and state
-3. **Check for plugin conflicts** before proceeding
-4. **MANDATORY: Use AskUserQuestion tool** for all user decisions (enforced by hooks)
-5. **Preserve existing .claude/ content** if present
+1. **NEVER overwrite existing CLAUDE.md** - If file exists, READ it first, then EDIT (not Write)
+2. **ALWAYS use `<!-- POPKIT:START -->` / `<!-- POPKIT:END -->` markers** - Required for surgical updates
+3. **ALWAYS create `.claude/popkit/` directory** - Required for deploy, routines, and state
+4. **Check for plugin conflicts** before proceeding
+5. **MANDATORY: Use AskUserQuestion tool** for all user decisions (enforced by hooks)
+6. **Preserve existing .claude/ content** if present
+7. **DO NOT generate extensive documentation** - Only add the minimal PopKit section
 
 ## Required Decision Points
 
@@ -150,11 +152,21 @@ if not os.path.exists(popkit_config_path):
         json.dump(config, f, indent=2)
 ```
 
-### Step 3: Surgically Update CLAUDE.md
+### Step 3: Surgically Update CLAUDE.md (CRITICAL)
 
-**CRITICAL: Always use HTML markers for surgical updates.**
+**⚠️ CRITICAL: This step has STRICT requirements. Failure to follow them destroys user content.**
 
-The PopKit section MUST be wrapped with markers so it can be updated without touching user content:
+#### Rule 1: NEVER use Write tool to replace entire CLAUDE.md
+
+If CLAUDE.md exists, you MUST:
+1. Use Read tool to get current content
+2. Check if `<!-- POPKIT:START -->` and `<!-- POPKIT:END -->` markers exist
+3. If markers exist: Use Edit tool to replace ONLY the content between markers
+4. If markers don't exist: Use Edit tool to APPEND the PopKit section to the end
+
+#### Rule 2: ALWAYS include markers
+
+The PopKit section MUST be wrapped with these exact markers:
 
 ```markdown
 <!-- POPKIT:START -->
@@ -183,6 +195,23 @@ This project uses [PopKit](https://github.com/jrc1883/popkit-claude) for AI-powe
 - [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 <!-- POPKIT:END -->
 ```
+
+#### Rule 3: Decision flow for CLAUDE.md
+
+```
+CLAUDE.md exists?
+├── NO  → Create new file with ONLY:
+│         1. "# {project_name}" header
+│         2. One line: "Project instructions for Claude Code."
+│         3. Empty line
+│         4. PopKit section with markers
+│
+└── YES → Read existing content
+          ├── Has markers? → Edit ONLY between markers (preserve everything else)
+          └── No markers?  → Append PopKit section at END of file
+```
+
+**DO NOT generate extensive project documentation.** That is the user's responsibility. PopKit only adds its own section.
 
 #### Surgical Update Logic
 

@@ -1,7 +1,39 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Pop Power Mode configuration - Multi-agent Redis pub/sub orchestration",
-  "version": "1.0.0",
+  "description": "Pop Power Mode configuration - Multi-agent orchestration (Native Async + Redis + File modes)",
+  "version": "2.0.0",
+
+  "native": {
+    "enabled": true,
+    "min_claude_code_version": "2.0.64",
+    "max_parallel_agents": 5,
+    "poll_interval_ms": 500,
+    "sync_timeout_seconds": 120,
+    "use_insights_file": true,
+    "insights_file_path": ".claude/popkit/insights.json",
+    "state_file_path": ".claude/popkit/power-state.json"
+  },
+
+  "mode_priority": ["native", "redis", "file"],
+
+  "tier_limits": {
+    "free": {
+      "mode": "file",
+      "max_agents": 2,
+      "features": ["basic_coordination", "insights_sharing"]
+    },
+    "premium": {
+      "mode": "native",
+      "max_agents": 5,
+      "features": ["parallel_agents", "sync_barriers", "phase_orchestration"]
+    },
+    "pro": {
+      "mode": "native",
+      "max_agents": 10,
+      "redis_fallback": true,
+      "features": ["unlimited_mesh", "team_coordination", "advanced_metrics"]
+    }
+  },
 
   "redis": {
     "host": "localhost",

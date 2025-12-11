@@ -1,57 +1,70 @@
 ---
 name: power-mode
-description: "Multi-agent orchestration system using Redis pub/sub or file-based fallback for parallel agent collaboration. Enables shared context, periodic check-ins, sync barriers between phases, and coordinator oversight. Use for complex tasks benefiting from parallel execution (epics, large refactors, multi-phase features). Do NOT use for simple tasks or sequential workflows - the coordination overhead isn't justified."
+description: "Multi-agent orchestration system using Claude Code's native background agents (2.0.64+) for true parallel collaboration. Enables shared context, sync barriers between phases, and coordinator oversight. Use for complex tasks benefiting from parallel execution (epics, large refactors, multi-phase features). Do NOT use for simple tasks or sequential workflows - the coordination overhead isn't justified."
 ---
 
 # Pop Power Mode
 
-Multi-agent orchestration using Redis pub/sub for parallel collaboration with shared context.
+Multi-agent orchestration using Claude Code's **native background agents** for true parallel collaboration.
 
-**Core principle:** Agents work in parallel, check in periodically, share discoveries, and coordinate through a mesh network.
+**Core principle:** Agents work in parallel via `run_in_background: true`, share discoveries via file, and coordinate through sync barriers.
 
-## Free vs Premium Tiers
+## Architecture: Native Async (Claude Code 2.0.64+)
 
-| Feature | Free Tier | Pro Tier ($9/mo) |
-|---------|-----------|------------------|
-| File-based coordination | ✅ 2-3 agents | ✅ Included |
-| Hosted Redis | ❌ | ✅ 6+ agents |
-| Persistent sessions | ❌ | ✅ |
-| Advanced metrics | Basic | Full |
-
-### Free Tier: File-Based Fallback
-
-Free tier users automatically get file-based Power Mode:
-
-```markdown
-## File-Based Power Mode (Free Tier)
-
-Power Mode is working in file-based mode (Redis not available or not Pro tier).
-
-### What You Get
-- ✅ 2-3 agents working sequentially
-- ✅ Shared context via JSON files
-- ✅ Basic coordination
-
-### Limitations
-- Max 2-3 agents (sequential coordination)
-- No real-time pub/sub
-- Sessions not persisted
-
-### Files Used
-- `.claude/popkit/power-state.json` - Session state
-- `.claude/popkit/insights.json` - Shared discoveries
-
-This is great for learning Power Mode concepts!
-Run `/popkit:upgrade` to unlock hosted Redis with 6+ parallel agents.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   NATIVE ASYNC POWER MODE                        │
+├─────────────────────────────────────────────────────────────────┤
+│   ┌───────────┐  ┌───────────┐  ┌───────────┐                  │
+│   │  Agent 1  │  │  Agent 2  │  │  Agent 3  │                  │
+│   │background │  │background │  │background │                  │
+│   └─────┬─────┘  └─────┬─────┘  └─────┬─────┘                  │
+│         └──────────────┼──────────────┘                         │
+│                        │                                        │
+│                ┌───────▼───────┐                               │
+│                │  Main Agent   │  ← Coordinator (TaskOutput)   │
+│                │  (Polling)    │                               │
+│                └───────────────┘                               │
+├─────────────────────────────────────────────────────────────────┤
+│ Requirements: Claude Code 2.0.64+ (no external dependencies)   │
+│ Setup: Zero config - just run /popkit:power start              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Pro Tier: Full Redis Mode
+## Tier Comparison
 
-Pro users get hosted Redis for full parallel coordination:
-- 6+ agents working in parallel
-- Real-time pub/sub messaging
-- Persistent session state
-- Advanced metrics dashboard
+| Feature | Free | Premium ($9/mo) | Pro ($29/mo) |
+|---------|------|-----------------|--------------|
+| Mode | File-based | Native Async | Native Async |
+| Max Agents | 2 | 5 | 10 |
+| Parallel Execution | Sequential | ✅ True parallel | ✅ True parallel |
+| Sync Barriers | Basic | ✅ Phase-aware | ✅ Phase-aware |
+| Insight Sharing | Basic | ✅ Full | ✅ Full |
+| Redis Fallback | ❌ | ❌ | ✅ Optional |
+
+### Free Tier: File-Based Mode
+
+Free tier users get file-based coordination:
+- Works with 2 agents (sequential)
+- Shared context via `.claude/popkit/insights.json`
+- Good for learning Power Mode concepts
+- Zero setup required
+
+### Premium Tier: Native Async Mode
+
+Premium users unlock native async capabilities:
+- Up to 5 agents working in **true parallel**
+- Uses Claude Code's `Task(run_in_background: true)` API
+- Main agent polls via `TaskOutput(block: false)`
+- Phase-aware sync barriers
+- Full insight sharing
+
+### Pro Tier: Full Power
+
+Pro users get maximum capabilities:
+- Up to 10 parallel agents
+- Optional Redis fallback for high-volume scenarios
+- Team coordination features
 
 ## Overview
 
@@ -74,33 +87,36 @@ Pro users get hosted Redis for full parallel coordination:
 
 ## Prerequisites
 
-1. **Redis running** (local or remote)
-   ```bash
-   # Start Redis locally
-   docker run -d -p 6379:6379 redis:alpine
-   # Or: redis-server
-   ```
+### Native Async Mode (Default - Zero Config)
 
-2. **Python redis package**
-   ```bash
-   pip install redis
-   ```
+- Claude Code 2.0.64 or later
+- Premium or Pro tier
+- **No additional setup required!**
+
+### Redis Mode (Pro tier optional)
+
+Only if you want Redis fallback:
+```bash
+# Setup Redis infrastructure
+/popkit:power init --redis
+```
 
 ## Activation
 
-### Method 1: Command
+### Method 1: Command (Recommended)
 ```
-/popkit:power-mode "Build user authentication with tests and docs"
-```
-
-### Method 2: Environment Variable
-```bash
-export POP_POWER_MODE=1
+/popkit:power start "Build user authentication with tests and docs"
 ```
 
-### Method 3: Manual
-```bash
-touch ~/.claude/power-mode-enabled
+### Method 2: Issue-Driven
+```
+/popkit:dev work #45 -p
+```
+
+### Method 3: Auto-Detection
+```
+# Power Mode auto-enables for issues labeled "epic" or "power-mode"
+/popkit:dev work #45
 ```
 
 ## How It Works
@@ -126,54 +142,78 @@ Objective:
     - restricted_tools: []
 ```
 
-### 2. Coordinator Starts
+### 2. Mode Selection
 
-The coordinator:
+The mode selector automatically chooses the best mode:
+1. **Native Async** (if Claude Code 2.0.64+) → True parallel agents
+2. **Redis** (if Docker + container) → Legacy parallel mode
+3. **File** (always available) → Sequential fallback
+
+### 3. Coordinator Starts
+
+**Native Async Mode:**
+- Main agent becomes coordinator
+- Spawns background agents via `Task(run_in_background: true)`
+- Polls progress via `TaskOutput(block: false)`
+- Manages phase transitions
+
+**Redis Mode (Legacy):**
 - Creates Redis channels
-- Stores objective
-- Monitors agent health
-- Routes insights
-- Manages sync barriers
+- External coordinator.py process
+- Monitors agent health via heartbeats
 
-### 3. Agents Register & Work
+### 4. Agents Work in Parallel
 
-Each agent:
-- Registers with coordinator
-- Gets assigned a subtask
+Each background agent:
+- Receives its subtask and phase
 - Works independently
-- Checks in every 5 tool calls
+- Shares insights via `.claude/popkit/insights.json`
+- Returns results when complete
 
-### 4. Check-In Protocol
+### 5. Insight Sharing
 
-Every 5 tool calls, agents:
+Agents share discoveries via JSON file:
+```json
+{
+  "insights": [
+    {
+      "agent": "code-explorer",
+      "content": "Found existing User model at src/models",
+      "tags": ["model", "database"],
+      "phase": "explore"
+    }
+  ]
+}
+```
 
-**PUSH (outgoing):**
-- Progress update
-- Files touched
-- Discoveries made (insights)
-
-**PULL (incoming):**
-- Relevant insights from others
-- Pattern recommendations
-- Coordinator messages
-
-### 5. Sync Barriers
+### 6. Sync Barriers
 
 Between phases:
-- Coordinator creates barrier
-- Agents acknowledge when ready
-- All wait until complete
-- Next phase begins
+- Coordinator waits for all `TaskOutput` to complete
+- Aggregates results from phase
+- Spawns next batch of agents
+- Process continues until all phases complete
 
-### 6. Completion
+### 7. Completion
 
 When objective met:
-- Coordinator aggregates results
+- Coordinator aggregates all results
 - Patterns saved for future
-- Session transcript stored
+- State cleared from `.claude/popkit/power-state.json`
 
-## Redis Channels
+## Communication Channels
 
+### Native Async Mode (Default)
+
+Uses file-based communication:
+| File | Purpose |
+|------|---------|
+| `.claude/popkit/insights.json` | Shared discoveries |
+| `.claude/popkit/power-state.json` | Session state |
+
+### Redis Mode (Pro Tier Legacy)
+
+Uses Redis pub/sub channels:
 | Channel | Purpose |
 |---------|---------|
 | `pop:broadcast` | Coordinator → All agents |
@@ -269,17 +309,32 @@ Edit `power-mode/config.json`:
 ## Deactivation
 
 ```bash
-# Remove enable file
-rm ~/.claude/power-mode-enabled
+# Use command (recommended)
+/popkit:power stop
 
-# Or unset environment
-unset POP_POWER_MODE
-
-# Or use command
-/popkit:power-mode-stop
+# Or clear state file
+rm .claude/popkit/power-state.json
 ```
 
 ## Troubleshooting
+
+### Native Async Mode
+
+**Claude Code version too old:**
+- Update Claude Code to 2.0.64+
+- Check version: `claude --version`
+- Power Mode will fall back to file mode
+
+**Background agents not spawning:**
+- Verify you have Premium/Pro tier
+- Check `.claude/popkit/power-state.json` for errors
+- Free tier is limited to file-based mode
+
+**Insights not sharing:**
+- Check `.claude/popkit/insights.json` exists
+- Verify file permissions
+
+### Redis Mode (Legacy)
 
 **Redis connection failed:**
 - Check container running: `docker ps --filter name=popkit-redis`
@@ -287,12 +342,10 @@ unset POP_POWER_MODE
 - Or Python: `python -c "import redis; print(redis.Redis(port=16379).ping())"`
 
 **Agents not communicating:**
-- Verify power mode enabled
+- Verify Redis mode is active: `/popkit:power status`
 - Check Redis channels: `docker exec popkit-redis redis-cli subscribe pop:broadcast`
 
-**Check-ins not happening:**
-- Verify checkin-hook.py is executable
-- Check hooks.json includes power-mode hook
+### General
 
 **Drift alerts:**
 - Agent working outside scope boundaries

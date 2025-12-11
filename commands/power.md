@@ -4,35 +4,71 @@ description: "start | stop | status | init | metrics | widgets | consensus [--co
 
 # /popkit:power - Power Mode Management
 
-Manage multi-agent orchestration via Redis pub/sub for complex tasks requiring parallel agent collaboration.
+Manage multi-agent orchestration for complex tasks requiring parallel agent collaboration.
 
-## Free vs Premium Tiers
+## Architecture: Native Async (Claude Code 2.0.64+)
 
-| Feature | Free Tier | Pro Tier ($9/mo) |
-|---------|-----------|------------------|
-| File-based coordination | ✅ 2-3 agents | ✅ Included |
-| Hosted Redis | ❌ | ✅ 6+ agents |
-| Persistent sessions | ❌ | ✅ |
-| Team coordination | ❌ | ✅ |
-| Advanced metrics | Basic | Full dashboard |
+Power Mode now leverages Claude Code's **native background agents** - no Docker or Redis required!
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   NATIVE ASYNC POWER MODE                        │
+├─────────────────────────────────────────────────────────────────┤
+│   ┌───────────┐  ┌───────────┐  ┌───────────┐                  │
+│   │  Agent 1  │  │  Agent 2  │  │  Agent 3  │                  │
+│   │background │  │background │  │background │                  │
+│   └─────┬─────┘  └─────┬─────┘  └─────┬─────┘                  │
+│         └──────────────┼──────────────┘                         │
+│                        │                                        │
+│                ┌───────▼───────┐                               │
+│                │  TaskOutput   │  ← Native Claude Code API     │
+│                │  Coordinator  │                               │
+│                └───────────────┘                               │
+├─────────────────────────────────────────────────────────────────┤
+│ Requirements: Claude Code 2.0.64+ (no external dependencies)   │
+│ Setup: Zero config - just run /popkit:power start              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Tier Comparison
+
+| Feature | Free | Premium ($9/mo) | Pro ($29/mo) |
+|---------|------|-----------------|--------------|
+| Mode | File-based | Native Async | Native Async |
+| Max Agents | 2 | 5 | 10 |
+| Parallel Execution | Sequential | ✅ True parallel | ✅ True parallel |
+| Sync Barriers | Basic | ✅ Phase-aware | ✅ Phase-aware |
+| Insight Sharing | Basic | ✅ Full | ✅ Full |
+| Redis Fallback | ❌ | ❌ | ✅ Optional |
+| Team Coordination | ❌ | ❌ | ✅ |
+| Advanced Metrics | ❌ | Basic | Full dashboard |
 
 ### Free Tier: File-Based Mode
 
-Free tier users get file-based Power Mode automatically:
-- Works with 2-3 agents (sequential coordination)
-- Zero setup required (no Docker/Redis)
+Free tier users get file-based coordination:
+- Works with 2 agents (sequential)
+- Zero setup required
 - Good for learning and smaller tasks
-- Automatic fallback when Redis unavailable
+- Uses `.claude/popkit/insights.json` for sharing
 
-### Pro Tier: Hosted Redis Mode
+### Premium Tier: Native Async Mode
 
-Pro users unlock full Power Mode capabilities:
-- 6+ agents working in parallel
-- Real-time pub/sub coordination
-- Persistent session state
-- Advanced metrics and insights
+Premium users unlock native async capabilities:
+- Up to 5 agents working in true parallel
+- Uses Claude Code's background agent API
+- Phase-aware sync barriers
+- Full insight sharing between agents
+- Zero infrastructure to maintain
 
-Run `/popkit:upgrade` to unlock hosted Redis Power Mode.
+### Pro Tier: Full Power
+
+Pro users get maximum capabilities:
+- Up to 10 parallel agents
+- Optional Redis fallback for high-volume scenarios
+- Team coordination features
+- Full analytics dashboard
+
+Run `/popkit:upgrade` to unlock premium features.
 
 ## Usage
 
@@ -66,32 +102,36 @@ Check current Power Mode status.
 ### Output When Active
 
 ```
-[+] POWER MODE ACTIVE
+[+] POWER MODE ACTIVE (Native Async)
 
 Session: abc123
 Issue: #11 - Unified orchestration system
 Started: 15 minutes ago
 Runtime: 15m 32s
 
+Mode: Native Async (Claude Code 2.0.68)
+Tier: Premium (5 agents max)
+
 Current State:
   Phase: implementation (3/5)
   Progress: 45%
-  Agents: 2 active
+  Agents: 3 background (2 running, 1 pending)
 
 Active Agents:
-  - code-architect: Designing API structure [T:28 P:60%]
-  - test-writer-fixer: Writing unit tests [T:15 P:30%]
+  - code-architect [background]: Designing API structure [running]
+  - test-writer-fixer [background]: Writing unit tests [running]
+  - code-reviewer [background]: Queued for review phase [pending]
 
-Recent Check-ins:
+Recent Insights:
   10:05:32 code-architect: "Found existing auth patterns in src/auth/"
   10:04:18 test-writer-fixer: "Using Jest with existing test setup"
 
 Insights Shared: 8
-Patterns Learned: 3
+Sync Barriers: 2 completed
 
 Commands:
   /popkit:power stop    Stop Power Mode
-  /popkit:issue work #11      Continue current issue
+  /popkit:power status  Refresh status
 ```
 
 ### Output When Inactive
@@ -101,12 +141,16 @@ Commands:
 
 No active Power Mode session.
 
-To start Power Mode:
-  /popkit:issue work #N -p     Work on issue with Power Mode
-  /popkit:power start "task"   Start with custom objective
-  /popkit:issue list --power   List issues recommending Power Mode
+Mode Detection:
+  Claude Code: 2.0.68 ✓
+  Available Mode: Native Async
+  Tier: Premium (5 agents)
 
-Redis Status: localhost:16379 [OK]
+To start Power Mode:
+  /popkit:power start "task"   Start with custom objective
+  /popkit:dev work #N -p       Work on issue with Power Mode
+
+No setup required - just start!
 ```
 
 ---
@@ -134,30 +178,33 @@ Start Power Mode with an objective.
 
 ### Prerequisites
 
-**Redis must be running:**
-```bash
-# Check Redis
-/popkit:power init
+**Native Async Mode (Default):**
+- Claude Code 2.0.64 or later
+- No additional setup required!
 
-# Start if needed
-/popkit:power init start
+**Redis Mode (Pro tier optional):**
+```bash
+# Only needed for Pro tier Redis fallback
+/popkit:power init --redis
 ```
 
 ### Process
 
-1. **Check Prerequisites**: Verify Redis connection
+1. **Detect Mode**: Auto-select best mode (native > redis > file)
 2. **Parse Objective**: Extract description, success criteria, phases, boundaries
-3. **Start Coordinator**: Enable power mode and start coordinator process
-4. **Display Configuration**: Show phases, agents, boundaries
-5. **Begin Orchestration**: Dispatch initial agents
+3. **Spawn Agents**: Launch background agents via `Task(run_in_background: true)`
+4. **Coordinate**: Main agent monitors progress via `TaskOutput`
+5. **Sync Barriers**: Wait for phase completion before advancing
 
 ### Output
 
 ```
-POWER MODE ACTIVATED
+POWER MODE ACTIVATED (Native Async)
 
 Session: abc123
 Objective: Build user authentication with tests
+Mode: Native Async (Claude Code 2.0.68)
+Tier: Premium (5 agents max)
 
 Phases:
 1. explore   - Analyze codebase and requirements
@@ -166,18 +213,21 @@ Phases:
 4. test      - Write and run tests
 5. review    - Final review
 
+Agents:
+  Phase 1: code-explorer (background)
+  Phase 2: code-architect (background)
+  Phase 3: api-designer, test-writer-fixer (parallel background)
+  Phase 5: code-reviewer (background)
+
 Boundaries:
   Files: src/auth/**, tests/auth/**
   Protected: .env*, secrets/
   Human approval: deploy, push main
 
-Check-ins: Every 5 tool calls
-Timeout: 30 minutes
+Insights: .claude/popkit/insights.json
+State: .claude/popkit/power-state.json
 
-Redis: localhost:6379 [OK]
-Channels: pop:broadcast, pop:insights, pop:heartbeat
-
-Ready to orchestrate. Agents will check in periodically.
+Ready to orchestrate. Spawning first phase agents...
 ```
 
 ---
@@ -350,20 +400,53 @@ print(collector.format_cli_report())
 
 ## Subcommand: init
 
-Initialize Redis infrastructure for Power Mode.
+Initialize Power Mode infrastructure. **Note:** For Native Async mode (default), no init is required!
 
 ```
-/popkit:power init              # Check status and setup if needed
-/popkit:power init start        # Start Redis
-/popkit:power init stop         # Stop Redis
-/popkit:power init restart      # Restart Redis
-/popkit:power init debug        # Start with Redis Commander (http://localhost:8081)
-/popkit:power init test         # Test Redis connectivity
+/popkit:power init              # Check mode availability
 /popkit:power init statusline   # Configure status line display
+/popkit:power init --redis      # (Pro only) Setup Redis infrastructure
 ```
 
-### Prerequisites
+### Default Output
 
+```
+/popkit:power init
+
+Checking Power Mode availability...
+
+Mode Selection:
+  Priority: native > redis > file
+
+Native Async Mode:
+  Claude Code: 2.0.68 ✓
+  Min Required: 2.0.64 ✓
+  Status: AVAILABLE
+
+Redis Mode:
+  Status: NOT CONFIGURED
+  (Pro tier only - run /popkit:power init --redis to setup)
+
+File Mode:
+  Status: ALWAYS AVAILABLE (fallback)
+
+Selected Mode: Native Async ✓
+
+No setup required! Run /popkit:power start "objective" to begin.
+```
+
+### Redis Setup (Pro Tier Only)
+
+For Pro tier users who want Redis fallback:
+
+```
+/popkit:power init --redis          # Setup Redis infrastructure
+/popkit:power init --redis start    # Start Redis container
+/popkit:power init --redis stop     # Stop Redis container
+/popkit:power init --redis debug    # Start with Redis Commander (http://localhost:8081)
+```
+
+**Prerequisites for Redis mode:**
 - Docker installed and running
 - Docker Compose (V1 or V2)
 
@@ -371,27 +454,6 @@ If Docker is not installed:
 - **macOS**: Install Docker Desktop from https://docs.docker.com/desktop/mac/install/
 - **Windows**: Install Docker Desktop from https://docs.docker.com/desktop/windows/install/
 - **Linux**: Install Docker Engine from https://docs.docker.com/engine/install/
-
-### Init Subcommands
-
-#### Default (status + auto-start)
-
-```
-/popkit:power init
-
-Checking Docker availability...
-Docker is installed and running
-Starting Redis container...
-Redis container started
-Waiting for Redis to be healthy...
-Redis is running and accessible
-
-Ready for Power Mode!
-
-Next steps:
-1. Run /popkit:power start "objective" to activate
-2. Run /popkit:power init debug to open Redis Commander
-```
 
 #### start
 
@@ -695,12 +757,41 @@ Time Remaining: 2m 30s
 
 ---
 
-## File-Based Fallback
+## Mode Selection Hierarchy
 
-Power Mode works without Redis using file-based coordination:
-- Uses shared JSON file for coordination
-- Good for 2-3 agents, development, learning
-- Auto-activates when Redis unavailable
+Power Mode automatically selects the best available mode:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MODE SELECTION                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. Native Async (Preferred)                                │
+│     ├── Requires: Claude Code 2.0.64+                       │
+│     ├── Tier: Premium/Pro                                   │
+│     └── Agents: 5-10 parallel                               │
+│                     │                                        │
+│                     ▼ (if unavailable)                       │
+│  2. Redis Mode (Legacy)                                     │
+│     ├── Requires: Docker + Redis container                  │
+│     ├── Tier: Pro only (fallback)                           │
+│     └── Agents: 6+ parallel                                 │
+│                     │                                        │
+│                     ▼ (if unavailable)                       │
+│  3. File-Based Mode (Fallback)                              │
+│     ├── Requires: Nothing                                   │
+│     ├── Tier: Free                                          │
+│     └── Agents: 2 sequential                                │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### File-Based Fallback
+
+Power Mode works without native async or Redis using file-based coordination:
+- Uses `.claude/popkit/insights.json` for coordination
+- Good for 2 agents, learning, simple tasks
+- Auto-activates when native async unavailable
 - Zero setup required
 
 ---
@@ -816,21 +907,41 @@ This command activates the `pop-power-mode` skill. For detailed documentation se
 
 ## Architecture Integration
 
+### Native Async Components (Default)
+
 | Component | Integration |
 |-----------|-------------|
-| **Coordinator** | `power-mode/coordinator.py` |
+| **Native Coordinator** | `power-mode/native_coordinator.py` |
+| **Mode Selector** | `power-mode/mode_selector.py` |
+| **Config** | `power-mode/config.json` |
+| **Insights File** | `.claude/popkit/insights.json` |
+| **State File** | `.claude/popkit/power-state.json` |
+
+### Legacy Redis Components (Pro Tier)
+
+| Component | Integration |
+|-----------|-------------|
+| **Redis Coordinator** | `power-mode/coordinator.py` |
 | **Auto-Coordinator** | `power-mode/coordinator_auto.py` |
 | **File Fallback** | `power-mode/file_fallback.py` |
 | **Check-In Hook** | `power-mode/checkin-hook.py` |
-| **Status Line** | `power-mode/statusline.py` |
-| **Efficiency Tracker** | `hooks/utils/efficiency_tracker.py` |
-| **Config** | `power-mode/config.json` |
-| **Widget Config** | `.claude/popkit/config.json` (statusline section) |
 | **Docker Setup** | `power-mode/docker-compose.yml` |
 | **Setup Script** | `power-mode/setup-redis.py` |
-| **State File** | `~/.claude/power-mode-state.json` |
+
+### Shared Components
+
+| Component | Integration |
+|-----------|-------------|
+| **Status Line** | `power-mode/statusline.py` |
+| **Efficiency Tracker** | `hooks/utils/efficiency_tracker.py` |
+| **Widget Config** | `.claude/popkit/config.json` (statusline section) |
 | **Efficiency Metrics** | `.claude/popkit/efficiency-metrics.json` |
 | **Health State** | `.claude/popkit/health-state.json` |
+
+### Consensus Components
+
+| Component | Integration |
+|-----------|-------------|
 | **Consensus Protocol** | `power-mode/consensus/protocol.py` |
 | **Consensus Coordinator** | `power-mode/consensus/coordinator.py` |
 | **Consensus Triggers** | `power-mode/consensus/triggers.py` |

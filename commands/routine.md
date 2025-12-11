@@ -59,6 +59,7 @@ Start your day with a comprehensive project health assessment.
 | `--full` | Include tests + security audit (slower) |
 | `--skip-tests` | Skip test execution |
 | `--skip-services` | Skip service health checks |
+| `--skip-deployments` | Skip deployment status check |
 
 ### Ready to Code Score (0-100)
 
@@ -69,6 +70,37 @@ Start your day with a comprehensive project health assessment.
 | TypeScript clean | 20 | No type errors (or no tsconfig) |
 | Lint clean | 15 | No lint errors (or no eslint) |
 | Tests passing | 25 | All tests pass (or no tests) |
+
+### Deployment Status (Optional)
+
+When deploy targets are configured (via `/popkit:deploy init`), morning routine includes deployment health:
+
+| Target | Status Display |
+|--------|----------------|
+| npm | Package name, latest version, days since publish |
+| PyPI | Package name, latest version, days since publish |
+| Docker | Image ID (short), last push date |
+| Vercel | Deployment status, last deploy time |
+| Netlify | Deployment status, last deploy time |
+| GitHub Releases | Latest release tag, days since release |
+
+**Deployment Tool Updates** (monitors for breaking changes):
+```
+⚠️ Vercel CLI v35.0.0 released (breaking changes)
+   See: https://github.com/vercel/vercel/releases/tag/v35.0.0
+```
+
+Configure monitored repos in `.claude/popkit/config.json`:
+```json
+{
+  "deployment_research": {
+    "repositories": [
+      {"owner": "vercel", "repo": "vercel"},
+      {"owner": "npm", "repo": "cli"}
+    ]
+  }
+}
+```
 
 ### Morning Output
 
@@ -90,6 +122,10 @@ Start your day with a comprehensive project health assessment.
 +------------------------------------------------------------------+
 | Technical Debt:       5 TODOs, 2 FIXMEs                           |
 | PR Review Queue:      1 awaiting your review                      |
++------------------------------------------------------------------+
+| Deployments:                                                      |
+|   npm: v1.2.0 (2d ago)  │  PyPI: v1.2.0 (2d ago)                  |
+|   Docker: abc123 (1d)   │  Vercel: healthy (12h ago)              |
 +------------------------------------------------------------------+
 | Services (Power Mode):                                            |
 |   Docker: Running | Redis: Ready | Power Mode: Available          |
@@ -333,5 +369,6 @@ Run it now? [Y/n] y
 |---------|---------|
 | `/popkit:power init` | Setup Redis for Power Mode |
 | `/popkit:power` | Manage multi-agent orchestration |
+| `/popkit:deploy` | Deployment workflow management |
 | `/popkit:next` | Get context-aware recommendations |
 | `/popkit:git prune` | Git branch cleanup |

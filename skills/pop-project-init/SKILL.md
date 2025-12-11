@@ -18,8 +18,20 @@ Scaffold a new project with complete Claude Code configuration. **Surgically add
 1. **NEVER overwrite existing CLAUDE.md** - Only add/update the PopKit section using markers
 2. **ALWAYS create `.claude/popkit/` directory** - Required for deploy, routines, and state
 3. **Check for plugin conflicts** before proceeding
-4. **Use AskUserQuestion** for all user decisions
+4. **MANDATORY: Use AskUserQuestion tool** for all user decisions (enforced by hooks)
 5. **Preserve existing .claude/ content** if present
+
+## Required Decision Points
+
+This skill has **3 mandatory user decision points** that MUST use the AskUserQuestion tool:
+
+| Step | When | Decision ID |
+|------|------|-------------|
+| Step 0 | If plugin conflicts detected | `plugin_conflict` |
+| Step 6 | After directory creation | `power_mode_setup` |
+| Step 8 | After init complete | `next_action` |
+
+**WARNING:** Skipping these prompts violates the PopKit UX standard. The hook system tracks these decisions.
 
 ## Initialization Process
 
@@ -310,9 +322,9 @@ if not os.path.exists(settings_path):
         json.dump(settings, f, indent=2)
 ```
 
-### Step 6: Ask About Power Mode Setup
+### Step 6: Ask About Power Mode Setup (MANDATORY)
 
-Use AskUserQuestion with **updated naming** (PopKit Cloud instead of Redis Mode):
+**⚠️ MANDATORY:** You MUST invoke the AskUserQuestion tool here. Do NOT skip this step or present options as plain text.
 
 ```
 Use AskUserQuestion tool with:
@@ -327,6 +339,8 @@ Use AskUserQuestion tool with:
     description: "Set up later with /popkit:power init"
 - multiSelect: false
 ```
+
+**WAIT for user response before continuing.**
 
 **Based on selection:**
 - **PopKit Cloud**: Check tier, setup cloud connection
@@ -367,9 +381,9 @@ else:
         f.write(gitignore_additions)
 ```
 
-### Step 8: Post-Init Recommendations
+### Step 8: Post-Init Recommendations (MANDATORY)
 
-Use AskUserQuestion:
+**⚠️ MANDATORY:** You MUST invoke the AskUserQuestion tool here. Do NOT present options as plain text or end without prompting.
 
 ```
 Use AskUserQuestion tool with:
@@ -386,6 +400,8 @@ Use AskUserQuestion tool with:
     description: "I'll explore on my own"
 - multiSelect: false
 ```
+
+**WAIT for user response.** Based on selection, invoke the appropriate follow-up command or end the session gracefully.
 
 ## Output Format
 

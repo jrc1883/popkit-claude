@@ -431,7 +431,31 @@
     "enforcement": "require",
     "skills": {
       "pop-project-init": {
-        "description": "Project initialization requires user to choose next action",
+        "description": "Project initialization requires user decisions at key points",
+        "mid_flow_decisions": [
+          {
+            "id": "plugin_conflict",
+            "trigger": "plugin_conflicts_detected",
+            "question": "Plugin conflicts detected. How would you like to proceed?",
+            "header": "Conflicts",
+            "options": [
+              {"label": "View details", "description": "Show full conflict report before continuing"},
+              {"label": "Continue anyway", "description": "Proceed with initialization (conflicts may cause issues)"},
+              {"label": "Cancel", "description": "Stop and resolve conflicts first"}
+            ]
+          },
+          {
+            "id": "power_mode_setup",
+            "trigger": "after_directory_creation",
+            "question": "Would you like to set up Power Mode for multi-agent orchestration?",
+            "header": "Power Mode",
+            "options": [
+              {"label": "PopKit Cloud (Recommended)", "description": "Hosted infrastructure, zero setup. Requires Pro subscription."},
+              {"label": "Local Mode", "description": "File-based coordination, works offline. No external dependencies."},
+              {"label": "Skip", "description": "Set up later with /popkit:power init"}
+            ]
+          }
+        ],
         "completion_decisions": [
           {
             "id": "next_action",

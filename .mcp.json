@@ -7,17 +7,7 @@
   "publisher": "jrc1883",
   "repository": "https://github.com/jrc1883/popkit",
   "license": "MIT",
-  "mcpServers": {
-    "project-health": {
-      "command": "node",
-      "args": ["templates/mcp-server/dist/index.js"],
-      "cwd": "${workspaceFolder}",
-      "description": "Project health checks, git tools, and quality metrics",
-      "capabilities": ["tools", "resources"],
-      "enabled": false,
-      "autostart": false
-    }
-  },
+  "mcpServers": {},
   "tools": {
     "health-check": {
       "description": "Run comprehensive project health checks",

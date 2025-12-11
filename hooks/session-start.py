@@ -2,10 +2,17 @@
 """
 Session Start Hook
 Handles session initialization, setup, and update notifications.
+
+Responsibilities:
+1. Log session start
+2. Check for PopKit updates
+3. Register project with PopKit Cloud
+4. Ensure PopKit directories exist (auto-init)
 """
 
 import sys
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -112,6 +119,94 @@ def register_project():
     return None
 
 
+def ensure_popkit_directories():
+    """Ensure PopKit runtime directories exist.
+
+    This is idempotent and fast - creates directories only if missing.
+    Part of the skill automation architecture (Issue #173).
+
+    Created directories:
+    - .claude/popkit/           - PopKit runtime state
+    - .claude/popkit/routines/  - Custom morning/nightly routines
+
+    Returns:
+        dict: Status of directory creation, or None on error
+    """
+    try:
+        cwd = Path(os.getcwd())
+
+        # Skip if not in a git repo or project directory
+        # (Don't auto-create in random directories)
+        if not (cwd / ".git").exists() and not (cwd / "CLAUDE.md").exists():
+            return None
+
+        base = cwd / ".claude" / "popkit"
+        dirs_to_create = [
+            base,
+            base / "routines" / "morning",
+            base / "routines" / "nightly",
+        ]
+
+        created = []
+        for d in dirs_to_create:
+            if not d.exists():
+                d.mkdir(parents=True, exist_ok=True)
+                created.append(str(d.relative_to(cwd)))
+
+                # Add .gitkeep for empty directories
+                gitkeep = d / ".gitkeep"
+                if not gitkeep.exists():
+                    gitkeep.touch()
+
+        # Create config.json if missing
+        config_path = base / "config.json"
+        config_created = False
+        if not config_path.exists() and base.exists():
+            project_name = cwd.name
+
+            # Generate prefix from project name
+            words = project_name.replace('-', ' ').replace('_', ' ').split()
+            if len(words) == 1:
+                prefix = words[0][:2].lower()
+            else:
+                prefix = ''.join(word[0].lower() for word in words[:3])
+
+            config = {
+                "version": "1.0",
+                "project_name": project_name,
+                "project_prefix": prefix,
+                "default_routines": {
+                    "morning": "pk",
+                    "nightly": "pk"
+                },
+                "initialized_at": datetime.now().isoformat(),
+                "popkit_version": "1.2.0",
+                "tier": "free",
+                "features": {
+                    "power_mode": "not_configured",
+                    "deployments": [],
+                    "custom_routines": []
+                }
+            }
+
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            config_created = True
+
+        if created or config_created:
+            return {
+                'directories_created': created,
+                'config_created': config_created
+            }
+
+        return None  # Nothing needed
+
+    except Exception:
+        pass  # Silent failure - never block session start
+
+    return None
+
+
 def main():
     """Main entry point for the hook - JSON stdin/stdout protocol"""
     try:
@@ -127,6 +222,19 @@ def main():
 
         # Register project with PopKit Cloud (non-blocking)
         project_info = register_project()
+
+        # Ensure PopKit directories exist (auto-init, non-blocking)
+        popkit_init = ensure_popkit_directories()
+        if popkit_init:
+            dirs = popkit_init.get('directories_created', [])
+            config = popkit_init.get('config_created', False)
+            if dirs or config:
+                parts = []
+                if dirs:
+                    parts.append(f"directories: {len(dirs)}")
+                if config:
+                    parts.append("config.json")
+                print(f"PopKit auto-init: {', '.join(parts)}", file=sys.stderr)
 
         # Print welcome message to stderr
         print("Session started - hooks system active", file=sys.stderr)
@@ -146,6 +254,10 @@ def main():
         # Include project registration info if available
         if project_info:
             response["project_registration"] = project_info
+
+        # Include popkit init info if directories were created
+        if popkit_init:
+            response["popkit_init"] = popkit_init
 
         print(json.dumps(response))
 

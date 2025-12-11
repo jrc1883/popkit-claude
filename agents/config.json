@@ -450,9 +450,10 @@
             "question": "Would you like to set up Power Mode for multi-agent orchestration?",
             "header": "Power Mode",
             "options": [
-              {"label": "PopKit Cloud (Recommended)", "description": "Hosted infrastructure, zero setup. Requires Pro subscription."},
-              {"label": "Local Mode", "description": "File-based coordination, works offline. No external dependencies."},
-              {"label": "Skip", "description": "Set up later with /popkit:power init"}
+              {"label": "File Mode (Free)", "description": "Simple coordination, 2 agents max, works offline. No setup required."},
+              {"label": "Redis Mode - Self-Hosted (Free)", "description": "Full parallel agents (6+), requires Docker/Redis. You manage infrastructure."},
+              {"label": "Redis Mode - PopKit Cloud (Pro $9/mo)", "description": "Full power, zero setup. We manage Redis. Run /popkit:upgrade first."},
+              {"label": "Skip for now", "description": "Set up later with /popkit:power init"}
             ]
           }
         ],

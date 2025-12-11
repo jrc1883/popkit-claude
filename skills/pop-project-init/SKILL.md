@@ -355,16 +355,20 @@ if not os.path.exists(settings_path):
 
 **⚠️ MANDATORY:** You MUST invoke the AskUserQuestion tool here. Do NOT skip this step or present options as plain text.
 
+**IMPORTANT: Always show tier indicators** to help users understand what's free vs premium:
+
 ```
 Use AskUserQuestion tool with:
 - question: "Would you like to set up Power Mode for multi-agent orchestration?"
 - header: "Power Mode"
 - options:
-  - label: "PopKit Cloud (Recommended)"
-    description: "Hosted infrastructure, zero setup. Requires Pro subscription."
-  - label: "Local Mode"
-    description: "File-based coordination, works offline. No external dependencies."
-  - label: "Skip"
+  - label: "File Mode (Free)"
+    description: "Simple coordination, 2 agents max, works offline. No setup required."
+  - label: "Redis Mode - Self-Hosted (Free)"
+    description: "Full parallel agents (6+), requires Docker/Redis. You manage infrastructure."
+  - label: "Redis Mode - PopKit Cloud (Pro $9/mo)"
+    description: "Full power, zero setup. We manage Redis. Run /popkit:upgrade first."
+  - label: "Skip for now"
     description: "Set up later with /popkit:power init"
 - multiSelect: false
 ```
@@ -372,9 +376,22 @@ Use AskUserQuestion tool with:
 **WAIT for user response before continuing.**
 
 **Based on selection:**
-- **PopKit Cloud**: Check tier, setup cloud connection
-- **Local Mode**: Create `.claude/power-mode/` with file-based config
-- **Skip**: Leave Power Mode unconfigured
+- **File Mode (Free)**: Create `.claude/power-mode/` with file-based config, set `mode: "file"`
+- **Redis Mode - Self-Hosted (Free)**: Check for Docker, prompt for Redis connection, set `mode: "redis-local"`
+- **Redis Mode - PopKit Cloud (Pro)**: Check for `POPKIT_API_KEY`, prompt to run `/popkit:upgrade` if missing, set `mode: "redis-cloud"`
+- **Skip for now**: Leave Power Mode unconfigured
+
+**If user selects a Pro feature without subscription:**
+```
+You selected a Pro feature but don't have a subscription yet.
+
+Run `/popkit:upgrade pro` to:
+- Get hosted Redis (no Docker needed)
+- Unlock 6+ parallel agents
+- Access pattern sharing
+
+Or select "File Mode (Free)" to continue without a subscription.
+```
 
 **Update the PopKit section in CLAUDE.md** with the appropriate Power Mode status.
 

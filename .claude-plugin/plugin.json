@@ -1,7 +1,7 @@
 {
   "name": "popkit",
   "description": "Pop Toolkit - AI-powered development workflows with skills, agents, and automation for Claude Code",
-  "version": "1.2.0",
+  "version": "0.1.0",
   "author": {
     "name": "Joseph Cannon",
     "email": "joseph.cannon@outlook.com"

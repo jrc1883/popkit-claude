@@ -254,11 +254,21 @@ When called with `quick` argument, provide condensed output:
 | gh CLI not available | Skip issue recommendations |
 | Empty project | Recommend `/popkit:project init` |
 
+## Visual Style
+
+Use components from `output-styles/visual-components.md`:
+- Status indicators: ✓ (success), ✗ (failure), → (in progress)
+- Urgency levels: HIGH (red), MEDIUM (yellow), LOW (blue), OK (green)
+- Tables with status columns
+- Quick reference tables
+
 ## Related
 
 - `/popkit:next` command - User-facing wrapper
 - `/popkit:routine morning` - Detailed health check
 - `/popkit:dev brainstorm` - For when direction is truly unclear
+- `output-styles/next-action-report.md` - Full output template
+- `output-styles/visual-components.md` - Reusable visual elements
 - `user-prompt-submit.py` - Uncertainty trigger patterns
 - `hooks/utils/vote_fetcher.py` - GitHub reaction fetching
 - `hooks/utils/priority_scorer.py` - Combined priority calculation

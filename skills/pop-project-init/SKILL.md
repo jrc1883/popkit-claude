@@ -537,6 +537,14 @@ After initialization, verify these files/directories exist:
 - **/popkit:power init** - Configure Power Mode
 - **/popkit:issue list** - View issues with orchestration recommendations
 
+## Visual Style
+
+Use components from `output-styles/visual-components.md`:
+- Progress indicators: `[1/5]`, `[2/5]`, etc.
+- Status symbols: ✓ (success), ✗ (failure), ⚠️ (warning)
+- Simple headers with underlines: `═════════════════`
+- Key-value displays for configuration summary
+
 ## Related Skills
 
 | Skill | Relationship |
@@ -544,3 +552,4 @@ After initialization, verify these files/directories exist:
 | `pop-analyze-project` | Run after init for deep analysis |
 | `pop-doc-sync` | Keeps PopKit section in sync using markers |
 | `pop-plugin-test` | Validates plugin integrity |
+| `output-styles/visual-components.md` | Reusable visual elements |

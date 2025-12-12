@@ -23,7 +23,8 @@ from enum import Enum
 class PowerMode(Enum):
     """Available Power Mode implementations."""
     NATIVE = "native"      # Claude Code native async (2.0.64+)
-    REDIS = "redis"        # Redis pub/sub (Docker required)
+    UPSTASH = "upstash"    # Upstash cloud Redis (no Docker, Issue #191)
+    REDIS = "redis"        # Local Redis pub/sub (Docker required)
     FILE = "file"          # File-based coordination (fallback)
     DISABLED = "disabled"  # Power Mode not available
 
@@ -62,13 +63,19 @@ class ModeSelector:
             Tuple of (PowerMode, reason_string)
         """
         # Check configured priority order
-        priority = self.config.get("mode_priority", ["native", "redis", "file"])
+        # Issue #191: Added upstash to priority (between native and redis)
+        priority = self.config.get("mode_priority", ["native", "upstash", "redis", "file"])
 
         for mode_name in priority:
             if mode_name == "native":
                 available, reason = self._check_native_available()
                 if available:
                     return PowerMode.NATIVE, reason
+
+            elif mode_name == "upstash":
+                available, reason = self._check_upstash_available()
+                if available:
+                    return PowerMode.UPSTASH, reason
 
             elif mode_name == "redis":
                 available, reason = self._check_redis_available()
@@ -106,6 +113,30 @@ class ModeSelector:
             return True, f"Claude Code {version} supports native async"
 
         return False, f"Claude Code {version} < {self.MIN_NATIVE_VERSION} (native async requires 2.0.64+)"
+
+    def _check_upstash_available(self) -> Tuple[bool, str]:
+        """
+        Check if Upstash cloud Redis is available.
+
+        Issue #191: Upstash provides cloud Redis without Docker requirement.
+        Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
+        """
+        # Check for Upstash env vars
+        upstash_url = os.environ.get("UPSTASH_REDIS_REST_URL")
+        upstash_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+
+        if upstash_url and upstash_token:
+            # Try to verify connection
+            try:
+                from .upstash_adapter import UpstashRedisClient
+                client = UpstashRedisClient(url=upstash_url, token=upstash_token)
+                if client.ping():
+                    return True, f"Upstash cloud Redis: {upstash_url[:40]}..."
+                return False, "Upstash configured but ping failed"
+            except Exception as e:
+                return False, f"Upstash configured but connection failed: {e}"
+
+        return False, "Upstash not configured (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)"
 
     def _check_redis_available(self) -> Tuple[bool, str]:
         """
@@ -242,6 +273,13 @@ class ModeSelector:
                 f"Max Agents: {native_config.get('max_parallel_agents', 5)}",
                 "Setup: Zero config required"
             ])
+        elif mode == PowerMode.UPSTASH:
+            upstash_url = os.environ.get("UPSTASH_REDIS_REST_URL", "")
+            status_lines.extend([
+                f"Upstash: {upstash_url[:40]}..." if upstash_url else "Upstash: configured",
+                "Setup: Set env vars (no Docker required)",
+                "Max Agents: 6+ (parallel)"
+            ])
         elif mode == PowerMode.REDIS:
             redis_config = self.config.get("redis", {})
             status_lines.extend([
@@ -293,7 +331,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Power Mode Selector")
     parser.add_argument("--select", action="store_true", help="Auto-select best mode")
     parser.add_argument("--status", action="store_true", help="Show full status")
-    parser.add_argument("--check", type=str, choices=["native", "redis", "file"], help="Check specific mode")
+    parser.add_argument("--check", type=str, choices=["native", "upstash", "redis", "file"], help="Check specific mode")
     parser.add_argument("--tier", type=str, default="free", help="User tier (free, premium, pro)")
 
     args = parser.parse_args()
@@ -311,6 +349,9 @@ if __name__ == "__main__":
         if args.check == "native":
             available, reason = selector._check_native_available()
             print(f"Native: {'Yes' if available else 'No'} - {reason}")
+        elif args.check == "upstash":
+            available, reason = selector._check_upstash_available()
+            print(f"Upstash: {'Yes' if available else 'No'} - {reason}")
         elif args.check == "redis":
             available, reason = selector._check_redis_available()
             print(f"Redis: {'Yes' if available else 'No'} - {reason}")

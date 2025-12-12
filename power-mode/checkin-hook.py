@@ -22,11 +22,16 @@ from typing import Dict, List, Optional, Any
 # Add power-mode to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
+# Issue #191: Use unified adapter for Upstash/Local Redis
 try:
-    import redis
+    from upstash_adapter import get_redis_client, BaseRedisClient, BasePubSub, is_upstash_available
     REDIS_AVAILABLE = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    try:
+        import redis
+        REDIS_AVAILABLE = True
+    except ImportError:
+        REDIS_AVAILABLE = False
 
 try:
     from protocol import (
@@ -466,31 +471,33 @@ class AgentStateTracker:
 # =============================================================================
 
 class PowerModeRedisClient:
-    """Redis client for power mode operations."""
+    """Redis client for power mode operations.
+
+    Issue #191: Updated to use unified adapter for Upstash/Local Redis.
+    """
 
     def __init__(self):
-        self.redis: Optional[redis.Redis] = None
+        self.redis: Optional[BaseRedisClient] = None
         self.connected = False
 
     def connect(self) -> bool:
-        """Connect to Redis."""
+        """Connect to Redis (Upstash or local).
+
+        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        """
         if not REDIS_AVAILABLE:
             return False
 
         try:
             redis_config = CONFIG.get("redis", {})
-            self.redis = redis.Redis(
-                host=redis_config.get("host", "localhost"),
-                port=redis_config.get("port", 6379),
-                db=redis_config.get("db", 0),
-                password=redis_config.get("password"),
-                socket_timeout=redis_config.get("socket_timeout", 5),
-                decode_responses=True
+            self.redis = get_redis_client(
+                local_host=redis_config.get("host", "localhost"),
+                local_port=redis_config.get("port", 6379)
             )
             self.redis.ping()
             self.connected = True
             return True
-        except (redis.ConnectionError, redis.TimeoutError):
+        except Exception:
             self.connected = False
             return False
 

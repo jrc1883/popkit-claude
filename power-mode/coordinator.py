@@ -16,11 +16,16 @@ from typing import Dict, List, Optional, Any, Set, Callable
 from dataclasses import dataclass, field
 import hashlib
 
+# Issue #191: Use unified adapter for Upstash/Local Redis
 try:
-    import redis
+    from upstash_adapter import get_redis_client, BaseRedisClient, BasePubSub, is_upstash_available
     REDIS_AVAILABLE = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    try:
+        import redis
+        REDIS_AVAILABLE = True
+    except ImportError:
+        REDIS_AVAILABLE = False
 
 try:
     from cloud_client import PopKitCloudClient, CloudConfig
@@ -536,9 +541,9 @@ class PowerModeCoordinator:
             on_session_complete=self._on_stream_complete
         )
 
-        # Redis connection
-        self.redis: Optional[redis.Redis] = None
-        self.pubsub: Optional[redis.client.PubSub] = None
+        # Redis connection (Issue #191: supports Upstash or local)
+        self.redis: Optional[BaseRedisClient] = None
+        self.pubsub: Optional[BasePubSub] = None
 
         # Cloud workflow integration (Issue #103 Phase 3)
         self.cloud_client: Optional[PopKitCloudClient] = None
@@ -562,26 +567,28 @@ class PowerModeCoordinator:
             self.metrics_collector = None
 
     def connect(self) -> bool:
-        """Connect to Redis."""
+        """Connect to Redis (Upstash or local).
+
+        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        """
         if not REDIS_AVAILABLE:
             print("Redis not available. Install with: pip install redis", file=sys.stderr)
             return False
 
         try:
+            # Issue #191: Use unified adapter for Upstash/Local
             redis_config = CONFIG.get("redis", {})
-            self.redis = redis.Redis(
-                host=redis_config.get("host", "localhost"),
-                port=redis_config.get("port", 6379),
-                db=redis_config.get("db", 0),
-                password=redis_config.get("password"),
-                socket_timeout=redis_config.get("socket_timeout", 5),
-                retry_on_timeout=redis_config.get("retry_on_timeout", True),
-                decode_responses=True
+            self.redis = get_redis_client(
+                local_host=redis_config.get("host", "localhost"),
+                local_port=redis_config.get("port", 6379)
             )
             self.redis.ping()
             self.pubsub = self.redis.pubsub()
             return True
-        except redis.ConnectionError as e:
+        except ValueError as e:
+            print(f"Failed to connect to Redis: {e}", file=sys.stderr)
+            return False
+        except Exception as e:
             print(f"Failed to connect to Redis: {e}", file=sys.stderr)
             return False
 
@@ -1606,7 +1613,8 @@ def main():
             print("Redis not available")
             sys.exit(1)
 
-        r = redis.Redis(decode_responses=True)
+        # Issue #191: Use unified adapter
+        r = get_redis_client()
         status = r.get("pop:coordinator:status")
         if status:
             print(json.dumps(json.loads(status), indent=2))
@@ -1619,7 +1627,8 @@ def main():
             print("Redis not available")
             sys.exit(1)
 
-        r = redis.Redis(decode_responses=True)
+        # Issue #191: Use unified adapter
+        r = get_redis_client()
         r.publish("pop:coordinator", json.dumps({"command": "stop"}))
         print("Stop signal sent")
 
@@ -1629,7 +1638,8 @@ def main():
             print("Redis not available")
             sys.exit(1)
 
-        r = redis.Redis(decode_responses=True)
+        # Issue #191: Use unified adapter
+        r = get_redis_client()
 
         if args.session:
             # Load specific session

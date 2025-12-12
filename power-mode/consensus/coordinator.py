@@ -29,11 +29,16 @@ import sys
 # Add parent directory for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Issue #191: Use unified adapter for Upstash/Local Redis
 try:
-    import redis
+    from upstash_adapter import get_redis_client, BaseRedisClient, BasePubSub
     REDIS_AVAILABLE = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    try:
+        import redis
+        REDIS_AVAILABLE = True
+    except ImportError:
+        REDIS_AVAILABLE = False
 
 from consensus.protocol import (
     ConsensusSession, ConsensusMessage, ConsensusMessageType,
@@ -330,9 +335,9 @@ class ConsensusCoordinator:
         self.token_managers: Dict[str, TokenRingManager] = {}
         self.vote_collectors: Dict[str, VoteCollector] = {}
 
-        # Redis connection
-        self.redis: Optional['redis.Redis'] = None
-        self.pubsub: Optional['redis.client.PubSub'] = None
+        # Redis connection (Issue #191: supports Upstash or local)
+        self.redis: Optional[BaseRedisClient] = None
+        self.pubsub: Optional[BasePubSub] = None
 
         # State
         self.is_running = False
@@ -348,20 +353,19 @@ class ConsensusCoordinator:
         self._monitor_thread: Optional[threading.Thread] = None
 
     def connect(self) -> bool:
-        """Connect to Redis."""
+        """Connect to Redis (Upstash or local).
+
+        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        """
         if not REDIS_AVAILABLE:
             print("Redis not available. Using file-based fallback.", file=sys.stderr)
             return self._init_file_mode()
 
         try:
             redis_config = CONFIG.get("redis", {})
-            self.redis = redis.Redis(
-                host=redis_config.get("host", "localhost"),
-                port=redis_config.get("port", 16379),
-                db=redis_config.get("db", 0),
-                password=redis_config.get("password"),
-                socket_timeout=redis_config.get("socket_timeout", 5),
-                decode_responses=True
+            self.redis = get_redis_client(
+                local_host=redis_config.get("host", "localhost"),
+                local_port=redis_config.get("port", 16379)
             )
             self.redis.ping()
             self.pubsub = self.redis.pubsub()

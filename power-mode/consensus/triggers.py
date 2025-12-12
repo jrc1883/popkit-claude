@@ -32,11 +32,16 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Issue #191: Use unified adapter for Upstash/Local Redis
 try:
-    import redis
+    from upstash_adapter import get_redis_client, BaseRedisClient
     REDIS_AVAILABLE = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    try:
+        import redis
+        REDIS_AVAILABLE = True
+    except ImportError:
+        REDIS_AVAILABLE = False
 
 from consensus.protocol import (
     TriggerType, ConsensusMessageFactory, ConsensusChannels,
@@ -693,9 +698,12 @@ class TriggerPublisher:
         self.redis = redis_client
 
     def connect(self, host: str = "localhost", port: int = 16379):
-        """Connect to Redis."""
+        """Connect to Redis (Upstash or local).
+
+        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        """
         if REDIS_AVAILABLE:
-            self.redis = redis.Redis(host=host, port=port, decode_responses=True)
+            self.redis = get_redis_client(local_host=host, local_port=port)
 
     def publish_trigger(self, context: TriggerContext):
         """Publish a trigger to Redis."""

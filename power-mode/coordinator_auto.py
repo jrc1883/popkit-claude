@@ -14,12 +14,16 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-# Try Redis first
+# Issue #191: Use unified adapter for Upstash/Local Redis
 try:
-    import redis
+    from upstash_adapter import get_redis_client, is_upstash_available, BaseRedisClient
     REDIS_AVAILABLE = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    try:
+        import redis
+        REDIS_AVAILABLE = True
+    except ImportError:
+        REDIS_AVAILABLE = False
 
 # Import file fallback
 from file_fallback import FileBasedPowerMode
@@ -30,25 +34,28 @@ from protocol import Objective
 
 
 def redis_is_running() -> bool:
-    """Check if Redis is actually running and accessible."""
+    """Check if Redis is actually running and accessible.
+
+    Issue #191: Updated to use unified adapter - checks Upstash first, then local.
+    """
     if not REDIS_AVAILABLE:
         return False
+
+    # Check for Upstash availability first
+    if is_upstash_available():
+        return True
 
     try:
         config = load_config()
         redis_config = config.get("redis", {})
 
-        r = redis.Redis(
-            host=redis_config.get("host", "localhost"),
-            port=redis_config.get("port", 6379),
-            db=redis_config.get("db", 0),
-            password=redis_config.get("password"),
-            socket_timeout=2,  # Short timeout for quick check
-            decode_responses=True
+        r = get_redis_client(
+            local_host=redis_config.get("host", "localhost"),
+            local_port=redis_config.get("port", 6379)
         )
         r.ping()
         return True
-    except (redis.ConnectionError, redis.TimeoutError):
+    except Exception:
         return False
 
 

@@ -31,11 +31,16 @@ from typing import Dict, Optional, Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Issue #191: Use unified adapter for Upstash/Local Redis
 try:
-    import redis
+    from upstash_adapter import get_redis_client, BaseRedisClient
     REDIS_AVAILABLE = True
 except ImportError:
-    REDIS_AVAILABLE = False
+    try:
+        import redis
+        REDIS_AVAILABLE = True
+    except ImportError:
+        REDIS_AVAILABLE = False
 
 from consensus.protocol import (
     ConsensusChannels, ConsensusMessage, ConsensusMessageType,
@@ -128,23 +133,28 @@ def save_state(state: ConsensusAgentState):
 # =============================================================================
 
 class ConsensusClient:
-    """Client for interacting with consensus coordinator."""
+    """Client for interacting with consensus coordinator.
+
+    Issue #191: Updated to use unified adapter for Upstash/Local Redis.
+    """
 
     def __init__(self, host: str = "localhost", port: int = 16379):
         self.host = host
         self.port = port
-        self.redis: Optional['redis.Redis'] = None
+        self.redis: Optional[BaseRedisClient] = None
 
     def connect(self) -> bool:
-        """Connect to Redis."""
+        """Connect to Redis (Upstash or local).
+
+        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        """
         if not REDIS_AVAILABLE:
             return False
 
         try:
-            self.redis = redis.Redis(
-                host=self.host,
-                port=self.port,
-                decode_responses=True
+            self.redis = get_redis_client(
+                local_host=self.host,
+                local_port=self.port
             )
             self.redis.ping()
             return True

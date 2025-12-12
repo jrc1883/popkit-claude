@@ -177,9 +177,20 @@
     "errorPatterns": {
       "TypeError": ["bug-whisperer"],
       "SyntaxError": ["code-reviewer"],
+      "ReferenceError": ["bug-whisperer"],
+      "RangeError": ["bug-whisperer"],
       "SecurityError": ["security-auditor"],
+      "PermissionError": ["security-auditor"],
+      "AuthenticationError": ["security-auditor"],
       "PerformanceWarning": ["performance-optimizer"],
-      "DeprecationWarning": ["migration-specialist"]
+      "MemoryError": ["performance-optimizer"],
+      "TimeoutError": ["performance-optimizer"],
+      "DeprecationWarning": ["migration-specialist"],
+      "ImportError": ["migration-specialist"],
+      "ModuleNotFoundError": ["migration-specialist"],
+      "ConnectionError": ["devops-automator"],
+      "NetworkError": ["devops-automator"],
+      "DNSError": ["devops-automator"]
     }
   },
 

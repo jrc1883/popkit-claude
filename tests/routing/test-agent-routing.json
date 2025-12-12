@@ -367,10 +367,28 @@
       "pattern": "SyntaxError"
     },
     {
+      "name": "ReferenceError routes to bug-whisperer",
+      "error": "ReferenceError: x is not defined",
+      "expected_agent": "bug-whisperer",
+      "pattern": "ReferenceError"
+    },
+    {
+      "name": "RangeError routes to bug-whisperer",
+      "error": "RangeError: Maximum call stack size exceeded",
+      "expected_agent": "bug-whisperer",
+      "pattern": "RangeError"
+    },
+    {
       "name": "SecurityError routes to security-auditor",
       "error": "SecurityError: Content-Security-Policy violation",
       "expected_agent": "security-auditor",
       "pattern": "SecurityError"
+    },
+    {
+      "name": "PermissionError routes to security-auditor",
+      "error": "PermissionError: Access denied to resource",
+      "expected_agent": "security-auditor",
+      "pattern": "PermissionError"
     },
     {
       "name": "PerformanceWarning routes to performance-optimizer",
@@ -379,10 +397,46 @@
       "pattern": "PerformanceWarning"
     },
     {
+      "name": "MemoryError routes to performance-optimizer",
+      "error": "MemoryError: JavaScript heap out of memory",
+      "expected_agent": "performance-optimizer",
+      "pattern": "MemoryError"
+    },
+    {
+      "name": "TimeoutError routes to performance-optimizer",
+      "error": "TimeoutError: Operation timed out after 30s",
+      "expected_agent": "performance-optimizer",
+      "pattern": "TimeoutError"
+    },
+    {
       "name": "DeprecationWarning routes to migration-specialist",
       "error": "DeprecationWarning: This API will be removed in v2.0",
       "expected_agent": "migration-specialist",
       "pattern": "DeprecationWarning"
+    },
+    {
+      "name": "ImportError routes to migration-specialist",
+      "error": "ImportError: Cannot find module 'old-package'",
+      "expected_agent": "migration-specialist",
+      "pattern": "ImportError"
+    },
+    {
+      "name": "ModuleNotFoundError routes to migration-specialist",
+      "error": "ModuleNotFoundError: No module named 'legacy'",
+      "expected_agent": "migration-specialist",
+      "pattern": "ModuleNotFoundError"
+    },
+    {
+      "name": "ConnectionError routes to devops-automator",
+      "error": "ConnectionError: Failed to connect to database",
+      "expected_agent": "devops-automator",
+      "pattern": "ConnectionError"
+    },
+    {
+      "name": "NetworkError routes to devops-automator",
+      "error": "NetworkError: Failed to fetch resource",
+      "expected_agent": "devops-automator",
+      "pattern": "NetworkError"
     }
   ],
 
@@ -461,9 +515,9 @@
 
   "metadata": {
     "created": "2025-12-09",
-    "updated": "2025-12-09",
-    "issue": "#105",
-    "total_tests": 56,
+    "updated": "2025-12-12",
+    "issue": "#105, #196",
+    "total_tests": 65,
     "author": "popkit"
   }
 }

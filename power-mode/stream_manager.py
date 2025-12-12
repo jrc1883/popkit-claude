@@ -33,7 +33,8 @@ MAX_CHUNKS_PER_SESSION = 1000
 SESSION_CLEANUP_DELAY = 300
 
 # State file for status line integration
-STATE_FILE = Path(".claude/power-mode-state.json")
+# NOTE: Must match path used by statusline.py and checkin-hook.py
+STATE_FILE = Path(".claude/popkit/power-mode-state.json")
 
 
 # =============================================================================

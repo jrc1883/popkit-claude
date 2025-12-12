@@ -52,12 +52,15 @@ class IssueWorkflowHook:
     def __init__(self):
         self.cwd = Path.cwd()
         self.claude_dir = self.cwd / ".claude"
-        self.state_file = self.claude_dir / "issue-workflow-state.json"
-        self.power_mode_state = self.claude_dir / "power-mode-state.json"
-        self.phase_checkpoints_dir = self.claude_dir / "phase-checkpoints"
+        self.popkit_dir = self.claude_dir / "popkit"
+        self.state_file = self.popkit_dir / "issue-workflow-state.json"
+        # Use the REAL Power Mode state file path that statusline.py and checkin-hook.py use
+        self.power_mode_state = self.popkit_dir / "power-mode-state.json"
+        self.phase_checkpoints_dir = self.popkit_dir / "phase-checkpoints"
 
         # Ensure directories exist
         self.claude_dir.mkdir(exist_ok=True)
+        self.popkit_dir.mkdir(exist_ok=True)
         self.phase_checkpoints_dir.mkdir(exist_ok=True)
 
         # Load state
@@ -88,16 +91,28 @@ class IssueWorkflowHook:
             print(f"Warning: Could not save state: {e}", file=sys.stderr)
 
     def activate_power_mode(self, config: Dict[str, Any]) -> bool:
-        """Activate Power Mode with configuration from issue."""
+        """Activate Power Mode with configuration from issue.
+
+        Merges with existing state to preserve agent tracking data from checkin-hook.py.
+        Writes to .claude/popkit/power-mode-state.json (the real Power Mode state file).
+        """
         try:
+            # Load existing state to preserve agent tracking fields
+            existing_state = {}
+            if self.power_mode_state.exists():
+                try:
+                    existing_state = json.loads(self.power_mode_state.read_text())
+                except (json.JSONDecodeError, IOError):
+                    pass
+
             phases = config.get("suggested_phases", [])
             power_state = {
                 "active": True,
                 "activated_at": datetime.now().isoformat(),
                 "source": f"issue #{config.get('issue_number', 'unknown')}",
                 "active_issue": config.get("issue_number"),
-                "session_id": f"pop-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                # Status line fields
+                "session_id": existing_state.get("session_id") or f"pop-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                # Status line fields (these are what statusline.py reads)
                 "current_phase": phases[0] if phases else "implementation",
                 "phase_index": 1,
                 "total_phases": len(phases) if phases else 1,
@@ -110,7 +125,18 @@ class IssueWorkflowHook:
                     "quality_gates": config.get("config", {}).get("quality_gates", [])
                 }
             }
+
+            # Merge: keep agent tracking fields from existing state
+            agent_tracking_fields = [
+                "tool_call_count", "tools_used", "files_touched",
+                "decisions", "discoveries", "last_checkin"
+            ]
+            for field in agent_tracking_fields:
+                if field in existing_state:
+                    power_state[field] = existing_state[field]
+
             self.power_mode_state.write_text(json.dumps(power_state, indent=2))
+            print(f"Power Mode activated: {self.power_mode_state}", file=sys.stderr)
             return True
         except Exception as e:
             print(f"Warning: Could not activate Power Mode: {e}", file=sys.stderr)

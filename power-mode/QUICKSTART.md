@@ -30,7 +30,7 @@ coordinator.start()
 No installation needed. Just works.
 
 **How it works:**
-- Uses `.claude/power-mode-state.json` for storage
+- Uses `.claude/popkit/power-mode-state.json` for storage
 - Polls file for new messages (100ms interval)
 - File locking prevents race conditions
 - Cross-platform (Windows, macOS, Linux)
@@ -45,7 +45,7 @@ No installation needed. Just works.
 **Example output:**
 ```
 [OK] Using file-based fallback for Power Mode (redis not running)
-   State file: .claude/power-mode-state.json
+   State file: .claude/popkit/power-mode-state.json
    Limitations: polling (not true pub/sub), single-machine only
 ```
 
@@ -85,7 +85,7 @@ Output:
 Mode: file
 Redis available: False
 Redis running: False
-File path: /path/to/.claude/power-mode-state.json
+File path: /path/to/.claude/popkit/power-mode-state.json
 
 Install redis: pip install redis
 ```
@@ -180,7 +180,7 @@ File-based is **100x slower** but still fast enough for 2-3 agents.
 
 **Solution:**
 ```bash
-rm .claude/power-mode-state.lock
+rm .claude/popkit/power-mode-state.lock
 ```
 
 ### Messages not appearing
@@ -190,7 +190,7 @@ rm .claude/power-mode-state.lock
 **Solution:**
 ```python
 # Check state file manually
-cat .claude/power-mode-state.json
+cat .claude/popkit/power-mode-state.json
 
 # Look for your client_id in subscriptions
 ```

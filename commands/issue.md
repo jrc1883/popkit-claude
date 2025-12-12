@@ -483,7 +483,7 @@ gh issue comment 45 --body "..."
 | Phase Tracking | `STATUS.json` integration |
 | Power Mode | `power-mode/coordinator.py` |
 | Status Line | `power-mode/statusline.py` |
-| State | `.claude/power-mode-state.json` |
+| State | `.claude/popkit/power-mode-state.json` |
 
 ## Related Commands
 

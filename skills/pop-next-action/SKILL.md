@@ -38,6 +38,9 @@ git branch -vv 2>/dev/null | head -5
 # Recent commits
 git log --oneline -5 2>/dev/null
 
+# Fetch remotes to detect research branches
+git fetch --all --prune 2>/dev/null
+
 # Check for TypeScript errors (if tsconfig exists)
 if [ -f "tsconfig.json" ]; then
   npx tsc --noEmit 2>&1 | tail -10
@@ -57,6 +60,33 @@ fi
 gh issue list --limit 5 2>/dev/null || echo "No gh CLI or not a repo"
 ```
 
+### Step 1.5: Detect Research Branches (NEW - Issue #181)
+
+Check for research branches from Claude Code Web sessions:
+
+```python
+import sys
+sys.path.insert(0, "hooks/utils")
+from research_branch_detector import (
+    get_research_branches,
+    format_branch_table
+)
+
+# Detect research branches
+branches = get_research_branches()
+
+if branches:
+    print("## Research Branches Detected\n")
+    print(format_branch_table(branches))
+    print("\nThese branches contain research from Claude Code Web sessions.")
+    print("Use `pop-research-merge` skill to process them.")
+```
+
+**Research Branch Patterns:**
+- `origin/claude/research-*` - Explicit research branches
+- `origin/claude/*-research-*` - Topic-specific research
+- Branches with `docs/research/*.md` or `RESEARCH*.md` files
+
 ### Step 2: Detect Project Context
 
 Identify what kind of project and what state it's in:
@@ -66,6 +96,7 @@ Identify what kind of project and what state it's in:
 | Uncommitted changes | Active work in progress | HIGH |
 | Ahead of remote | Ready to push/PR | MEDIUM |
 | TypeScript errors | Build broken | HIGH |
+| **Research branches** | Web session findings to process | HIGH |
 | Open issues | Known work items | MEDIUM |
 | **Issue votes** | Community priority | MEDIUM |
 | TECHNICAL_DEBT.md | Documented debt | MEDIUM |
@@ -103,8 +134,9 @@ For each potential recommendation, calculate a relevance score:
 Score = Base Priority + Context Multipliers
 
 Base Priorities:
-- Commit uncommitted work: 80
 - Fix build errors: 90
+- Process research branches: 85  # NEW - important to merge findings
+- Commit uncommitted work: 80
 - Push ahead commits: 60
 - Address open issues: 50
 - Tackle tech debt: 40
@@ -113,6 +145,7 @@ Base Priorities:
 Context Multipliers:
 - Has uncommitted changes: +20 to commit
 - TypeScript errors: +30 to fix
+- Research branches detected: +25 to process  # NEW
 - Many open issues: +10 to issue work
 - Long time since commit: +15 to commit
 ```
@@ -194,6 +227,39 @@ Based on your context, you could also:
 **Benefit:** Unblocked development, passing CI
 ```
 
+### If Research Branches Detected (NEW - Issue #181)
+
+```markdown
+### 1. Process Research Branches
+**Command:** Invoke `pop-research-merge` skill
+**Why:** Found [X] research branch(es) from Claude Code Web sessions
+**Branches:**
+| Branch | Topic | Created |
+|--------|-------|---------|
+| `research-claude-code-features` | Claude Code Integration | 2h ago |
+
+**What it does:** Merges research content, organizes docs, creates GitHub issues
+**Benefit:** Research findings become actionable issues in your backlog
+```
+
+When research branches are detected, prompt the user:
+
+```
+Use AskUserQuestion tool with:
+- question: "Found [X] research branch(es) from web sessions. Process them now?"
+- header: "Research"
+- options:
+  - label: "Yes, process"
+    description: "Merge findings and create issues (recommended)"
+  - label: "Review first"
+    description: "Show me what's in the branches"
+  - label: "Skip for now"
+    description: "Continue to other recommendations"
+- multiSelect: false
+```
+
+If user selects "Yes, process" or "Review first", invoke the `pop-research-merge` skill.
+
 ### If Open Issues Exist
 
 ```markdown
@@ -267,8 +333,10 @@ Use components from `output-styles/visual-components.md`:
 - `/popkit:next` command - User-facing wrapper
 - `/popkit:routine morning` - Detailed health check
 - `/popkit:dev brainstorm` - For when direction is truly unclear
+- `pop-research-merge` skill - Process detected research branches
 - `output-styles/next-action-report.md` - Full output template
 - `output-styles/visual-components.md` - Reusable visual elements
 - `user-prompt-submit.py` - Uncertainty trigger patterns
 - `hooks/utils/vote_fetcher.py` - GitHub reaction fetching
 - `hooks/utils/priority_scorer.py` - Combined priority calculation
+- `hooks/utils/research_branch_detector.py` - Research branch detection

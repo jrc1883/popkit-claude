@@ -1,8 +1,29 @@
-# PopKit Power Mode - Redis Setup
+# PopKit Power Mode
 
-Multi-agent orchestration requires Redis for pub/sub messaging between agents. This directory contains everything needed to set up and run Redis locally.
+Multi-agent orchestration for parallel agent collaboration via pub/sub messaging.
 
-## Quick Start
+## Setup Options
+
+Power Mode supports three Redis backends (auto-detected in priority order):
+
+| Mode | Setup | Best For |
+|------|-------|----------|
+| **Upstash** | Set env vars | Premium users (no Docker needed) |
+| **Local Redis** | Docker | Local development |
+| **File-based** | None | Fallback (limited to 2-3 agents) |
+
+### Option 1: Upstash Cloud Redis (Recommended for Premium)
+
+No Docker required! Set environment variables:
+
+```bash
+export UPSTASH_REDIS_REST_URL="https://your-instance.upstash.io"
+export UPSTASH_REDIS_REST_TOKEN="your-token"
+```
+
+Get credentials at [upstash.com](https://upstash.com) (free tier available).
+
+### Option 2: Local Docker Redis (Development)
 
 ```bash
 # Check status
@@ -18,23 +39,34 @@ python setup-redis.py test
 Or use the PopKit command:
 
 ```
-/popkit:power-init start
+/popkit:power init
 ```
+
+### Option 3: File-Based (Automatic Fallback)
+
+If no Redis is available, Power Mode falls back to file-based coordination.
+Limited to 2-3 sequential agents but works without any setup.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `docker-compose.yml` | Redis container configuration |
-| `setup-redis.py` | Cross-platform setup script |
-| `config.json` | Power Mode configuration |
+| `upstash_adapter.py` | Unified Redis adapter (Upstash + local) |
+| `mode_selector.py` | Auto-detects best available mode |
 | `coordinator.py` | Mesh brain for agent orchestration |
 | `protocol.py` | Message types and serialization |
 | `checkin-hook.py` | PostToolUse hook for periodic check-ins |
-| `README.md` | This file |
+| `config.json` | Power Mode configuration |
+| `docker-compose.yml` | Local Redis container (optional) |
+| `setup-redis.py` | Local Redis setup script (optional) |
 
 ## Prerequisites
 
+**For Upstash Mode:**
+- Python 3.8+
+- Upstash account with Redis database
+
+**For Local Redis Mode:**
 1. **Docker** - Install from https://docs.docker.com/get-docker/
    - macOS: Docker Desktop
    - Windows: Docker Desktop
@@ -42,7 +74,7 @@ Or use the PopKit command:
 
 2. **Python 3.8+** - Already required for PopKit hooks
 
-3. **redis-py** - Python Redis client
+3. **redis-py** - Python Redis client (optional, for local Redis)
    ```bash
    pip install redis
    ```

@@ -1,3 +1,16 @@
+# =============================================================================
+# DEPRECATED: Local Redis Setup (Issue #191)
+# =============================================================================
+# This file is for LOCAL DEVELOPMENT only.
+#
+# For Premium/Production use, configure Upstash cloud Redis instead:
+#   export UPSTASH_REDIS_REST_URL="https://your-instance.upstash.io"
+#   export UPSTASH_REDIS_REST_TOKEN="your-token"
+#
+# Power Mode will auto-detect Upstash and skip Docker entirely.
+# See README.md for setup options.
+# =============================================================================
+
 services:
   redis:
     image: redis:7-alpine

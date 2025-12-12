@@ -29,6 +29,9 @@ POPKIT_API_URL = os.environ.get(
 # Cache entitlement for 5 minutes to reduce API calls
 ENTITLEMENT_CACHE_TTL = 300
 
+# Pre-launch mode: Show "coming soon" instead of upgrade prompts
+BILLING_LIVE = os.environ.get("POPKIT_BILLING_LIVE", "false").lower() == "true"
+
 
 # =============================================================================
 # TYPES
@@ -298,6 +301,11 @@ def check_entitlement(
 
 def _get_upgrade_message(feature: PremiumFeature, user_tier: Tier) -> str:
     """Generate upgrade message for a feature."""
+    # Pre-launch mode: Show "coming soon" instead of upgrade
+    if not is_billing_live():
+        return get_coming_soon_message(feature, user_tier)
+
+    # Normal mode: Show upgrade message
     tier_name = feature.required_tier.value.title()
     price = "$9/mo" if feature.required_tier == Tier.PRO else "$29/mo"
 
@@ -333,6 +341,34 @@ def get_upgrade_prompt_options(feature_name: str) -> Dict[str, Any]:
     if not feature:
         return {}
 
+    # Pre-launch mode: Email signup options
+    if not is_billing_live():
+        options = []
+
+        if feature.free_tier_fallback:
+            options.append({
+                "label": "Continue with free tier",
+                "description": feature.free_tier_fallback
+            })
+
+        options.append({
+            "label": "Get notified at launch",
+            "description": "Enter your email to stay updated"
+        })
+
+        options.append({
+            "label": "Cancel",
+            "description": "Return without using this feature"
+        })
+
+        return {
+            "question": "This premium feature is launching soon. What would you like to do?",
+            "header": "Coming Soon",
+            "options": options,
+            "multiSelect": False
+        }
+
+    # Normal mode: Upgrade options
     options = [
         {
             "label": "Upgrade to Premium",
@@ -632,6 +668,106 @@ def check_rate_limit(
 
 
 # =============================================================================
+# WAITLIST / EMAIL CAPTURE (PRE-LAUNCH)
+# =============================================================================
+
+@dataclass
+class WaitlistSignup:
+    """A waitlist signup for pre-launch email collection."""
+    email: str
+    feature: str
+    timestamp: str
+    tier: str = "free"
+
+
+def capture_waitlist_email(
+    email: str,
+    feature_name: str,
+    api_key: Optional[str] = None
+) -> bool:
+    """
+    Capture an email for the waitlist (pre-launch mode).
+
+    Args:
+        email: User's email address
+        feature_name: Name of the feature they're interested in
+        api_key: PopKit API key (optional, for tracking tier)
+
+    Returns:
+        True if signup was successful
+    """
+    from datetime import datetime
+
+    tier = "free"
+    if api_key:
+        user_tier = get_user_tier(api_key)
+        tier = user_tier.value
+
+    signup = WaitlistSignup(
+        email=email,
+        feature=feature_name,
+        timestamp=datetime.utcnow().isoformat() + "Z",
+        tier=tier
+    )
+
+    try:
+        url = f"{POPKIT_API_URL}/v1/waitlist/signup"
+        data = json.dumps({
+            "email": signup.email,
+            "feature": signup.feature,
+            "timestamp": signup.timestamp,
+            "tier": signup.tier
+        }).encode()
+
+        request = urllib.request.Request(
+            url,
+            data=data,
+            headers={
+                "Content-Type": "application/json"
+            },
+            method="POST"
+        )
+
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return response.status in [200, 201]
+
+    except Exception:
+        return False  # Don't fail if signup fails
+
+
+def is_billing_live() -> bool:
+    """
+    Check if billing is live (vs pre-launch mode).
+
+    Returns:
+        True if billing is live and users can actually subscribe
+    """
+    return BILLING_LIVE
+
+
+def get_coming_soon_message(feature: PremiumFeature, user_tier: Tier) -> str:
+    """Generate "coming soon" message for pre-launch mode."""
+    tier_name = feature.required_tier.value.title()
+
+    msg = f"""
+🎉 Coming Soon: {feature.name}
+
+{feature.description}
+
+We're launching premium tiers soon! This feature will be available in the {tier_name} tier.
+
+**Want to be notified when we launch?**
+
+Enter your email below and we'll let you know as soon as premium features are ready.
+"""
+
+    if feature.free_tier_fallback:
+        msg += f"\n\nFree tier alternative: {feature.free_tier_fallback}"
+
+    return msg.strip()
+
+
+# =============================================================================
 # CLI INTERFACE
 # =============================================================================
 
@@ -681,6 +817,16 @@ if __name__ == "__main__":
         feature = sys.argv[2] if len(sys.argv) > 2 else "pop-mcp-generator"
         result = check_rate_limit(feature)
         print(format_rate_limit_message(result))
+
+    elif command == "waitlist":
+        email = sys.argv[2] if len(sys.argv) > 2 else "test@example.com"
+        feature = sys.argv[3] if len(sys.argv) > 3 else "pop-mcp-generator"
+        success = capture_waitlist_email(email, feature)
+        print(f"Waitlist signup for {email}: {'success' if success else 'failed'}")
+
+    elif command == "billing-status":
+        print(f"Billing live: {is_billing_live()}")
+        print(f"POPKIT_BILLING_LIVE env: {os.environ.get('POPKIT_BILLING_LIVE', 'not set')}")
 
     else:
         print(f"Unknown command: {command}")

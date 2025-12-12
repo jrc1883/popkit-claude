@@ -24,7 +24,9 @@ try:
         get_upgrade_prompt_options,
         check_rate_limit,
         format_rate_limit_message,
-        RateLimitResult
+        RateLimitResult,
+        is_billing_live,
+        capture_waitlist_email
     )
     PREMIUM_CHECKER_AVAILABLE = True
 except ImportError:
@@ -629,7 +631,7 @@ def main():
             for violation in result["safety_check"]["violations"]:
                 print(f"   - {violation}", file=sys.stderr)
         elif result["action"] == "premium_required":
-            # Premium feature gating - show upgrade prompt
+            # Premium feature gating - show upgrade prompt or coming soon
             premium_info = result.get("premium_upgrade", {})
             response["decision"] = "block"
             response["reason"] = f"Premium feature required: {premium_info.get('feature_name', 'Unknown')}"
@@ -637,12 +639,23 @@ def main():
             response["premium_info"] = premium_info
 
             # Output premium message to stderr for user visibility
-            print(f"⭐ Premium Feature Required: {premium_info.get('feature_name')}", file=sys.stderr)
-            print(f"   Your tier: {premium_info.get('user_tier', 'free')}", file=sys.stderr)
-            print(f"   Required: {premium_info.get('required_tier', 'pro')}", file=sys.stderr)
-            if premium_info.get("fallback_available"):
-                print(f"   💡 Free tier alternative available", file=sys.stderr)
-            print(f"   Run /popkit:upgrade to unlock premium features", file=sys.stderr)
+            if PREMIUM_CHECKER_AVAILABLE and not is_billing_live():
+                # Pre-launch mode: Show "coming soon"
+                print(f"🎉 Coming Soon: {premium_info.get('feature_name')}", file=sys.stderr)
+                print(f"   This premium feature is launching soon!", file=sys.stderr)
+                print(f"   Required tier: {premium_info.get('required_tier', 'pro').title()}", file=sys.stderr)
+                if premium_info.get("fallback_available"):
+                    print(f"   💡 Free tier alternative available", file=sys.stderr)
+                print(f"", file=sys.stderr)
+                print(f"   Want to be notified at launch? You'll be prompted to enter your email.", file=sys.stderr)
+            else:
+                # Normal mode: Show upgrade prompt
+                print(f"⭐ Premium Feature Required: {premium_info.get('feature_name')}", file=sys.stderr)
+                print(f"   Your tier: {premium_info.get('user_tier', 'free')}", file=sys.stderr)
+                print(f"   Required: {premium_info.get('required_tier', 'pro')}", file=sys.stderr)
+                if premium_info.get("fallback_available"):
+                    print(f"   💡 Free tier alternative available", file=sys.stderr)
+                print(f"   Run /popkit:upgrade to unlock premium features", file=sys.stderr)
         elif result["action"] == "rate_limited":
             # Rate limit exceeded (Issue #139)
             rate_info = result.get("rate_limit_info", {})

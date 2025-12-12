@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jrc1883/popkit-claude/main/assets/popkit-banner.png" alt="PopKit Banner" width="600">
+  <img src="https://raw.githubusercontent.com/jrc1883/popkit-claude/main/assets/images/popkit-banner.png" alt="PopKit Banner" width="600">
 </p>
 
 <h1 align="center">PopKit</h1>
@@ -9,18 +9,26 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#features">Features</a> •
-  <a href="#commands">Commands</a> •
-  <a href="#agents">Agents</a> •
-  <a href="#premium">Premium</a> •
+  <a href="#quick-start">Quick Start</a> |
+  <a href="#features">Features</a> |
+  <a href="#commands">Commands</a> |
+  <a href="#agents">Agents</a> |
+  <a href="#premium">Premium</a> |
   <a href="#faq">FAQ</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version">
-  <img src="https://img.shields.io/badge/license-Apache%202.0-green" alt="License">
-  <img src="https://img.shields.io/badge/Claude%20Code-Plugin-purple" alt="Claude Code Plugin">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Claude%20Code-Plugin-purple?style=flat-square" alt="Claude Code Plugin">
+</p>
+
+---
+
+## See the Difference
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jrc1883/popkit-claude/main/assets/images/before-after.gif" alt="Before and After PopKit" width="700">
 </p>
 
 ---

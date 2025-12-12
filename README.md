@@ -303,7 +303,7 @@ Parallel agent orchestration.
 |---------|-------------|
 | `/popkit:account` | status | keys | billing | logout - Manage your PopKit account |
 | `/popkit:assess` | anthropic | security | performance | ux | architect | docs | all [--fix, --json] |
-| `/popkit:audit` | quarterly | yearly | stale | duplicates | health [--verbose, --fix] |
+| `/popkit:audit` | quarterly | yearly | stale | duplicates | health | ip-leak [--verbose, --fix] |
 | `/popkit:bug` | report | search | share [--issue, --share] |
 | `/popkit:dashboard` | [add|remove|refresh|switch|discover] - Multi-project management |
 | `/popkit:debug` | code | routing [--trace, --verbose] |

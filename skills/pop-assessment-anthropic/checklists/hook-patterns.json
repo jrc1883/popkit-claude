@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "hook-patterns",
+  "version": "1.0.0",
+  "description": "Machine-readable checklist for hook protocol compliance",
+  "categories": [
+    {
+      "id": "hook-protocol",
+      "name": "Hook Protocol Compliance",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "HP-001",
+          "name": "Has shebang",
+          "description": "Hook must have #!/usr/bin/env python3 shebang",
+          "type": "file_contains",
+          "pattern": "hooks/*.py",
+          "contains": "#!/usr/bin/env python3",
+          "location": "line_1",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "HP-002",
+          "name": "Reads JSON from stdin",
+          "description": "Hook must parse JSON from stdin",
+          "type": "file_contains_any",
+          "pattern": "hooks/*.py",
+          "contains_any": [
+            "json.load(sys.stdin)",
+            "json.loads(sys.stdin.read())"
+          ],
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "HP-003",
+          "name": "Outputs JSON to stdout",
+          "description": "Hook must output JSON to stdout",
+          "type": "file_contains_any",
+          "pattern": "hooks/*.py",
+          "contains_any": [
+            "print(json.dumps(",
+            "json.dump(",
+            "sys.stdout.write(json.dumps("
+          ],
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "HP-004",
+          "name": "Has try/except",
+          "description": "Hook should have error handling",
+          "type": "file_contains",
+          "pattern": "hooks/*.py",
+          "contains": "try:",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "HP-005",
+          "name": "Uses sys.exit(0) on error",
+          "description": "Hook must exit cleanly on error",
+          "type": "file_contains",
+          "pattern": "hooks/*.py",
+          "contains": "sys.exit(0)",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "HP-006",
+          "name": "Uses stderr for messages",
+          "description": "Hook should use stderr for user messages",
+          "type": "file_contains",
+          "pattern": "hooks/*.py",
+          "contains": "file=sys.stderr",
+          "severity": "medium",
+          "deduction": 5
+        },
+        {
+          "id": "HP-007",
+          "name": "Output has action field",
+          "description": "JSON output must include action field",
+          "type": "file_contains_any",
+          "pattern": "hooks/*.py",
+          "contains_any": [
+            "\"action\":",
+            "'action':",
+            "action="
+          ],
+          "severity": "critical",
+          "deduction": 20
+        }
+      ]
+    },
+    {
+      "id": "hook-configuration",
+      "name": "Hook Configuration",
+      "weight": 15,
+      "checks": [
+        {
+          "id": "HC-001",
+          "name": "Timeout reasonable",
+          "description": "Hook timeout should be under 60 seconds",
+          "type": "json_field_value",
+          "file": "hooks/hooks.json",
+          "path": "hooks[*].timeout",
+          "condition": "< 60000",
+          "severity": "medium",
+          "deduction": 5
+        },
+        {
+          "id": "HC-002",
+          "name": "Timeout not excessive",
+          "description": "Hook timeout should be under 3 minutes",
+          "type": "json_field_value",
+          "file": "hooks/hooks.json",
+          "path": "hooks[*].timeout",
+          "condition": "< 180000",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "HC-003",
+          "name": "Valid event types",
+          "description": "All events must be valid types",
+          "type": "json_array_values",
+          "file": "hooks/hooks.json",
+          "path": "hooks[*].event",
+          "allowed_values": [
+            "PreToolUse",
+            "PostToolUse",
+            "SessionStart",
+            "Stop",
+            "SubagentStop",
+            "Notification",
+            "UserPromptSubmit"
+          ],
+          "severity": "critical",
+          "deduction": 20
+        }
+      ]
+    }
+  ],
+  "validation_patterns": {
+    "shebang": "^#!/usr/bin/env python3",
+    "json_stdin": "(json\\.load\\(sys\\.stdin\\)|json\\.loads\\(sys\\.stdin\\.read\\(\\)\\))",
+    "json_stdout": "(print\\(json\\.dumps\\(|json\\.dump\\(|sys\\.stdout\\.write\\(json\\.dumps\\()",
+    "try_except": "try:\\s*\\n.*\\nexcept",
+    "clean_exit": "sys\\.exit\\(0\\)",
+    "stderr_output": "file=sys\\.stderr",
+    "action_field": "['\"]action['\"]\\s*:"
+  },
+  "scoring": {
+    "starting_score": 100,
+    "minimum_score": 0,
+    "severity_weights": {
+      "critical": 20,
+      "high": 10,
+      "medium": 5,
+      "low": 2,
+      "warning": 1
+    }
+  }
+}

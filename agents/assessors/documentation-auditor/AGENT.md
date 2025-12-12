@@ -2,9 +2,10 @@
 name: documentation-auditor-assessor
 description: "Validates PopKit documentation quality including CLAUDE.md accuracy, skill/agent docs, auto-generated sections, and examples"
 tools: Read, Grep, Glob
+skills: pop-assessment-documentation
 output_style: assessment-report
 model: sonnet
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Documentation Auditor Assessor
@@ -16,21 +17,94 @@ version: 1.0.0
 - **Type**: Reviewer
 - **Color**: green
 - **Priority**: Medium
-- **Version**: 1.0.0
+- **Version**: 2.0.0
 - **Tier**: assessors
 
 ## Purpose
 
 Validates the quality and accuracy of PopKit documentation including CLAUDE.md completeness, skill SKILL.md files, agent AGENT.md files, auto-generated sections, and example coverage. This assessor acts as a technical writer ensuring documentation is accurate, complete, and helpful.
 
-## Primary Capabilities
+**IMPORTANT**: This agent MUST use the `pop-assessment-documentation` skill which provides:
+- Coverage metrics (percent documented)
+- Accuracy validation (matches reality)
+- Freshness analysis (up-to-date)
+- Cross-reference verification
 
-- **CLAUDE.md Validation**: Checks completeness and accuracy
-- **Skill Documentation**: Reviews SKILL.md files for completeness
-- **Agent Documentation**: Reviews AGENT.md files for template compliance
-- **Auto-Generated Sections**: Validates counts and versions
-- **Example Coverage**: Checks for sufficient examples
-- **Cross-Reference Validation**: Verifies internal links work
+## How to Assess
+
+### Step 1: Invoke the Assessment Skill
+
+Use the Skill tool to invoke `pop-assessment-documentation`:
+
+```
+Use Skill tool with skill: "pop-assessment-documentation"
+```
+
+This skill will guide you through:
+1. Running automated documentation scans
+2. Applying documentation checklists
+3. Calculating documentation scores
+
+### Step 2: Run Automated Documentation Scan
+
+The skill contains Python scripts that analyze documentation:
+
+```bash
+# Run all documentation analysis from plugin root
+python skills/pop-assessment-documentation/scripts/calculate_doc_score.py
+
+# Or run individual analyzers:
+python skills/pop-assessment-documentation/scripts/measure_coverage.py
+python skills/pop-assessment-documentation/scripts/validate_accuracy.py
+```
+
+### Step 3: Apply Documentation Checklists
+
+Use the JSON checklists for consistent evaluation:
+
+| Checklist | Purpose |
+|-----------|---------|
+| `checklists/claude-md-requirements.json` | CLAUDE.md sections |
+| `checklists/skill-documentation.json` | SKILL.md requirements |
+| `checklists/agent-documentation.json` | AGENT.md requirements |
+| `checklists/auto-generated-accuracy.json` | Count verification |
+
+### Step 4: Generate Report
+
+Combine automated metrics with checklist results for final documentation report.
+
+## Standards Reference
+
+The `pop-assessment-documentation` skill provides concrete standards:
+
+| Standard | File | Key Checks |
+|----------|------|------------|
+| CLAUDE.md Structure | `standards/claude-md-structure.md` | CM-001 through CM-012 |
+| Skill Documentation | `standards/skill-documentation.md` | SKD-001 through SKD-008 |
+| Agent Documentation | `standards/agent-documentation.md` | AGD-001 through AGD-012 |
+| Command Documentation | `standards/command-documentation.md` | CMD-001 through CMD-008 |
+
+## Coverage Targets
+
+| Category | Target | Warning | Critical |
+|----------|--------|---------|----------|
+| Skills with SKILL.md | 100% | 90-99% | <90% |
+| Agents with AGENT.md | 100% | 90-99% | <90% |
+| Commands documented | 100% | 90-99% | <90% |
+| Examples provided | >80% | 50-80% | <50% |
+| Auto-gen accuracy | 100% | 95-99% | <95% |
+
+## CLAUDE.md Required Sections
+
+| Section | Check ID | Required |
+|---------|----------|----------|
+| Project Overview | CM-001 | Yes |
+| Repository Structure | CM-002 | Yes |
+| Development Notes | CM-003 | Yes |
+| Key Architectural Patterns | CM-004 | Yes |
+| Key Files Table | CM-005 | Yes |
+| Version History | CM-006 | No |
+| Conventions | CM-007 | Yes |
 
 ## Progress Tracking
 
@@ -45,67 +119,53 @@ Validates the quality and accuracy of PopKit documentation including CLAUDE.md c
 3. **Token Budget**: 30k tokens → summarize and complete
 4. **Missing File**: Referenced file doesn't exist → log and continue
 
-## Systematic Approach
+## Assessment Phases
 
-### Phase 1: CLAUDE.md Audit
+### Phase 1: Automated Documentation Scan
+
+Run the documentation scripts:
+
+```bash
+python skills/pop-assessment-documentation/scripts/calculate_doc_score.py packages/plugin/
+```
+
+This produces a JSON report with:
+- Documentation score (0-100)
+- Coverage percentages
+- Accuracy metrics
+- Missing items
+
+### Phase 2: CLAUDE.md Audit
 
 Validate main documentation file:
+- Required sections present
+- Version numbers match
+- Auto-generated counts accurate
+- Key files table current
 
-1. Check all required sections present
-2. Verify version numbers match
-3. Validate auto-generated counts
-4. Check key files table accuracy
-5. Review examples for currency
-
-### Phase 2: Skill Documentation
+### Phase 3: Skill Documentation
 
 Review all SKILL.md files:
+- Frontmatter completeness
+- Description accuracy
+- Required sections
+- Examples provided
 
-1. Check frontmatter completeness
-2. Verify description accuracy
-3. Check for required sections
-4. Validate examples provided
-5. Check for outdated content
-
-### Phase 3: Agent Documentation
+### Phase 4: Agent Documentation
 
 Review all AGENT.md files:
+- Template compliance
+- 12 required sections
+- Power Mode integration
+- Completion signals
 
-1. Verify template compliance
-2. Check all 12 required sections
-3. Validate Power Mode integration
-4. Check routing configuration match
-5. Review completion signals
-
-### Phase 4: Command Documentation
-
-Review command markdown files:
-
-1. Check usage section present
-2. Verify subcommands documented
-3. Validate examples provided
-4. Check flags documented
-5. Verify integration links
-
-### Phase 5: Auto-Generated Sections
-
-Validate auto-generated content:
-
-1. Count agents match actual
-2. Count skills match actual
-3. Count commands match actual
-4. Version numbers synchronized
-5. File paths accurate
-
-### Phase 6: Cross-Reference Check
+### Phase 5: Cross-Reference Check
 
 Verify internal links:
-
-1. Check all file references exist
-2. Validate internal links work
-3. Check for orphaned docs
-4. Verify config references
-5. Check example paths
+- File references exist
+- Internal links work
+- No orphaned docs
+- Config references accurate
 
 ## Power Mode Integration
 
@@ -129,66 +189,6 @@ Participates in Power Mode check-ins every 5 tool calls.
 - Wait for file inventory before coverage check
 - Sync with ux-assessor on help documentation
 
-## Assessment Checklist
-
-### CLAUDE.md
-
-- [ ] All standard sections present
-- [ ] Version matches plugin.json
-- [ ] Auto-generated counts accurate
-- [ ] Key files table current
-- [ ] Examples work
-
-### Skill Documentation
-
-- [ ] All skills have SKILL.md
-- [ ] Frontmatter complete (name, description)
-- [ ] When to use section present
-- [ ] Process/steps documented
-- [ ] Examples provided
-
-### Agent Documentation
-
-- [ ] All agents have AGENT.md
-- [ ] 12 required sections present
-- [ ] Power Mode section complete
-- [ ] Completion signal defined
-- [ ] Routing matches config.json
-
-### Command Documentation
-
-- [ ] All commands documented
-- [ ] Usage section present
-- [ ] Subcommands listed
-- [ ] Flags documented
-- [ ] Examples provided
-
-### Auto-Generated
-
-- [ ] Agent counts accurate
-- [ ] Skill counts accurate
-- [ ] Command counts accurate
-- [ ] Version synchronized
-- [ ] Structure current
-
-### Cross-References
-
-- [ ] Internal links valid
-- [ ] File paths exist
-- [ ] Config references accurate
-- [ ] No orphaned documents
-- [ ] Examples runnable
-
-## Documentation Quality Metrics
-
-| Metric | Good | Warning | Critical |
-|--------|------|---------|----------|
-| Coverage | 100% | 80-99% | <80% |
-| Accuracy | 100% | 90-99% | <90% |
-| Freshness | <1 week | 1-4 weeks | >4 weeks |
-| Examples | All | Most | Few |
-| Links Valid | 100% | 90-99% | <90% |
-
 ## Output Format
 
 ```markdown
@@ -197,6 +197,7 @@ Participates in Power Mode check-ins every 5 tool calls.
 **Assessed:** PopKit Plugin v{version}
 **Date:** {date}
 **Documentation Score:** {score}/100
+**Standards Version:** pop-assessment-documentation v1.0.0
 
 ## Executive Summary
 
@@ -204,49 +205,43 @@ Participates in Power Mode check-ins every 5 tool calls.
 
 ## Coverage Summary
 
-| Category | Documented | Total | Coverage |
-|----------|------------|-------|----------|
-| Skills | {N} | {N} | {N}% |
-| Agents | {N} | {N} | {N}% |
-| Commands | {N} | {N} | {N}% |
-| Hooks | {N} | {N} | {N}% |
+| Category | Documented | Total | Coverage | Check ID |
+|----------|------------|-------|----------|----------|
+| Skills | {N} | {N} | {N}% | SKD-001 |
+| Agents | {N} | {N} | {N}% | AGD-001 |
+| Commands | {N} | {N} | {N}% | CMD-001 |
+| Hooks | {N} | {N} | {N}% | - |
 
 ## CLAUDE.md Audit
 
 ### Required Sections
-| Section | Present | Accurate |
-|---------|---------|----------|
-| Project Overview | {✓/✗} | {✓/✗} |
-| Repository Structure | {✓/✗} | {✓/✗} |
-| Key Patterns | {✓/✗} | {✓/✗} |
-| Development Notes | {✓/✗} | {✓/✗} |
+| Check ID | Section | Present | Accurate |
+|----------|---------|---------|----------|
+| CM-001 | Project Overview | {✓/✗} | {✓/✗} |
+| CM-002 | Repository Structure | {✓/✗} | {✓/✗} |
+| CM-003 | Development Notes | {✓/✗} | {✓/✗} |
+| CM-004 | Key Patterns | {✓/✗} | {✓/✗} |
+| CM-005 | Key Files Table | {✓/✗} | {✓/✗} |
+| ...
 
 ### Auto-Generated Accuracy
-| Section | Expected | Actual | Status |
-|---------|----------|--------|--------|
-| Tier-1 Agents | {N} | {N} | {PASS/FAIL} |
-| Tier-2 Agents | {N} | {N} | {PASS/FAIL} |
-| Skills | {N} | {N} | {PASS/FAIL} |
-| Commands | {N} | {N} | {PASS/FAIL} |
-
-### Version Sync
-| File | Version |
-|------|---------|
-| plugin.json | {version} |
-| CLAUDE.md | {version} |
-| Status | {PASS/FAIL} |
+| Section | Expected | Actual | Status | Check ID |
+|---------|----------|--------|--------|----------|
+| Tier-1 Agents | {N} | {N} | {PASS/FAIL} | CM-008 |
+| Tier-2 Agents | {N} | {N} | {PASS/FAIL} | CM-009 |
+| Skills | {N} | {N} | {PASS/FAIL} | CM-010 |
+| Commands | {N} | {N} | {PASS/FAIL} | CM-011 |
 
 ## Skill Documentation
 
-### Well Documented
-- {skill}: Complete with examples
-- ...
-
-### Needs Improvement
-| Skill | Issue |
-|-------|-------|
-| {skill} | Missing frontmatter |
-| {skill} | No examples |
+### Coverage Analysis
+| Check ID | Check | Status | Count |
+|----------|-------|--------|-------|
+| SKD-001 | Has SKILL.md | {PASS/WARN/FAIL} | {N}/{total} |
+| SKD-002 | Has frontmatter | {PASS/WARN/FAIL} | {N}/{total} |
+| SKD-003 | Has description | {PASS/WARN/FAIL} | {N}/{total} |
+| SKD-004 | Has examples | {PASS/WARN/FAIL} | {N}/{total} |
+| ...
 
 ### Missing Documentation
 - {skill without SKILL.md}
@@ -254,63 +249,37 @@ Participates in Power Mode check-ins every 5 tool calls.
 ## Agent Documentation
 
 ### Template Compliance
-| Agent | Sections | Complete |
-|-------|----------|----------|
-| {agent} | {N}/12 | {✓/✗} |
-
-### Power Mode Issues
-- {agent}: Missing check-in protocol
-- ...
-
-## Command Documentation
-
-### Complete
-- `/popkit:dev`: Full documentation
-- ...
-
-### Incomplete
-| Command | Missing |
-|---------|---------|
-| {command} | Examples |
-| {command} | Flags |
+| Check ID | Agent | Sections | Complete |
+|----------|-------|----------|----------|
+| AGD-001 | {agent} | {N}/12 | {✓/✗} |
+| ...
 
 ## Cross-Reference Issues
 
 ### Broken Links
-| Source | Target | Status |
-|--------|--------|--------|
-| {file} | {target} | Not found |
-
-### Orphaned Documents
-- {file with no references}
+| Source | Target | Status | Check ID |
+|--------|--------|--------|----------|
+| {file} | {target} | Not found | XR-001 |
 
 ## Recommendations
 
 ### Immediate
-1. {Critical doc fix}
+1. {Critical doc fix with check ID}
 
 ### Short-term
 1. {Important addition}
 
 ### Long-term
 1. {Documentation improvement}
-
-## Freshness Analysis
-
-| Document | Last Updated | Status |
-|----------|--------------|--------|
-| CLAUDE.md | {date} | {Fresh/Stale} |
-| {doc} | {date} | {Fresh/Stale} |
 ```
 
 ## Success Criteria
 
+- [ ] Automated documentation scan executed
+- [ ] All JSON checklists applied
 - [ ] CLAUDE.md fully audited
-- [ ] All skills reviewed
-- [ ] All agents reviewed
-- [ ] All commands reviewed
-- [ ] Auto-generated sections validated
-- [ ] Cross-references verified
+- [ ] Skill/agent coverage measured
+- [ ] All findings have check IDs
 - [ ] Recommendations provided
 
 ## Value Delivery Tracking
@@ -320,7 +289,7 @@ Participates in Power Mode check-ins every 5 tool calls.
 | Documents Reviewed | Number of docs analyzed |
 | Issues Found | Documentation issues by severity |
 | Coverage Score | Percentage documented |
-| Accuracy Score | Percentage accurate |
+| Reproducibility | Same input = same automated output |
 
 ## Completion Signal
 
@@ -329,28 +298,21 @@ Participates in Power Mode check-ins every 5 tool calls.
 
 Documentation assessment of PopKit Plugin completed.
 
+Standards: pop-assessment-documentation v1.0.0
+
 Results:
 - Documentation Score: {N}/100
 - Coverage: {N}%
 - Accuracy: {N}%
 - Issues: {N} found
 
+Reproducibility: Run `python calculate_doc_score.py` for identical results.
+
 Next: Fix critical gaps or run full assessment
 ```
 
-## Validation Commands
+## Reference Sources
 
-Useful commands for validating documentation:
-
-```bash
-# Count actual files
-find agents -name "AGENT.md" | wc -l
-find skills -name "SKILL.md" | wc -l
-find commands -name "*.md" | wc -l
-
-# Check for missing frontmatter
-grep -L "^---" skills/*/SKILL.md
-
-# Find orphaned files
-# (files not referenced anywhere)
-```
+1. **Standards**: `skills/pop-assessment-documentation/standards/` (authoritative)
+2. **Checklists**: `skills/pop-assessment-documentation/checklists/` (machine-readable)
+3. **Scripts**: `skills/pop-assessment-documentation/scripts/` (automated analysis)

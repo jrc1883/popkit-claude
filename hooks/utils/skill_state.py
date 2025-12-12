@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Skill state tracking for AskUserQuestion enforcement (Issue #159).
+Skill state tracking for AskUserQuestion enforcement (Issue #159)
+and activity ledger publishing (Issue #188).
 
 Follows Anthropic's recommendation from the Hooks Guide:
 "By encoding these rules as hooks rather than prompting instructions,
@@ -10,12 +11,13 @@ This module tracks:
 - Which skill is currently active
 - Which required decisions have been made
 - Whether completion decisions are pending
+- Publishes skill lifecycle events to activity ledger
 """
 
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass, field
 
 
@@ -23,10 +25,12 @@ from dataclasses import dataclass, field
 class SkillState:
     """State for a single skill execution."""
     skill_name: str
+    workflow_id: Optional[str] = None
     decisions_made: Set[str] = field(default_factory=set)
     tool_calls: int = 0
     error_occurred: bool = False
     last_error: Optional[str] = None
+    activity_id: Optional[str] = None  # ID from activity stream
 
 
 class SkillStateTracker:
@@ -99,13 +103,72 @@ class SkillStateTracker:
 
         return {}
 
-    def start_skill(self, skill_name: str) -> None:
-        """Called when a skill is invoked via Skill tool."""
-        self.state = SkillState(skill_name=skill_name)
+    def start_skill(self, skill_name: str, workflow_id: Optional[str] = None) -> None:
+        """Called when a skill is invoked via Skill tool.
 
-    def end_skill(self) -> None:
-        """Called when skill completes."""
+        Publishes 'start' event to activity ledger for real-time awareness.
+        """
+        self.state = SkillState(skill_name=skill_name, workflow_id=workflow_id)
+
+        # Publish to activity ledger (Issue #188)
+        activity_id = self._publish_activity("start", {
+            "skill": skill_name,
+            "workflow": workflow_id
+        })
+        if activity_id and self.state:
+            self.state.activity_id = activity_id
+
+    def end_skill(self, status: str = "complete", output: Optional[Dict[str, Any]] = None) -> None:
+        """Called when skill completes.
+
+        Publishes 'complete' or 'error' event to activity ledger.
+
+        Args:
+            status: "complete" or "error"
+            output: Optional output data to include in event
+        """
+        if self.state:
+            event_data = {
+                "skill": self.state.skill_name,
+                "workflow": self.state.workflow_id,
+                "tool_calls": self.state.tool_calls,
+                "decisions_made": list(self.state.decisions_made),
+                "output": output or {}
+            }
+
+            if self.state.error_occurred:
+                status = "error"
+                event_data["error"] = self.state.last_error
+
+            self._publish_activity(status, event_data)
+
         self.state = None
+
+    def _publish_activity(self, event_type: str, data: Dict[str, Any]) -> Optional[str]:
+        """Publish activity event to storage backend.
+
+        Tries to import context_storage lazily to avoid circular imports.
+        Returns activity ID if successful.
+        """
+        try:
+            from context_storage import get_context_storage
+            storage = get_context_storage()
+
+            skill_name = data.get("skill", "unknown")
+            workflow_id = data.get("workflow")
+
+            return storage.publish_activity(
+                skill_name=skill_name,
+                event_type=event_type,
+                data=data,
+                workflow_id=workflow_id
+            )
+        except ImportError:
+            # context_storage not available, skip activity publishing
+            return None
+        except Exception:
+            # Don't let activity publishing failures break skill tracking
+            return None
 
     def record_decision(self, decision_id: str) -> None:
         """Record that a user decision was made."""
@@ -134,10 +197,25 @@ class SkillStateTracker:
                 self.state.decisions_made.add(decision["id"])
                 return
 
-    def record_tool_use(self, tool_name: str) -> None:
-        """Record that a tool was used (for step counting if needed later)."""
+    def record_tool_use(self, tool_name: str, publish_progress: bool = False) -> None:
+        """Record that a tool was used.
+
+        Args:
+            tool_name: Name of the tool being used
+            publish_progress: If True, publish progress event to activity ledger
+                            (use sparingly to avoid excessive events)
+        """
         if self.state:
             self.state.tool_calls += 1
+
+            # Optionally publish progress (every 5th tool call by default)
+            if publish_progress or (self.state.tool_calls % 5 == 0):
+                self._publish_activity("progress", {
+                    "skill": self.state.skill_name,
+                    "workflow": self.state.workflow_id,
+                    "tool": tool_name,
+                    "tool_calls": self.state.tool_calls
+                })
 
     def record_error(self, error_message: str) -> None:
         """Record that an error occurred during skill execution (Issue #183)."""

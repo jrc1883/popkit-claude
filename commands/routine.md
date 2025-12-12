@@ -183,12 +183,13 @@ End your development day with cleanup, maintenance, and state preservation.
 
 | Check | Points | Criteria |
 |-------|--------|----------|
-| No uncommitted changes | 30 | **Critical** - caps score at 49 if fails |
+| No uncommitted changes | 25 | **Critical** - caps score at 49 if fails |
 | Session state saved | 20 | STATUS.json updated within last hour |
 | Git maintenance done | 15 | No orphans, gc run recently |
 | Security audit clean | 15 | No critical/high vulnerabilities |
+| IP leak scan clean | 10 | No leaked secrets or proprietary code |
 | Caches under limit | 10 | < 500MB total cache size |
-| Logs rotated | 10 | No logs older than 7 days |
+| Logs rotated | 5 | No logs older than 7 days |
 
 **Score Interpretation:**
 - 80-100: Safe to sleep - everything is clean
@@ -225,6 +226,11 @@ Cleanup Opportunities:
 Security:
   npm audit: 0 critical, 0 high, 2 moderate
   Exposed secrets: None detected
+
+IP Protection (for split-repo projects):
+  Plugin scan: Clean (no leaked IP)
+  Last deep scan: 3 days ago
+  Recommendation: Run /popkit:audit ip-leak --deep weekly
 
 Recommendations:
   - Run `/popkit:routine nightly cleanup --auto-fix` to clear 279 MB

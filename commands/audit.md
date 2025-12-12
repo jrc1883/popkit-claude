@@ -1,10 +1,10 @@
 ---
-description: "quarterly | yearly | stale | duplicates | health [--verbose, --fix]"
+description: "quarterly | yearly | stale | duplicates | health | ip-leak [--verbose, --fix]"
 ---
 
 # /popkit:audit - Project Audit & Review
 
-Perform periodic audits to review project health, find stale issues, detect duplicates, and generate actionable recommendations.
+Perform periodic audits to review project health, find stale issues, detect duplicates, scan for IP leaks, and generate actionable recommendations.
 
 ## Usage
 
@@ -21,6 +21,7 @@ Perform periodic audits to review project health, find stale issues, detect dupl
 | `stale` | Find stale issues |
 | `duplicates` | Find potential duplicate issues |
 | `health` | Overall project health check |
+| `ip-leak` | Scan for intellectual property leaks |
 
 ---
 
@@ -406,6 +407,148 @@ jobs:
 
 # Fix stale issues automatically
 /popkit:audit stale --fix
+
+# Scan for IP leaks before publishing
+/popkit:audit ip-leak
+/popkit:audit ip-leak --deep
+```
+
+---
+
+## Subcommand: ip-leak
+
+Scan for intellectual property that should NOT appear in the public repository.
+
+```
+/popkit:audit ip-leak                 # Scan plugin directory
+/popkit:audit ip-leak --deep          # Include git history scan
+/popkit:audit ip-leak --path <dir>    # Scan specific directory
+/popkit:audit ip-leak --json          # Output as JSON
+/popkit:audit ip-leak --pre-publish   # Pre-publish validation mode
+```
+
+### Purpose
+
+PopKit uses a **split-repo model**:
+- **Private** (`jrc1883/popkit`): Full monorepo with cloud, billing, proprietary code
+- **Public** (`jrc1883/popkit-claude`): Plugin only (declarative content)
+
+This command ensures we don't accidentally leak private content when publishing.
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--deep` | Include git history scan (slower, more thorough) |
+| `--path <dir>` | Scan specific directory (default: packages/plugin) |
+| `--json` | Output findings as JSON |
+| `--pre-publish` | Pre-publish mode (blocks on critical/high issues) |
+
+### What Gets Scanned
+
+#### Critical (Blocks Publish)
+
+| Pattern | Description |
+|---------|-------------|
+| `packages/cloud/` | Cloud API implementation |
+| `packages/cloud-billing/` | Billing/payment code |
+| `STRIPE_*` secrets | Stripe API keys |
+| `UPSTASH_*_TOKEN` | Redis credentials |
+| Hardcoded API keys | API keys in code |
+| Bearer tokens | Hardcoded auth tokens |
+
+#### High Priority
+
+| Pattern | Description |
+|---------|-------------|
+| `PROPRIETARY` markers | Explicit proprietary tags |
+| `# SECRET:` comments | Secret markers |
+| `do-not-publish` | Explicit markers |
+
+#### Medium Priority
+
+| Pattern | Description |
+|---------|-------------|
+| `internal-only` | Internal content markers |
+| Premium detection logic | `is_premium`, `check_premium` |
+| Production API URLs | Cloud API endpoints |
+
+#### Low Priority
+
+| Pattern | Description |
+|---------|-------------|
+| Private repo refs | References to `jrc1883/popkit` |
+
+### Output
+
+```
+# IP Leak Scan Report
+
+**Found 3 potential issues**
+- Critical: 0
+- High: 1
+- Medium: 2
+- Low: 0
+
+## High Priority Issues
+
+- **hooks/utils/some_file.py:45** - `PROPRIETARY`
+  Proprietary content marker
+
+## Medium Priority Issues
+
+- **skills/pop-premium/SKILL.md:12** - `is_premium`
+  Premium feature detection logic
+
+- **agents/config.json:156** - `https://api.popkit.cloud`
+  Production API URL
+```
+
+### Pre-Publish Mode
+
+When used with `--pre-publish`:
+- **Critical or High findings**: Returns exit code 1 (blocks publish)
+- **Medium or Low findings**: Returns exit code 0 (warns but allows)
+- **No findings**: Returns exit code 0 (safe to publish)
+
+This is automatically invoked by `/popkit:git publish`.
+
+### Deep Scan
+
+The `--deep` flag scans git history for leaked secrets:
+- Checks added files in the last 100 commits
+- Detects secrets that were committed and later removed
+- Slower but more thorough
+
+```
+/popkit:audit ip-leak --deep
+```
+
+### Integration Points
+
+1. **Pre-Publish Hook**: Automatically runs before `/popkit:git publish`
+2. **Nightly Routine**: Part of `/popkit:routine nightly` checks
+3. **CI/CD**: GitHub Action on public repo validates on every push
+
+### Allowed Exceptions
+
+Some files are allowed to contain patterns for documentation:
+- `ip_protection.py` - The scanner itself
+- `CLAUDE.md` - Documents what's private
+- `audit.md` - Documents the feature
+- Test files - For testing the scanner
+
+### Execute
+
+```bash
+# Run from command line
+python packages/plugin/hooks/utils/ip_protection.py packages/plugin/
+
+# With deep scan
+python packages/plugin/hooks/utils/ip_protection.py packages/plugin/ --deep
+
+# Pre-publish mode
+python packages/plugin/hooks/utils/ip_protection.py packages/plugin/ --pre-publish
 ```
 
 ---
@@ -418,6 +561,7 @@ jobs:
 | Embeddings | Duplicate detection (semantic) |
 | Analytics | Velocity, trends calculation |
 | Reports | Markdown formatting |
+| IP Scanner | `hooks/utils/ip_protection.py` |
 
 ## Related Commands
 
@@ -426,3 +570,5 @@ jobs:
 | `/popkit:milestone` | Milestone-specific management |
 | `/popkit:issue` | Individual issue management |
 | `/popkit:stats` | Quick project statistics |
+| `/popkit:git publish` | Uses ip-leak scan before publishing |
+| `/popkit:routine nightly` | Includes ip-leak check |

@@ -625,25 +625,32 @@ This command uses `git subtree split` to extract `packages/plugin/` and push to 
    # Must have no uncommitted changes in packages/plugin/
    ```
 
-2. **Run Subtree Split**
+2. **Run IP Leak Scan** (NEW - Issue #193)
+   ```bash
+   # Scan for intellectual property that shouldn't be public
+   python hooks/utils/ip_protection.py packages/plugin/ --pre-publish
+   # Blocks publish if critical/high issues found
+   ```
+
+3. **Run Subtree Split**
    ```bash
    git subtree split --prefix=packages/plugin -b plugin-public-split
    ```
 
-3. **Push to Public Repo**
+4. **Push to Public Repo**
    ```bash
    # IMPORTANT: Public repo uses 'main' branch (not 'master')
    git push plugin-public $(git subtree split --prefix=packages/plugin):main --force
    ```
 
-4. **Optional: Create Release Tag**
+5. **Optional: Create Release Tag**
    ```bash
    # If --tag provided
    git tag plugin-v1.0.0 plugin-public-split
    git push plugin-public plugin-v1.0.0
    ```
 
-5. **Verify Publication**
+6. **Verify Publication**
    ```bash
    gh repo view jrc1883/popkit-plugin --json url
    ```
@@ -657,6 +664,7 @@ This command uses `git subtree split` to extract `packages/plugin/` and push to 
 | `--tag <version>` | Create and push a release tag |
 | `--force` | Force push even with diverged history |
 | `--changelog` | Generate changelog since last publish |
+| `--skip-ip-scan` | Skip IP leak scan (use with caution) |
 
 ### publish (default)
 
@@ -751,10 +759,12 @@ This is automatically set up when running `/popkit:git publish` for the first ti
 
 ### Safety
 
+- **IP leak scan** - Scans for secrets, cloud code, and proprietary content before publish
 - **Never publishes cloud/** or other private packages
 - **Requires clean working tree** in plugin directory
 - **Preserves commit history** from monorepo
 - **Force push is explicit** - won't accidentally overwrite
+- **Blocks on critical/high findings** - Won't publish if IP leaks detected
 
 ### Troubleshooting
 

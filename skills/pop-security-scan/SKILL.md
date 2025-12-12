@@ -1,4 +1,5 @@
 ---
+name: pop-security-scan
 description: Scan for security vulnerabilities and automatically create GitHub issues for tracking
 ---
 

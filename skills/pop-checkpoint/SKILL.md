@@ -1,4 +1,5 @@
 ---
+name: pop-checkpoint
 description: Create and restore checkpoints for long-running sessions with git-based state persistence
 ---
 

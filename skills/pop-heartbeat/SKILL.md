@@ -1,4 +1,5 @@
 ---
+name: pop-heartbeat
 description: Monitor session health with heartbeat tracking, stuck detection, and progress visibility
 ---
 

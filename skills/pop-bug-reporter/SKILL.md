@@ -1,4 +1,5 @@
 ---
+name: pop-bug-reporter
 description: Capture bug context, generate reports, and optionally create GitHub issues or share patterns
 ---
 

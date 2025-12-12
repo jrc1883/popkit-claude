@@ -528,11 +528,16 @@ class PostToolUseHook:
 
         return result
 
-    def check_pending_skill_decisions(self, tool_name: str) -> Dict[str, Any]:
-        """Check for pending completion decisions from active skill (Issue #159).
+    def check_pending_skill_decisions(self, tool_name: str, tool_result: str = "") -> Dict[str, Any]:
+        """Check for pending completion decisions from active skill (Issue #159, #183).
 
         This implements the enforcement side of AskUserQuestion requirements.
         When a skill has pending decisions, we output a reminder to stderr.
+
+        Enhanced in Issue #183 to:
+        - Detect errors in tool output and record them
+        - Check for required decisions that must be presented even on error
+        - Provide more prominent reminders for required decisions
 
         Returns:
             Dict with pending decision info if any
@@ -550,17 +555,84 @@ class PostToolUseHook:
         if not tracker.is_skill_active():
             return {"has_pending": False}
 
+        # Issue #183: Detect errors in tool output and record them
+        error_detected = self._detect_error_in_output(tool_result)
+        if error_detected:
+            tracker.record_error(error_detected)
+
+        # Check for required decisions (must be presented even on error)
+        required = tracker.get_required_decisions()
+        if required:
+            first_required = required[0]
+            return {
+                "has_pending": True,
+                "is_required": True,
+                "has_error": tracker.has_error(),
+                "error_message": tracker.state.last_error if tracker.state else None,
+                "skill_name": tracker.get_active_skill(),
+                "decision": first_required
+            }
+
+        # Check for error recovery decisions
+        if tracker.has_error():
+            recovery = tracker.get_error_recovery_decisions()
+            if recovery:
+                return {
+                    "has_pending": True,
+                    "is_required": True,
+                    "is_error_recovery": True,
+                    "has_error": True,
+                    "error_message": tracker.state.last_error if tracker.state else None,
+                    "skill_name": tracker.get_active_skill(),
+                    "decision": recovery[0]
+                }
+
+        # Standard pending decisions
         pending = tracker.get_pending_completion_decisions()
         if not pending:
             return {"has_pending": False}
 
-        # Return info about first pending decision
         first_pending = pending[0]
         return {
             "has_pending": True,
+            "is_required": False,
             "skill_name": tracker.get_active_skill(),
             "decision": first_pending
         }
+
+    def _detect_error_in_output(self, tool_result: str) -> Optional[str]:
+        """Detect common error patterns in tool output (Issue #183).
+
+        Returns error message if detected, None otherwise.
+        """
+        if not tool_result:
+            return None
+
+        # Common error patterns that indicate early completion
+        error_patterns = [
+            ("already closed", "Issue already closed"),
+            ("already merged", "PR already merged"),
+            ("not found", "Resource not found"),
+            ("does not exist", "Resource does not exist"),
+            ("permission denied", "Permission denied"),
+            ("fatal:", "Git error"),
+            ("error:", "Command error"),
+            ("Error:", "Command error"),
+            ("failed to", "Operation failed"),
+            ("cannot ", "Operation blocked"),
+        ]
+
+        result_lower = tool_result.lower()
+        for pattern, message in error_patterns:
+            if pattern.lower() in result_lower:
+                # Extract more context around the error
+                idx = result_lower.find(pattern.lower())
+                start = max(0, idx - 20)
+                end = min(len(tool_result), idx + len(pattern) + 50)
+                context = tool_result[start:end].strip()
+                return f"{message}: {context}"
+
+        return None
 
     def record_cloud_activity(self, tool_name: str, followup_agents: List[str]):
         """Record tool usage activity in PopKit Cloud for cross-project observability."""
@@ -648,8 +720,9 @@ def main():
         hook = PostToolUseHook()
         result = hook.process_tool_completion(tool_name, tool_args, tool_result, execution_time)
 
-        # Check for pending skill decisions (Issue #159)
-        pending_decision = hook.check_pending_skill_decisions(tool_name)
+        # Check for pending skill decisions (Issue #159, #183)
+        # Pass tool_result to detect errors that should trigger required decisions
+        pending_decision = hook.check_pending_skill_decisions(tool_name, tool_result)
         result["pending_skill_decision"] = pending_decision
 
         # Add stop reason info to result
@@ -690,12 +763,29 @@ def main():
         elif quality_score > 0.8:
             print(f"✨ Quality Score: {quality_score:.1f} - Excellent", file=sys.stderr)
 
-        # Output pending skill decision reminder if applicable (Issue #159)
+        # Output pending skill decision reminder if applicable (Issue #159, #183)
         if pending_decision.get("has_pending"):
             decision = pending_decision.get("decision", {})
             skill_name = pending_decision.get("skill_name", "unknown")
+            is_required = pending_decision.get("is_required", False)
+            has_error = pending_decision.get("has_error", False)
+            error_message = pending_decision.get("error_message")
+
             print(f"", file=sys.stderr)
-            print(f"🤔 User Decision Required ({skill_name})", file=sys.stderr)
+
+            # Issue #183: Show error context if present
+            if has_error and error_message:
+                print(f"⚠️  Error detected during skill execution:", file=sys.stderr)
+                print(f"   {error_message}", file=sys.stderr)
+                print(f"", file=sys.stderr)
+
+            # Issue #183: More prominent header for required decisions
+            if is_required:
+                print(f"🚨 REQUIRED User Decision ({skill_name})", file=sys.stderr)
+                print(f"   This decision MUST be presented before continuing.", file=sys.stderr)
+            else:
+                print(f"🤔 User Decision Required ({skill_name})", file=sys.stderr)
+
             print(f"   {decision.get('question', 'No question specified')}", file=sys.stderr)
             if decision.get("options"):
                 print(f"   Options:", file=sys.stderr)

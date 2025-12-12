@@ -422,11 +422,12 @@
   },
 
   "skill_decisions": {
-    "description": "Required AskUserQuestion decision points per skill (Issue #159)",
+    "description": "Required AskUserQuestion decision points per skill (Issue #159, #183)",
     "notes": {
       "purpose": "Enforce consistent UX by requiring skills to prompt for user decisions",
       "philosophy": "Per Anthropic: 'encode rules as hooks rather than prompting instructions'",
-      "triggers": "Only 'start' and 'completion' triggers are enforced; mid-flow is skill-dependent"
+      "triggers": "Only 'start' and 'completion' triggers are enforced; mid-flow is skill-dependent",
+      "required_flag": "When required=true, decision MUST be presented even on error/early completion (Issue #183)"
     },
     "enforcement": "require",
     "skills": {
@@ -522,6 +523,7 @@
         "completion_decisions": [
           {
             "id": "integration_method",
+            "required": true,
             "question": "How would you like to integrate this work?",
             "header": "Integrate",
             "options": [
@@ -529,6 +531,46 @@
               {"label": "Create PR", "description": "Push and create a pull request"},
               {"label": "Keep as-is", "description": "Leave branch for now"},
               {"label": "Discard", "description": "Delete branch and changes"}
+            ]
+          },
+          {
+            "id": "next_action",
+            "required": true,
+            "question": "What would you like to do next?",
+            "header": "Next",
+            "on_error": true,
+            "options": [
+              {"label": "Continue working", "description": "Show next priority task"},
+              {"label": "Session capture", "description": "Save state and exit"}
+            ]
+          }
+        ]
+      },
+      "pop-research-merge": {
+        "description": "Research branch processing requires user decisions at merge and completion (Issue #183)",
+        "completion_decisions": [
+          {
+            "id": "merge_action",
+            "required": true,
+            "question": "How should we process this research branch?",
+            "header": "Merge",
+            "options": [
+              {"label": "Merge + Issue", "description": "Full processing: merge, organize docs, create GitHub issue"},
+              {"label": "Merge Only", "description": "Just merge the content"},
+              {"label": "Skip", "description": "Process later"},
+              {"label": "Delete", "description": "Discard this research"}
+            ]
+          },
+          {
+            "id": "next_action",
+            "required": true,
+            "on_error": true,
+            "question": "Research processing complete. What's next?",
+            "header": "Next",
+            "options": [
+              {"label": "Continue working", "description": "Show next recommendations"},
+              {"label": "Process more", "description": "Check for additional research branches"},
+              {"label": "Session capture", "description": "Save state and exit"}
             ]
           }
         ]

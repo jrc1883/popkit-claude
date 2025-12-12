@@ -25,6 +25,8 @@ class SkillState:
     skill_name: str
     decisions_made: Set[str] = field(default_factory=set)
     tool_calls: int = 0
+    error_occurred: bool = False
+    last_error: Optional[str] = None
 
 
 class SkillStateTracker:
@@ -137,8 +139,23 @@ class SkillStateTracker:
         if self.state:
             self.state.tool_calls += 1
 
-    def get_pending_completion_decisions(self) -> List[dict]:
-        """Get completion decisions that haven't been made yet."""
+    def record_error(self, error_message: str) -> None:
+        """Record that an error occurred during skill execution (Issue #183)."""
+        if self.state:
+            self.state.error_occurred = True
+            self.state.last_error = error_message
+
+    def has_error(self) -> bool:
+        """Check if an error occurred during skill execution."""
+        return self.state.error_occurred if self.state else False
+
+    def get_pending_completion_decisions(self, include_on_error: bool = False) -> List[dict]:
+        """Get completion decisions that haven't been made yet.
+
+        Args:
+            include_on_error: If True, include on_error decisions even if no error occurred.
+                             If an error HAS occurred, on_error decisions are always included.
+        """
         if not self.state:
             return []
 
@@ -148,13 +165,66 @@ class SkillStateTracker:
         pending = []
         for decision in completion_decisions:
             if decision["id"] not in self.state.decisions_made:
+                # Check if this is an on_error decision
+                is_on_error = decision.get("on_error", False)
+
+                # Include on_error decisions if:
+                # - An error actually occurred, OR
+                # - include_on_error flag is True (caller wants to see all)
+                if is_on_error and not self.state.error_occurred and not include_on_error:
+                    continue
+
                 pending.append(decision)
 
         return pending
 
+    def get_required_decisions(self) -> List[dict]:
+        """Get required completion decisions that haven't been made yet (Issue #183).
+
+        Required decisions MUST be presented even on error/early completion.
+        """
+        if not self.state:
+            return []
+
+        skill_config = self.get_skill_config(self.state.skill_name)
+        completion_decisions = skill_config.get("completion_decisions", [])
+
+        required = []
+        for decision in completion_decisions:
+            if decision["id"] not in self.state.decisions_made:
+                # Check if this decision is required
+                if decision.get("required", False):
+                    required.append(decision)
+
+        return required
+
+    def get_error_recovery_decisions(self) -> List[dict]:
+        """Get decisions specifically for error recovery (Issue #183).
+
+        These are decisions marked with on_error=true that should be shown
+        when skill execution encounters an error.
+        """
+        if not self.state or not self.state.error_occurred:
+            return []
+
+        skill_config = self.get_skill_config(self.state.skill_name)
+        completion_decisions = skill_config.get("completion_decisions", [])
+
+        recovery = []
+        for decision in completion_decisions:
+            if decision["id"] not in self.state.decisions_made:
+                if decision.get("on_error", False):
+                    recovery.append(decision)
+
+        return recovery
+
     def has_pending_decisions(self) -> bool:
         """Check if there are any pending completion decisions."""
         return len(self.get_pending_completion_decisions()) > 0
+
+    def has_required_pending(self) -> bool:
+        """Check if there are required decisions that must be presented (Issue #183)."""
+        return len(self.get_required_decisions()) > 0
 
     def is_skill_active(self) -> bool:
         """Check if a skill is currently being tracked."""
@@ -173,16 +243,28 @@ def get_tracker() -> SkillStateTracker:
 # For testing
 if __name__ == "__main__":
     tracker = get_tracker()
-    print(f"Loaded config: {json.dumps(tracker.config, indent=2)}")
+    print(f"Loaded config skills: {list(tracker.config.get('skills', {}).keys())}")
 
-    # Test skill tracking
+    # Test skill tracking with pop-project-init
+    print("\n=== Test: pop-project-init ===")
     tracker.start_skill("pop-project-init")
     print(f"Active skill: {tracker.get_active_skill()}")
-    print(f"Pending decisions: {tracker.get_pending_completion_decisions()}")
+    print(f"Pending decisions: {len(tracker.get_pending_completion_decisions())}")
 
-    # Simulate decision made
     tracker.record_decision("next_action")
-    print(f"After decision - pending: {tracker.get_pending_completion_decisions()}")
+    print(f"After decision - pending: {len(tracker.get_pending_completion_decisions())}")
+    tracker.end_skill()
+
+    # Test required decisions with pop-research-merge (Issue #183)
+    print("\n=== Test: pop-research-merge (required decisions) ===")
+    tracker.start_skill("pop-research-merge")
+    print(f"Required decisions: {len(tracker.get_required_decisions())}")
+    print(f"Has required pending: {tracker.has_required_pending()}")
+
+    # Simulate error
+    tracker.record_error("Issue already closed")
+    print(f"Has error: {tracker.has_error()}")
+    print(f"Error recovery decisions: {len(tracker.get_error_recovery_decisions())}")
 
     tracker.end_skill()
     print(f"After end - active: {tracker.get_active_skill()}")

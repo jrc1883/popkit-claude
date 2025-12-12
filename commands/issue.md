@@ -109,6 +109,22 @@ print(scorer.format_ranked_list(ranked, max_items=10))
 
 ### Process
 
+Use the `issue_list.py` utility:
+
+```python
+from issue_list import list_issues_with_power_mode_status, format_issues_table
+
+# Fetch and format issues
+data = list_issues_with_power_mode_status(
+    filter_power=False,  # Set True for --power flag
+    label=None,          # Filter by label
+    state="open",        # open/closed/all
+    limit=20
+)
+print(format_issues_table(data))
+```
+
+**Steps performed:**
 1. Fetch issues via `gh issue list --json number,title,body,labels,createdAt,author`
 2. Parse PopKit Guidance from each issue body
 3. Extract complexity, phases, Power Mode recommendation
@@ -474,6 +490,7 @@ gh issue comment 45 --body "..."
 
 | Component | Integration |
 |-----------|-------------|
+| Issue Listing | `hooks/utils/issue_list.py` |
 | Issue Fetching | `gh issue view/list` via GitHub CLI |
 | PopKit Guidance Parser | `hooks/utils/github_issues.py` |
 | Vote Fetching | `hooks/utils/vote_fetcher.py` |

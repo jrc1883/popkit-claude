@@ -58,6 +58,29 @@ class ContextStorage(ABC):
         """Return the name of this backend."""
         pass
 
+    # Activity Ledger (optional - for real-time awareness)
+    def publish_activity(
+        self,
+        skill_name: str,
+        event_type: str,
+        data: Dict[str, Any],
+        workflow_id: Optional[str] = None
+    ) -> Optional[str]:
+        """Publish skill activity to activity ledger."""
+        return None  # Default: no-op for backends that don't support it
+
+    def get_recent_activity(
+        self,
+        count: int = 20,
+        skill_filter: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Get recent activity from ledger."""
+        return []  # Default: empty for backends that don't support it
+
+    def get_active_skills(self) -> List[str]:
+        """Get list of currently active skills."""
+        return []  # Default: empty
+
 
 # =============================================================================
 # File-Based Storage (Free Mode)
@@ -133,6 +156,85 @@ class FileContextStorage(ContextStorage):
     def get_backend_name(self) -> str:
         return "file"
 
+    # File-based activity tracking (limited but works without infrastructure)
+    def _get_activity_file(self) -> Path:
+        """Get activity log file path."""
+        return self.base_dir / "activity.jsonl"
+
+    def publish_activity(
+        self,
+        skill_name: str,
+        event_type: str,
+        data: Dict[str, Any],
+        workflow_id: Optional[str] = None
+    ) -> Optional[str]:
+        """Append activity to JSONL file."""
+        activity_file = self._get_activity_file()
+        entry_id = f"{int(datetime.now().timestamp() * 1000)}-0"
+
+        entry = {
+            "id": entry_id,
+            "skill": skill_name,
+            "event": event_type,
+            "workflow": workflow_id or "none",
+            "timestamp": datetime.now().isoformat(),
+            "data": data
+        }
+
+        try:
+            with open(activity_file, 'a') as f:
+                f.write(json.dumps(entry, default=str) + "\n")
+            return entry_id
+        except IOError:
+            return None
+
+    def get_recent_activity(
+        self,
+        count: int = 20,
+        skill_filter: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Read recent activity from JSONL file."""
+        activity_file = self._get_activity_file()
+
+        if not activity_file.exists():
+            return []
+
+        try:
+            with open(activity_file, 'r') as f:
+                lines = f.readlines()
+
+            # Get last N lines (newest)
+            activities = []
+            for line in reversed(lines[-100:]):  # Cap at 100 for performance
+                try:
+                    entry = json.loads(line.strip())
+                    if skill_filter and entry.get("skill") != skill_filter:
+                        continue
+                    activities.append(entry)
+                    if len(activities) >= count:
+                        break
+                except json.JSONDecodeError:
+                    continue
+
+            return activities
+        except IOError:
+            return []
+
+    def get_active_skills(self) -> List[str]:
+        """Get active skills from activity file."""
+        activities = self.get_recent_activity(count=50)
+
+        skill_states: Dict[str, str] = {}
+        for activity in reversed(activities):
+            skill = activity.get("skill", "unknown")
+            event = activity.get("event", "unknown")
+            skill_states[skill] = event
+
+        return [
+            skill for skill, event in skill_states.items()
+            if event in ("start", "progress")
+        ]
+
 
 # =============================================================================
 # Upstash Redis Storage (Power Mode / Premium)
@@ -143,9 +245,14 @@ class UpstashContextStorage(ContextStorage):
 
     Uses Upstash REST API - no local Redis required.
     Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
+
+    Implements:
+    - Hash storage for workflow state (fast key-value)
+    - Redis Streams for activity ledger (real-time log of skill executions)
     """
 
     KEY_PREFIX = "popkit:workflow:"
+    STREAM_KEY = "popkit:activity"  # Central activity ledger
     TTL_SECONDS = 86400 * 7  # 7 days
 
     def __init__(self, url: Optional[str] = None, token: Optional[str] = None):
@@ -234,6 +341,139 @@ class UpstashContextStorage(ContextStorage):
 
     def get_backend_name(self) -> str:
         return "upstash"
+
+    # =========================================================================
+    # Redis Streams - Activity Ledger (Issue #188, #189)
+    # =========================================================================
+
+    def publish_activity(
+        self,
+        skill_name: str,
+        event_type: str,
+        data: Dict[str, Any],
+        workflow_id: Optional[str] = None
+    ) -> Optional[str]:
+        """Publish skill activity to the central activity stream.
+
+        Uses XADD to append to the activity ledger. All skills write here,
+        creating a unified view of what's happening across the system.
+
+        Args:
+            skill_name: Name of the skill publishing
+            event_type: "start", "progress", "complete", "error"
+            data: Event-specific data
+            workflow_id: Optional workflow context
+
+        Returns:
+            Stream entry ID if successful, None otherwise
+        """
+        entry = {
+            "skill": skill_name,
+            "event": event_type,
+            "workflow": workflow_id or "none",
+            "timestamp": datetime.now().isoformat(),
+            "data": json.dumps(data, default=str)
+        }
+
+        # XADD with auto-generated ID (*)
+        result = self._redis_command([
+            "XADD", self.STREAM_KEY, "*",
+            "skill", entry["skill"],
+            "event", entry["event"],
+            "workflow", entry["workflow"],
+            "timestamp", entry["timestamp"],
+            "data", entry["data"]
+        ])
+
+        return result if isinstance(result, str) else None
+
+    def get_recent_activity(
+        self,
+        count: int = 20,
+        skill_filter: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Get recent activity from the stream.
+
+        Uses XREVRANGE to get latest entries (newest first).
+
+        Args:
+            count: Number of entries to retrieve
+            skill_filter: Optional skill name to filter by
+
+        Returns:
+            List of activity entries
+        """
+        # XREVRANGE stream + - COUNT n (newest first)
+        result = self._redis_command([
+            "XREVRANGE", self.STREAM_KEY, "+", "-", "COUNT", str(count)
+        ])
+
+        if not result or not isinstance(result, list):
+            return []
+
+        activities = []
+        for entry in result:
+            if not isinstance(entry, list) or len(entry) < 2:
+                continue
+
+            entry_id = entry[0]
+            fields = entry[1]
+
+            # Convert flat list to dict
+            activity = {"id": entry_id}
+            for i in range(0, len(fields), 2):
+                key = fields[i]
+                value = fields[i + 1]
+                if key == "data":
+                    try:
+                        activity[key] = json.loads(value)
+                    except json.JSONDecodeError:
+                        activity[key] = value
+                else:
+                    activity[key] = value
+
+            # Apply filter if specified
+            if skill_filter and activity.get("skill") != skill_filter:
+                continue
+
+            activities.append(activity)
+
+        return activities
+
+    def get_active_skills(self) -> List[str]:
+        """Get list of skills that have been active recently.
+
+        Returns skills with "start" but no "complete"/"error" in recent activity.
+        """
+        activities = self.get_recent_activity(count=50)
+
+        # Track skill states
+        skill_states: Dict[str, str] = {}  # skill -> latest event
+
+        # Process oldest to newest (reverse since we got newest first)
+        for activity in reversed(activities):
+            skill = activity.get("skill", "unknown")
+            event = activity.get("event", "unknown")
+            skill_states[skill] = event
+
+        # Return skills still in "start" or "progress" state
+        return [
+            skill for skill, event in skill_states.items()
+            if event in ("start", "progress")
+        ]
+
+    def trim_activity_stream(self, max_entries: int = 1000) -> int:
+        """Trim the activity stream to prevent unbounded growth.
+
+        Uses XTRIM with MAXLEN.
+
+        Returns:
+            Number of entries removed
+        """
+        result = self._redis_command([
+            "XTRIM", self.STREAM_KEY, "MAXLEN", "~", str(max_entries)
+        ])
+        return result if isinstance(result, int) else 0
 
 
 # =============================================================================

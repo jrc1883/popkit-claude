@@ -180,7 +180,7 @@ def main():
         commands = get_commands(commands_dir)
         commands_table = generate_commands_table(commands)
         if update_readme(readme_path, 'COMMANDS', commands_table, dry_run):
-            print(f"  ✓ Updated COMMANDS ({len(commands)} commands)")
+            print(f"  [OK] Updated COMMANDS ({len(commands)} commands)")
 
     # Generate agents section
     if agents_dir.exists():
@@ -188,7 +188,7 @@ def main():
         agents_content = generate_agents_section(tiers)
         total_agents = sum(len(agents) for agents in tiers.values())
         if update_readme(readme_path, 'AGENTS', agents_content, dry_run):
-            print(f"  ✓ Updated AGENTS ({total_agents} agents)")
+            print(f"  [OK] Updated AGENTS ({total_agents} agents)")
 
     print("Done!")
 

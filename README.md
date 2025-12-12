@@ -295,6 +295,40 @@ Parallel agent orchestration.
 | `/popkit:privacy` | Privacy controls | `status`, `consent`, `export` |
 | `/popkit:worktree` | Git worktrees | `create`, `list`, `remove` |
 
+<details>
+<summary><strong>All Commands (Auto-Generated)</strong></summary>
+
+<!-- AUTO-GEN:COMMANDS START -->
+| Command | Description |
+|---------|-------------|
+| `/popkit:account` | status | keys | billing | logout - Manage your PopKit account |
+| `/popkit:assess` | anthropic | security | performance | ux | architect | docs | all [--fix, --json] |
+| `/popkit:audit` | quarterly | yearly | stale | duplicates | health [--verbose, --fix] |
+| `/popkit:bug` | report | search | share [--issue, --share] |
+| `/popkit:dashboard` | [add|remove|refresh|switch|discover] - Multi-project management |
+| `/popkit:debug` | code | routing [--trace, --verbose] |
+| `/popkit:deploy` | init | setup | validate | execute | rollback [--target, --all, --dry-run] |
+| `/popkit:dev` | full | work #N | brainstorm | plan | execute | quick | prd | suite [-T, --power] |
+| `/popkit:git` | commit | push | pr | review | ci | release | publish | prune | finish [--draft,  |
+| `/popkit:issue` | create | list | view | close | comment | edit | link [--state, --label] |
+| `/popkit:knowledge` | list | add | remove | sync | search <query> |
+| `/popkit:milestone` | list | create | close | report | health [--json, --verbose] |
+| `/popkit:next` | [quick|verbose] - Analyze project state and recommend next actions |
+| `/popkit:plugin` | test | docs | sync | detect | version [--verbose, --json] |
+| `/popkit:power` | start | stop | status | init | metrics | widgets | consensus [--consensus, --age |
+| `/popkit:privacy` | status | consent | export | delete | level [strict|moderate|minimal] |
+| `/popkit:project` | init | analyze | board | embed | generate | mcp | setup | skills | observe [--po |
+| `/popkit:research` | list | search | add | tag | show | delete [--type, --project] |
+| `/popkit:routine` | morning | nightly [run|quick|generate|list|set|edit|delete] |
+| `/popkit:security` | scan | list | fix | report [--dry-run, --severity, --fix] |
+| `/popkit:stats` | Display PopKit efficiency metrics showing token savings, collaboration stats, an |
+| `/popkit:upgrade` | upgrade | pro | team [--open] - Upgrade to PopKit Premium |
+| `/popkit:workflow-viz` | [workflow-name] [--validate, --metrics, --ascii] |
+| `/popkit:worktree` | create <branch> | list | analyze | remove [--force] |
+<!-- AUTO-GEN:COMMANDS END -->
+
+</details>
+
 ---
 
 ## Agents
@@ -331,6 +365,59 @@ Activated when specific patterns are detected:
 | **rapid-prototyper** | Quick prototypes |
 | **researcher** | Technical research |
 | **meta-agent** | Agent creation |
+
+<details>
+<summary><strong>All Agents (Auto-Generated)</strong></summary>
+
+<!-- AUTO-GEN:AGENTS START -->
+### Tier 1: Always Active (11 agents)
+
+| Agent | Purpose |
+|-------|---------|
+| **accessibility-guardian** | Ensures web applications meet WCAG 2.1 AA/AAA compliance. Us |
+| **api-designer** | Expert in RESTful and GraphQL API design patterns. Use when  |
+| **bug-whisperer** | Expert debugging specialist for complex issues. Use when fac |
+| **code-reviewer** | Performs comprehensive code reviews focusing on TypeScript,  |
+| **documentation-maintainer** | Keeps documentation synchronized with codebase changes. Use  |
+| **migration-specialist** | Expert in planning and executing complex system migrations i |
+| **performance-optimizer** | Elite performance engineering specialist that analyzes, diag |
+| **query-optimizer** | Specializes in analyzing and optimizing database queries for |
+| **refactoring-expert** | Code restructuring specialist focused on improving quality,  |
+| **security-auditor** | Comprehensive security specialist for vulnerability assessme |
+| **test-writer-fixer** | Comprehensive testing specialist for writing, fixing, and op |
+
+### Tier 2: On-Demand (17 agents)
+
+| Agent | Purpose |
+|-------|---------|
+| **ai-engineer** | Specialized in ML/AI integration, model development, and int |
+| **backup-coordinator** | Designs and manages comprehensive backup strategies across d |
+| **bundle-analyzer** | Analyzes and optimizes JavaScript bundle sizes for web appli |
+| **data-integrity** | Validates data consistency, detects anomalies, and performs  |
+| **dead-code-eliminator** | Intelligent dead code detection and elimination using advanc |
+| **deployment-validator** | Ensures safe, reliable deployments through comprehensive val |
+| **devops-automator** | Use when setting up CI/CD pipelines, configuring cloud infra |
+| **feature-prioritizer** | Strategic backlog management and feature prioritization spec |
+| **feedback-synthesizer** | Analyzes user feedback, complaints, and support tickets to e |
+| **log-analyzer** | Parses and analyzes application logs across distributed syst |
+| **meta-agent** | Generates new, complete Claude Code agent configuration file |
+| **metrics-collector** | Specializes in telemetry gathering, metrics aggregation, and |
+| **power-coordinator** | Orchestrates multi-agent collaboration in Power Mode. Use wh |
+| **rapid-prototyper** | Fast MVP development specialist for quick proof-of-concept i |
+| **researcher** | Meta-researcher that analyzes codebases to identify benefici |
+| **rollback-specialist** | Expert in rapid recovery procedures and safe rollback operat |
+| **user-story-writer** | Expert requirements documentation and user story creation sp |
+
+### Feature Workflow (2 agents)
+
+| Agent | Purpose |
+|-------|---------|
+| **code-architect** | Designs feature architectures and implementation blueprints  |
+| **code-explorer** | Deeply analyzes existing codebase features by tracing execut |
+
+<!-- AUTO-GEN:AGENTS END -->
+
+</details>
 
 ---
 

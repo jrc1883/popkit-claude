@@ -351,6 +351,39 @@ def format_efficiency_indicator(metrics: Optional[Dict[str, Any]]) -> str:
     return f"~{format_tokens_saved(tokens_saved)} saved"
 
 
+def format_active_skills_indicator() -> str:
+    """Format active skills indicator for status line (Issue #188).
+
+    Queries the activity ledger to show what skills are currently running.
+
+    Returns:
+        Active skills indicator string or empty if none active
+    """
+    try:
+        # Import lazily to avoid circular imports
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent.parent / "hooks" / "utils"))
+        from context_storage import get_context_storage
+
+        storage = get_context_storage()
+        active = storage.get_active_skills()
+
+        if not active:
+            return ""
+
+        # Format: skill (or skill+N if multiple)
+        if len(active) == 1:
+            skill_display = active[0].replace("pop-", "")[:12]
+        else:
+            skill_display = f"{active[0].replace('pop-', '')[:8]}+{len(active)-1}"
+
+        return f"{Colors.MAGENTA}[{skill_display}]{Colors.RESET}"
+
+    except Exception:
+        # Don't break status line if activity check fails
+        return ""
+
+
 def format_streaming_indicator(state: Dict[str, Any]) -> str:
     """Format streaming indicator for status line.
 
@@ -794,6 +827,11 @@ def format_status_line(state: Dict[str, Any]) -> str:
     streaming_indicator = format_streaming_indicator(state)
     if streaming_indicator:
         components.append(streaming_indicator)
+
+    # Active skills indicator (Issue #188)
+    skills_indicator = format_active_skills_indicator()
+    if skills_indicator:
+        components.append(skills_indicator)
 
     # Issue number (if present)
     issue_num = state.get("active_issue")

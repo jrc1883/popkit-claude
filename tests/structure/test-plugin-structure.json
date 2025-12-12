@@ -44,8 +44,8 @@
       "name": "all skills have SKILL.md",
       "type": "directory_pattern",
       "path": "skills/*/SKILL.md",
-      "min_count": 40,
-      "expected_count": 41
+      "min_count": 60,
+      "expected_count": 62
     },
     {
       "name": "all tier-1 agents have definitions",
@@ -80,15 +80,15 @@
       "name": "all hook utils are Python files",
       "type": "directory_pattern",
       "path": "hooks/utils/*.py",
-      "min_count": 24,
-      "expected_count": 24
+      "min_count": 50,
+      "expected_count": 52
     },
     {
       "name": "all commands have definitions",
       "type": "directory_pattern",
       "path": "commands/*.md",
-      "min_count": 16,
-      "expected_count": 16
+      "min_count": 22,
+      "expected_count": 24
     },
     {
       "name": "all output styles have definitions",
@@ -121,16 +121,16 @@
       "feature-workflow": 3,
       "total": 31
     },
-    "skills": 41,
-    "commands": 16,
+    "skills": 62,
+    "commands": 24,
     "hooks": 23,
-    "hook_utils": 24,
+    "hook_utils": 52,
     "output_styles": 15
   },
   "metadata": {
     "created": "2025-12-09",
-    "updated": "2025-12-09",
-    "issue": "#105",
+    "updated": "2025-12-12",
+    "issue": "#105, #204",
     "author": "popkit"
   }
 }

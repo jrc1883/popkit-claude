@@ -697,13 +697,17 @@ class TriggerPublisher:
     def __init__(self, redis_client=None):
         self.redis = redis_client
 
-    def connect(self, host: str = "localhost", port: int = 16379):
-        """Connect to Redis (Upstash or local).
+    def connect(self):
+        """Connect to Upstash Redis.
 
-        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        Issue #191: Uses Upstash cloud only (no local Redis).
         """
         if REDIS_AVAILABLE:
-            self.redis = get_redis_client(local_host=host, local_port=port)
+            try:
+                self.redis = get_redis_client()
+            except ValueError:
+                # Upstash not configured
+                pass
 
     def publish_trigger(self, context: TriggerContext):
         """Publish a trigger to Redis."""

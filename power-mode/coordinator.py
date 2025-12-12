@@ -576,20 +576,17 @@ class PowerModeCoordinator:
             return False
 
         try:
-            # Issue #191: Use unified adapter for Upstash/Local
-            redis_config = CONFIG.get("redis", {})
-            self.redis = get_redis_client(
-                local_host=redis_config.get("host", "localhost"),
-                local_port=redis_config.get("port", 6379)
-            )
+            # Issue #191: Use Upstash adapter (no local Redis)
+            self.redis = get_redis_client()
             self.redis.ping()
             self.pubsub = self.redis.pubsub()
             return True
         except ValueError as e:
-            print(f"Failed to connect to Redis: {e}", file=sys.stderr)
+            # Upstash not configured - fall back to file mode
+            print(f"Upstash not configured: {e}", file=sys.stderr)
             return False
         except Exception as e:
-            print(f"Failed to connect to Redis: {e}", file=sys.stderr)
+            print(f"Failed to connect to Upstash: {e}", file=sys.stderr)
             return False
 
     def start(self):

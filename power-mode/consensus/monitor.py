@@ -370,26 +370,23 @@ class ConsensusMonitor:
         # Callbacks
         self.on_detection: Optional[callable] = None
 
-    def connect(self, host: str = "localhost", port: int = 16379) -> bool:
-        """Connect to Redis (Upstash or local).
+    def connect(self) -> bool:
+        """Connect to Upstash Redis.
 
-        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        Issue #191: Uses Upstash cloud only (no local Redis).
         """
         if not REDIS_AVAILABLE:
-            print("Redis not available", file=sys.stderr)
+            print("Redis adapter not available", file=sys.stderr)
             return False
 
         try:
-            self.redis = get_redis_client(
-                local_host=host,
-                local_port=port
-            )
+            self.redis = get_redis_client()
             self.redis.ping()
             self.pubsub = self.redis.pubsub()
             self.trigger_publisher.redis = self.redis
             return True
         except Exception as e:
-            print(f"Redis connection failed: {e}", file=sys.stderr)
+            print(f"Upstash connection failed: {e}", file=sys.stderr)
             return False
 
     def start(self):

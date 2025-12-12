@@ -2,177 +2,65 @@
 
 Multi-agent orchestration for parallel agent collaboration via pub/sub messaging.
 
-## Setup Options
+## Architecture (Issue #191)
 
-Power Mode supports three Redis backends (auto-detected in priority order):
+Power Mode uses a **zero-dependency** architecture:
 
-| Mode | Setup | Best For |
-|------|-------|----------|
-| **Upstash** | Set env vars | Premium users (no Docker needed) |
-| **Local Redis** | Docker | Local development |
-| **File-based** | None | Fallback (limited to 2-3 agents) |
+| Tier | Backend | Setup | Max Agents |
+|------|---------|-------|------------|
+| **Pro** | Upstash Cloud | Set env vars | 6+ parallel |
+| **Free** | File-based | None | 2-3 sequential |
 
-### Option 1: Upstash Cloud Redis (Recommended for Premium)
+**No Docker or local Redis required.**
 
-No Docker required! Set environment variables:
+## Setup for Pro Users
+
+Set environment variables to enable Upstash cloud Redis:
 
 ```bash
 export UPSTASH_REDIS_REST_URL="https://your-instance.upstash.io"
 export UPSTASH_REDIS_REST_TOKEN="your-token"
 ```
 
-Get credentials at [upstash.com](https://upstash.com) (free tier available).
+Get free credentials at [upstash.com](https://upstash.com).
 
-### Option 2: Local Docker Redis (Development)
+### Verify Setup
 
 ```bash
-# Check status
-python setup-redis.py status
+# Check Upstash status
+python upstash_adapter.py --status
 
-# Start Redis
-python setup-redis.py start
+# Test connection
+python upstash_adapter.py --ping
 
-# Verify it's working
-python setup-redis.py test
+# Run full test suite
+python upstash_adapter.py --test
 ```
 
-Or use the PopKit command:
+## Free Tier (File-Based)
 
-```
-/popkit:power init
-```
+Free tier users don't need any setup. Power Mode automatically uses file-based coordination when Upstash isn't configured.
 
-### Option 3: File-Based (Automatic Fallback)
-
-If no Redis is available, Power Mode falls back to file-based coordination.
-Limited to 2-3 sequential agents but works without any setup.
+Limitations:
+- 2-3 agents maximum (sequential)
+- No cross-session persistence
+- Local-only coordination
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `upstash_adapter.py` | Unified Redis adapter (Upstash + local) |
+| `upstash_adapter.py` | Upstash REST API client |
 | `mode_selector.py` | Auto-detects best available mode |
 | `coordinator.py` | Mesh brain for agent orchestration |
 | `protocol.py` | Message types and serialization |
 | `checkin-hook.py` | PostToolUse hook for periodic check-ins |
+| `file_fallback.py` | File-based coordination (free tier) |
 | `config.json` | Power Mode configuration |
-| `docker-compose.yml` | Local Redis container (optional) |
-| `setup-redis.py` | Local Redis setup script (optional) |
-
-## Prerequisites
-
-**For Upstash Mode:**
-- Python 3.8+
-- Upstash account with Redis database
-
-**For Local Redis Mode:**
-1. **Docker** - Install from https://docs.docker.com/get-docker/
-   - macOS: Docker Desktop
-   - Windows: Docker Desktop
-   - Linux: Docker Engine
-
-2. **Python 3.8+** - Already required for PopKit hooks
-
-3. **redis-py** - Python Redis client (optional, for local Redis)
-   ```bash
-   pip install redis
-   ```
-
-## Setup Script Commands
-
-### Status Check
-```bash
-python setup-redis.py status
-```
-
-Shows:
-- Docker availability
-- Redis container status
-- Redis accessibility
-- Overall readiness for Power Mode
-
-### Start Redis
-```bash
-python setup-redis.py start
-```
-
-1. Checks Docker is running
-2. Starts Redis container (pulls image if needed)
-3. Waits for health check
-4. Verifies connectivity
-
-### Stop Redis
-```bash
-python setup-redis.py stop
-```
-
-Gracefully stops and removes the container (data persists in volume).
-
-### Restart Redis
-```bash
-python setup-redis.py restart
-```
-
-Stops and starts Redis (useful for config changes).
-
-### Debug Mode
-```bash
-python setup-redis.py debug
-```
-
-Starts Redis Commander at http://localhost:8081 for visual inspection of:
-- Active channels and subscriptions
-- Agent states
-- Message queues
-- Insight pool
-- Learned patterns
-
-### Test Connectivity
-```bash
-python setup-redis.py test
-```
-
-Verifies:
-- Basic connectivity
-- Pub/sub functionality
-- All Power Mode channels work
-
-## Docker Compose Configuration
-
-### Services
-
-**redis** (always running):
-- Image: `redis:7-alpine`
-- Port: 6379
-- Volume: `redis_data` (persistent)
-- Memory: 256MB max
-- Eviction: LRU (least recently used)
-
-**redis-commander** (debug only):
-- Image: `rediscommander/redis-commander`
-- Port: 8081
-- Only starts with `--profile debug`
-
-### Starting Without Script
-
-```bash
-# Start Redis only
-docker compose up -d
-
-# Start with Redis Commander
-docker compose --profile debug up -d
-
-# Stop all
-docker compose down
-
-# View logs
-docker compose logs -f redis
-```
 
 ## Redis Channels
 
-Power Mode uses 6 pub/sub channels:
+Power Mode uses 6 pub/sub channels (via Redis Streams for Upstash):
 
 | Channel | Publisher | Subscribers | Purpose |
 |---------|-----------|-------------|---------|
@@ -183,63 +71,7 @@ Power Mode uses 6 pub/sub channels:
 | `pop:coordinator` | External | Coordinator | Control commands |
 | `pop:human` | Agents | Coordinator | Human approval requests |
 
-## Configuration
-
-From `config.json`:
-
-```json
-{
-  "redis": {
-    "host": "localhost",
-    "port": 6379,
-    "db": 0,
-    "password": null,
-    "socket_timeout": 5,
-    "retry_on_timeout": true,
-    "health_check_interval": 30
-  },
-  "channels": {
-    "prefix": "pop",
-    "broadcast": "pop:broadcast",
-    "heartbeat": "pop:heartbeat",
-    "results": "pop:results",
-    "insights": "pop:insights",
-    "coordinator": "pop:coordinator",
-    "human": "pop:human"
-  }
-}
-```
-
-## Integration Points
-
-### 1. Power Mode Command (`/popkit:power-mode`)
-Auto-checks Redis status and offers to start if not running.
-
-### 2. Morning Health Check (`/popkit:morning`)
-Includes Redis status in daily report:
-```
-Services:
-  Redis: ✓ Running (localhost:6379)
-  Power Mode: ✓ Ready
-```
-
-### 3. Coordinator (`coordinator.py`)
-Connects to Redis on startup:
-```python
-coordinator = PowerModeCoordinator(objective)
-if coordinator.connect():
-    coordinator.start()
-```
-
-### 4. Check-In Hook (`checkin-hook.py`)
-Agents publish to channels every N tool calls.
-
-### 5. Agent Output
-Agents subscribe to their channel (`pop:agent:{agent_id}`) for messages.
-
 ## Data Stored in Redis
-
-### Keys
 
 | Key Pattern | Type | TTL | Purpose |
 |-------------|------|-----|---------|
@@ -250,230 +82,57 @@ Agents subscribe to their channel (`pop:agent:{agent_id}`) for messages.
 | `pop:coordinator:status` | String | Live | Coordinator health |
 | `pop:patterns:{pattern_id}` | Hash | 24h | Learned patterns |
 
-### Values
+## Integration Points
 
-All values are JSON-encoded for consistency.
+### Power Mode Command
 
-## Monitoring
-
-### Check Active Agents
-```bash
-docker exec -it popkit-redis redis-cli
-> KEYS pop:state:*
-> HGETALL pop:state:abc123
+```
+/popkit:power status   # Check mode and connection
+/popkit:power start    # Start coordinator
+/popkit:power stop     # Stop coordinator
 ```
 
-### Monitor Pub/Sub
-```bash
-docker exec -it popkit-redis redis-cli
-> PSUBSCRIBE pop:*
+### Coordinator
+
+```python
+from coordinator import PowerModeCoordinator
+
+coordinator = PowerModeCoordinator(objective)
+if coordinator.connect():  # Auto-detects Upstash or file-based
+    coordinator.start()
 ```
 
-### View Insights
-```bash
-docker exec -it popkit-redis redis-cli
-> LRANGE pop:insights 0 -1
-```
+### Check-In Hook
+
+Agents publish to channels every N tool calls via `checkin-hook.py`.
 
 ## Troubleshooting
 
-### Container Won't Start
+### Upstash Not Configured
 
-**Check Docker:**
-```bash
-docker ps
-docker info
+```
+Upstash credentials required for Power Mode Redis features.
+Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables.
 ```
 
-**Check logs:**
-```bash
-docker logs popkit-redis
+**Solution:** Get credentials from [upstash.com](https://upstash.com) or use free tier (file-based mode).
+
+### Connection Failed
+
+```
+Upstash connection failed. Check your credentials.
 ```
 
-**Remove and retry:**
-```bash
-docker rm -f popkit-redis
-docker volume rm popkit_redis_data
-python setup-redis.py start
-```
+**Solution:** Verify your Upstash credentials are correct and the database is active.
 
-### Connection Refused
+### File-Based Mode Active
 
-**Check port binding:**
-```bash
-docker port popkit-redis
-# Should show: 6379/tcp -> 0.0.0.0:6379
-```
-
-**Check firewall:**
-- macOS: System Preferences > Security > Firewall
-- Windows: Windows Defender Firewall
-- Linux: `sudo ufw status`
-
-**Test from host:**
-```bash
-# Via Docker (recommended - no local redis-cli needed)
-docker exec popkit-redis redis-cli ping
-# Should return: PONG
-
-# Or via Python
-python -c "import redis; print(redis.Redis(port=16379).ping())"
-# Should return: True
-```
-
-### Port Already in Use
-
-**Find process using port 6379:**
-```bash
-# macOS/Linux
-lsof -i :6379
-
-# Windows
-netstat -ano | findstr :6379
-```
-
-**Options:**
-1. Stop the conflicting service
-2. Change PopKit's port in `config.json`
-
-### Memory Issues
-
-**Check memory usage:**
-```bash
-docker stats popkit-redis
-```
-
-**Increase limit in `docker-compose.yml`:**
-```yaml
-command: redis-server --maxmemory 512mb
-```
-
-**Clear old data:**
-```bash
-docker exec -it popkit-redis redis-cli
-> FLUSHDB
-```
-
-### Permission Errors (Linux)
-
-**Add user to docker group:**
-```bash
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-### Python Module Not Found
-
-**Install redis-py:**
-```bash
-pip install redis
-```
-
-**Or install all requirements:**
-```bash
-cd power-mode/
-pip install -r requirements.txt
-```
-
-## Performance Notes
-
-### For Development
-
-Current settings are optimized for local development:
-- 256MB memory (sufficient for ~5-10 agents)
-- LRU eviction (keeps recent data)
-- Persistence enabled (survives restarts)
-- No password (localhost only)
-
-### For Production
-
-Would need:
-- Managed Redis service (AWS ElastiCache, Redis Cloud)
-- Authentication and TLS
-- Higher memory (1GB+)
-- Replication for HA
-- Network security groups
-
-## Cleanup
-
-### Stop and Remove Everything
-```bash
-docker compose down -v
-```
-
-This removes:
-- Redis container
-- Redis Commander container
-- Network
-- **Volume** (all data lost)
-
-### Keep Data, Remove Containers
-```bash
-docker compose down
-```
-
-Data persists in volume and will be restored on next start.
-
-### Remove Only Containers
-```bash
-docker rm -f popkit-redis popkit-redis-commander
-```
-
-Network and volume remain.
-
-## Advanced Usage
-
-### Custom Configuration
-
-Edit `docker-compose.yml`:
-
-```yaml
-services:
-  redis:
-    command: |
-      redis-server
-      --appendonly yes
-      --maxmemory 512mb
-      --maxmemory-policy allkeys-lru
-      --save 900 1
-      --loglevel warning
-```
-
-### Persistent Sessions
-
-By default, sessions are ephemeral (cleared on restart). To persist:
-
-```python
-# In coordinator.py
-CONFIG["intervals"]["insight_ttl_seconds"] = 86400  # 24 hours
-```
-
-### Multiple Instances
-
-To run multiple PopKit instances:
-
-```yaml
-# In docker-compose.yml
-ports:
-  - "6380:6379"  # Different host port
-
-# In config.json
-"redis": {
-  "port": 6380
-}
-```
+If you see "File-based mode" when expecting Upstash, check:
+1. Environment variables are set correctly
+2. Upstash database is active
+3. Run `python upstash_adapter.py --status` to diagnose
 
 ## Resources
 
-- Redis Documentation: https://redis.io/docs/
-- Redis Pub/Sub Guide: https://redis.io/docs/manual/pubsub/
-- Docker Compose Reference: https://docs.docker.com/compose/
-- redis-py Documentation: https://redis-py.readthedocs.io/
-
-## Support
-
-For issues with:
-- **PopKit setup**: Check `/popkit:power-init` command
-- **Docker issues**: Check Docker Desktop logs
-- **Redis issues**: Check `docker logs popkit-redis`
-- **Power Mode**: Check coordinator logs via `/popkit:power-mode status`
+- Upstash Documentation: https://upstash.com/docs
+- PopKit Power Mode Guide: `/popkit:power help`

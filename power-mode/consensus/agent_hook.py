@@ -144,18 +144,15 @@ class ConsensusClient:
         self.redis: Optional[BaseRedisClient] = None
 
     def connect(self) -> bool:
-        """Connect to Redis (Upstash or local).
+        """Connect to Upstash Redis.
 
-        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        Issue #191: Uses Upstash cloud only (no local Redis).
         """
         if not REDIS_AVAILABLE:
             return False
 
         try:
-            self.redis = get_redis_client(
-                local_host=self.host,
-                local_port=self.port
-            )
+            self.redis = get_redis_client()
             self.redis.ping()
             return True
         except Exception:

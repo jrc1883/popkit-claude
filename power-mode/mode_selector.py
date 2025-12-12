@@ -4,10 +4,12 @@ Power Mode Selector
 
 Auto-selects the best Power Mode based on environment:
 1. Native Async (Claude Code 2.0.64+) - Zero config, uses background agents
-2. Redis Mode - Full power, requires Docker/Redis setup
-3. File Mode - Fallback, works everywhere but limited
+2. Upstash Mode - Cloud Redis for Pro users (no Docker required)
+3. File Mode - Fallback for free tier, works everywhere but limited
 
-Priority order can be configured in config.json.
+Issue #191: Simplified architecture - removed local Docker Redis option.
+- Pro users: Upstash cloud (zero local setup)
+- Free users: File-based (zero dependencies)
 """
 
 import os
@@ -23,9 +25,8 @@ from enum import Enum
 class PowerMode(Enum):
     """Available Power Mode implementations."""
     NATIVE = "native"      # Claude Code native async (2.0.64+)
-    UPSTASH = "upstash"    # Upstash cloud Redis (no Docker, Issue #191)
-    REDIS = "redis"        # Local Redis pub/sub (Docker required)
-    FILE = "file"          # File-based coordination (fallback)
+    UPSTASH = "upstash"    # Upstash cloud Redis (Pro tier, no Docker)
+    FILE = "file"          # File-based coordination (free tier fallback)
     DISABLED = "disabled"  # Power Mode not available
 
 
@@ -33,11 +34,9 @@ class ModeSelector:
     """
     Selects the best available Power Mode based on environment.
 
-    Checks:
-    1. Claude Code version (for native async support)
-    2. Premium tier status (for agent limits)
-    3. Redis availability (for Redis mode)
-    4. Configuration preferences
+    Priority order: native -> upstash -> file
+
+    Issue #191: Simplified to remove local Docker Redis dependency.
     """
 
     # Minimum Claude Code version for native async
@@ -61,10 +60,12 @@ class ModeSelector:
 
         Returns:
             Tuple of (PowerMode, reason_string)
+
+        Issue #191: Simplified priority - native -> upstash -> file
+        (removed local Docker Redis option)
         """
         # Check configured priority order
-        # Issue #191: Added upstash to priority (between native and redis)
-        priority = self.config.get("mode_priority", ["native", "upstash", "redis", "file"])
+        priority = self.config.get("mode_priority", ["native", "upstash", "file"])
 
         for mode_name in priority:
             if mode_name == "native":
@@ -77,14 +78,9 @@ class ModeSelector:
                 if available:
                     return PowerMode.UPSTASH, reason
 
-            elif mode_name == "redis":
-                available, reason = self._check_redis_available()
-                if available:
-                    return PowerMode.REDIS, reason
-
             elif mode_name == "file":
-                # File mode is always available
-                return PowerMode.FILE, "File-based mode (always available)"
+                # File mode is always available (free tier)
+                return PowerMode.FILE, "File-based mode (free tier, always available)"
 
         # Fallback
         return PowerMode.FILE, "Fallback to file-based mode"
@@ -138,29 +134,6 @@ class ModeSelector:
 
         return False, "Upstash not configured (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)"
 
-    def _check_redis_available(self) -> Tuple[bool, str]:
-        """
-        Check if Redis mode is available.
-
-        Requires:
-        1. Docker installed and running
-        2. Redis container available or cloud URL configured
-        """
-        # Check for cloud Redis URL first
-        cloud_url = os.environ.get("POPKIT_REDIS_URL")
-        if cloud_url:
-            return True, f"Cloud Redis configured: {cloud_url[:30]}..."
-
-        # Check for local Redis via Docker
-        if self._docker_available():
-            # Check if Redis container is running
-            if self._redis_container_running():
-                return True, "Local Redis container running"
-            else:
-                return False, "Docker available but Redis container not running"
-
-        return False, "Docker not available for Redis mode"
-
     def _get_claude_code_version(self) -> Optional[str]:
         """
         Try to detect Claude Code version.
@@ -189,31 +162,6 @@ class ModeSelector:
             pass
 
         return None
-
-    def _docker_available(self) -> bool:
-        """Check if Docker is installed and running."""
-        try:
-            result = subprocess.run(
-                ["docker", "info"],
-                capture_output=True,
-                timeout=5
-            )
-            return result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-            return False
-
-    def _redis_container_running(self) -> bool:
-        """Check if popkit-redis container is running."""
-        try:
-            result = subprocess.run(
-                ["docker", "ps", "--filter", "name=popkit-redis", "--format", "{{.Names}}"],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            return "popkit-redis" in result.stdout
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-            return False
 
     def _version_compare(self, v1: str, v2: str) -> int:
         """
@@ -257,7 +205,10 @@ class ModeSelector:
         })
 
     def format_status(self) -> str:
-        """Format mode selection status for display."""
+        """Format mode selection status for display.
+
+        Issue #191: Simplified to show only native/upstash/file options.
+        """
         mode, reason = self.select_mode()
 
         status_lines = [
@@ -277,19 +228,13 @@ class ModeSelector:
             upstash_url = os.environ.get("UPSTASH_REDIS_REST_URL", "")
             status_lines.extend([
                 f"Upstash: {upstash_url[:40]}..." if upstash_url else "Upstash: configured",
-                "Setup: Set env vars (no Docker required)",
+                "Setup: Set env vars (Pro tier)",
                 "Max Agents: 6+ (parallel)"
-            ])
-        elif mode == PowerMode.REDIS:
-            redis_config = self.config.get("redis", {})
-            status_lines.extend([
-                f"Redis: {redis_config.get('host', 'localhost')}:{redis_config.get('port', 16379)}",
-                "Setup: Docker + Redis container"
             ])
         elif mode == PowerMode.FILE:
             status_lines.extend([
                 "Max Agents: 2-3 (sequential)",
-                "Setup: None required"
+                "Setup: None required (free tier)"
             ])
 
         return "\n".join(status_lines)
@@ -331,7 +276,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Power Mode Selector")
     parser.add_argument("--select", action="store_true", help="Auto-select best mode")
     parser.add_argument("--status", action="store_true", help="Show full status")
-    parser.add_argument("--check", type=str, choices=["native", "upstash", "redis", "file"], help="Check specific mode")
+    parser.add_argument("--check", type=str, choices=["native", "upstash", "file"], help="Check specific mode")
     parser.add_argument("--tier", type=str, default="free", help="User tier (free, premium, pro)")
 
     args = parser.parse_args()
@@ -352,11 +297,8 @@ if __name__ == "__main__":
         elif args.check == "upstash":
             available, reason = selector._check_upstash_available()
             print(f"Upstash: {'Yes' if available else 'No'} - {reason}")
-        elif args.check == "redis":
-            available, reason = selector._check_redis_available()
-            print(f"Redis: {'Yes' if available else 'No'} - {reason}")
         elif args.check == "file":
-            print("File: Yes - Always available")
+            print("File: Yes - Always available (free tier)")
 
     elif args.tier:
         limits = selector.get_tier_limits(args.tier)

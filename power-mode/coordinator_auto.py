@@ -46,13 +46,7 @@ def redis_is_running() -> bool:
         return True
 
     try:
-        config = load_config()
-        redis_config = config.get("redis", {})
-
-        r = get_redis_client(
-            local_host=redis_config.get("host", "localhost"),
-            local_port=redis_config.get("port", 6379)
-        )
+        r = get_redis_client()
         r.ping()
         return True
     except Exception:

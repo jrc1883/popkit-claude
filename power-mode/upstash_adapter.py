@@ -3,19 +3,23 @@
 Upstash Redis Adapter for Power Mode
 
 Provides a Redis-like interface over Upstash REST API, allowing Power Mode
-to work without local Docker/Redis installation.
+to work without any local dependencies (no Docker, no local Redis).
 
 Part of Issue #191: Power Mode Upstash Migration
+- Pro users: Use Upstash cloud (set env vars)
+- Free users: Use file-based fallback (no Redis)
 
 Usage:
-    from upstash_adapter import get_redis_client
+    from upstash_adapter import get_redis_client, is_upstash_available
 
-    # Auto-detects: Upstash REST API if env vars set, else local Redis
-    client = get_redis_client()
-
-    # Use like regular redis client
-    client.set("key", "value")
-    client.publish("channel", "message")
+    # Check if Upstash is configured
+    if is_upstash_available():
+        client = get_redis_client()
+        client.set("key", "value")
+        client.publish("channel", "message")
+    else:
+        # Fall back to file-based mode
+        pass
 """
 
 import json
@@ -483,194 +487,45 @@ class UpstashPubSub(BasePubSub):
 
 
 # =============================================================================
-# LOCAL REDIS WRAPPER (for compatibility)
-# =============================================================================
-
-class LocalRedisClient(BaseRedisClient):
-    """
-    Wrapper around local redis-py client.
-
-    Provides same interface as UpstashRedisClient for consistency.
-    """
-
-    def __init__(self, host: str = "localhost", port: int = 6379, **kwargs):
-        try:
-            import redis
-            self._client = redis.Redis(
-                host=host,
-                port=port,
-                decode_responses=True,
-                **kwargs
-            )
-        except ImportError:
-            raise ImportError("redis package required. Install with: pip install redis")
-
-    def ping(self) -> bool:
-        try:
-            return self._client.ping()
-        except Exception:
-            return False
-
-    def set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
-        return self._client.set(key, value, ex=ex)
-
-    def get(self, key: str) -> Optional[str]:
-        return self._client.get(key)
-
-    def delete(self, *keys: str) -> int:
-        if not keys:
-            return 0
-        return self._client.delete(*keys)
-
-    def exists(self, *keys: str) -> int:
-        if not keys:
-            return 0
-        return self._client.exists(*keys)
-
-    def keys(self, pattern: str = "*") -> List[str]:
-        return self._client.keys(pattern)
-
-    def hset(self, name: str, mapping: Dict[str, str]) -> int:
-        return self._client.hset(name, mapping=mapping)
-
-    def hget(self, name: str, key: str) -> Optional[str]:
-        return self._client.hget(name, key)
-
-    def hgetall(self, name: str) -> Dict[str, str]:
-        return self._client.hgetall(name)
-
-    def hdel(self, name: str, *keys: str) -> int:
-        if not keys:
-            return 0
-        return self._client.hdel(name, *keys)
-
-    def rpush(self, name: str, *values: str) -> int:
-        if not values:
-            return 0
-        return self._client.rpush(name, *values)
-
-    def lpush(self, name: str, *values: str) -> int:
-        if not values:
-            return 0
-        return self._client.lpush(name, *values)
-
-    def lrange(self, name: str, start: int, end: int) -> List[str]:
-        return self._client.lrange(name, start, end)
-
-    def lpop(self, name: str) -> Optional[str]:
-        return self._client.lpop(name)
-
-    def expire(self, name: str, time: int) -> bool:
-        return self._client.expire(name, time)
-
-    def ttl(self, name: str) -> int:
-        return self._client.ttl(name)
-
-    def publish(self, channel: str, message: str) -> int:
-        return self._client.publish(channel, message)
-
-    def pubsub(self) -> 'LocalPubSub':
-        return LocalPubSub(self._client.pubsub())
-
-    def xadd(self, name: str, fields: Dict[str, str], id: str = "*", maxlen: Optional[int] = None) -> str:
-        return self._client.xadd(name, fields, id=id, maxlen=maxlen, approximate=True)
-
-    def xread(self, streams: Dict[str, str], count: Optional[int] = None, block: Optional[int] = None) -> List:
-        return self._client.xread(streams, count=count, block=block) or []
-
-    def xrange(self, name: str, min: str = "-", max: str = "+", count: Optional[int] = None) -> List:
-        return self._client.xrange(name, min=min, max=max, count=count) or []
-
-
-class LocalPubSub(BasePubSub):
-    """Wrapper around local redis pubsub."""
-
-    def __init__(self, pubsub):
-        self._pubsub = pubsub
-
-    def subscribe(self, *channels: str) -> None:
-        self._pubsub.subscribe(*channels)
-
-    def unsubscribe(self, *channels: str) -> None:
-        self._pubsub.unsubscribe(*channels)
-
-    def listen(self):
-        return self._pubsub.listen()
-
-    def get_message(self, timeout: float = 0.0) -> Optional[Dict]:
-        return self._pubsub.get_message(timeout=timeout)
-
-    def close(self):
-        self._pubsub.close()
-
-
-# =============================================================================
 # FACTORY FUNCTION
 # =============================================================================
 
-def get_redis_client(
-    prefer: Optional[str] = None,
-    local_host: str = "localhost",
-    local_port: int = 6379
-) -> BaseRedisClient:
+def get_redis_client() -> BaseRedisClient:
     """
-    Get appropriate Redis client based on environment.
+    Get Upstash Redis client.
 
-    Priority:
-    1. If prefer="upstash", use Upstash (requires env vars)
-    2. If prefer="local", use local Redis
-    3. Auto-detect: Upstash env vars -> Local Redis
-
-    Args:
-        prefer: "upstash", "local", or None for auto-detect
-        local_host: Host for local Redis
-        local_port: Port for local Redis
+    Issue #191: Simplified to Upstash-only (no local Redis fallback).
+    - Pro users: Use Upstash cloud
+    - Free users: Use file-based mode (not this adapter)
 
     Returns:
-        Redis client (Upstash or Local)
+        UpstashRedisClient instance
 
     Raises:
-        ValueError: If preferred backend unavailable
+        ValueError: If Upstash credentials not configured
     """
-    # Explicit preference
-    if prefer == "upstash":
-        return UpstashRedisClient()
-    elif prefer == "local":
-        return LocalRedisClient(host=local_host, port=local_port)
+    if not UPSTASH_REST_URL or not UPSTASH_REST_TOKEN:
+        raise ValueError(
+            "Upstash credentials required for Power Mode Redis features.\n"
+            "Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables.\n"
+            "Get free credentials at: https://upstash.com\n\n"
+            "For free tier users, Power Mode uses file-based coordination instead."
+        )
 
-    # Auto-detect
-    if UPSTASH_REST_URL and UPSTASH_REST_TOKEN:
-        try:
-            client = UpstashRedisClient()
-            if client.ping():
-                return client
-        except Exception:
-            pass
+    client = UpstashRedisClient()
+    if not client.ping():
+        raise ValueError("Upstash connection failed. Check your credentials.")
 
-    # Fall back to local
-    try:
-        client = LocalRedisClient(host=local_host, port=local_port)
-        if client.ping():
-            return client
-    except Exception:
-        pass
-
-    raise ValueError(
-        "No Redis connection available. Either:\n"
-        "1. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN for cloud Redis\n"
-        "2. Start local Redis (docker-compose up -d)\n"
-    )
+    return client
 
 
 def is_upstash_available() -> bool:
-    """Check if Upstash credentials are configured."""
-    return bool(UPSTASH_REST_URL and UPSTASH_REST_TOKEN)
+    """Check if Upstash credentials are configured and working."""
+    if not UPSTASH_REST_URL or not UPSTASH_REST_TOKEN:
+        return False
 
-
-def is_local_redis_available(host: str = "localhost", port: int = 6379) -> bool:
-    """Check if local Redis is available."""
     try:
-        client = LocalRedisClient(host=host, port=port)
+        client = UpstashRedisClient()
         return client.ping()
     except Exception:
         return False
@@ -683,37 +538,49 @@ def is_local_redis_available(host: str = "localhost", port: int = 6379) -> bool:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Upstash Redis Adapter")
+    parser = argparse.ArgumentParser(description="Upstash Redis Adapter (Power Mode)")
     parser.add_argument("--test", action="store_true", help="Run connection test")
-    parser.add_argument("--prefer", choices=["upstash", "local"], help="Preferred backend")
-    parser.add_argument("--ping", action="store_true", help="Just ping")
+    parser.add_argument("--ping", action="store_true", help="Just ping Upstash")
+    parser.add_argument("--status", action="store_true", help="Show Upstash status")
 
     args = parser.parse_args()
 
-    if args.ping:
-        try:
-            client = get_redis_client(prefer=args.prefer)
-            if client.ping():
-                print("[OK] Redis connection successful")
-                print(f"Backend: {'Upstash' if isinstance(client, UpstashRedisClient) else 'Local'}")
-            else:
-                print("[FAIL] Ping failed")
-        except Exception as e:
-            print(f"[FAIL] {e}")
+    if args.status:
+        print("Upstash Redis Status")
+        print("=" * 40)
+        if UPSTASH_REST_URL:
+            print(f"URL: {UPSTASH_REST_URL[:40]}...")
+        else:
+            print("URL: Not configured")
+        print(f"Token: {'Configured' if UPSTASH_REST_TOKEN else 'Not configured'}")
+        print(f"Available: {is_upstash_available()}")
+
+    elif args.ping:
+        if not is_upstash_available():
+            print("[!] Upstash not configured")
+            print("Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN")
+        else:
+            try:
+                client = get_redis_client()
+                if client.ping():
+                    print("[OK] Upstash connection successful")
+                else:
+                    print("[FAIL] Ping failed")
+            except Exception as e:
+                print(f"[FAIL] {e}")
 
     elif args.test:
-        print("Testing Redis Adapter...")
+        print("Testing Upstash Redis Adapter...")
         print()
 
-        # Check availability
-        print(f"Upstash available: {is_upstash_available()}")
-        print(f"Local Redis available: {is_local_redis_available()}")
-        print()
+        if not is_upstash_available():
+            print("[!] Upstash not configured - cannot run tests")
+            print("Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN")
+            exit(1)
 
         try:
-            client = get_redis_client(prefer=args.prefer)
-            backend = "Upstash" if isinstance(client, UpstashRedisClient) else "Local"
-            print(f"Using backend: {backend}")
+            client = get_redis_client()
+            print("Using backend: Upstash Cloud")
             print()
 
             # Test operations

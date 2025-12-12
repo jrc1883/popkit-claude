@@ -353,25 +353,22 @@ class ConsensusCoordinator:
         self._monitor_thread: Optional[threading.Thread] = None
 
     def connect(self) -> bool:
-        """Connect to Redis (Upstash or local).
+        """Connect to Upstash Redis.
 
-        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        Issue #191: Uses Upstash cloud only (no local Redis).
+        Falls back to file-based mode if Upstash not configured.
         """
         if not REDIS_AVAILABLE:
-            print("Redis not available. Using file-based fallback.", file=sys.stderr)
+            print("Redis adapter not available. Using file-based fallback.", file=sys.stderr)
             return self._init_file_mode()
 
         try:
-            redis_config = CONFIG.get("redis", {})
-            self.redis = get_redis_client(
-                local_host=redis_config.get("host", "localhost"),
-                local_port=redis_config.get("port", 16379)
-            )
+            self.redis = get_redis_client()
             self.redis.ping()
             self.pubsub = self.redis.pubsub()
             return True
         except Exception as e:
-            print(f"Redis connection failed: {e}. Using file-based fallback.", file=sys.stderr)
+            print(f"Upstash connection failed: {e}. Using file-based fallback.", file=sys.stderr)
             return self._init_file_mode()
 
     def _init_file_mode(self) -> bool:

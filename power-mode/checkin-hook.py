@@ -481,19 +481,16 @@ class PowerModeRedisClient:
         self.connected = False
 
     def connect(self) -> bool:
-        """Connect to Redis (Upstash or local).
+        """Connect to Upstash Redis.
 
-        Issue #191: Uses unified adapter - auto-detects Upstash vs local Redis.
+        Issue #191: Uses Upstash cloud only (no local Redis).
         """
         if not REDIS_AVAILABLE:
             return False
 
         try:
-            redis_config = CONFIG.get("redis", {})
-            self.redis = get_redis_client(
-                local_host=redis_config.get("host", "localhost"),
-                local_port=redis_config.get("port", 6379)
-            )
+            # Issue #191: Use Upstash adapter (no local Redis)
+            self.redis = get_redis_client()
             self.redis.ping()
             self.connected = True
             return True

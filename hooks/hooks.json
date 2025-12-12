@@ -99,6 +99,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Task|SlashCommand|Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/feedback_hook.py\"",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [

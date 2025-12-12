@@ -12,6 +12,20 @@ Presents interactive options on failure:
 - Rollback - restore to checkpoint, save patch
 - Continue - proceed despite errors
 - Pause - stop for manual review
+
+TIMEOUT JUSTIFICATION (180s in hooks.json):
+The 180s hook timeout allows running multiple quality gates:
+- TypeScript check: up to 60s
+- Build: up to 120s
+- Lint: up to 60s
+
+Mitigations for long runtime:
+1. Fail-fast mode (default) - stops on first failure
+2. Power Mode - runs lightweight 15s checks only
+3. Triggered only on high-risk changes or batch thresholds
+4. Individual gate timeouts prevent runaway processes
+
+See Issue #195 for analysis.
 """
 
 import os

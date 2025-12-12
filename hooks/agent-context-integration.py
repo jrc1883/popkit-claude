@@ -3,6 +3,14 @@
 Agent Context Integration Hook
 Integrates project-aware agent loading into Claude Code's agent system.
 This hook intercepts agent loading requests and adds project context.
+
+DEPRECATED: This hook is disabled (removed from hooks.json) because:
+1. It imports agent_context_loader.py which does not exist
+2. The functionality is already provided by semantic_router.py
+3. It was silently failing on every Task tool call
+
+See Issue #204 for details. If you need project-aware agent routing,
+use semantic_router.py instead.
 """
 
 import os

@@ -70,11 +70,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/agent-context-integration.py\"",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
             "command": "python \"${CLAUDE_PLUGIN_ROOT}/hooks/chain-metrics.py\"",
             "timeout": 3000
           }

@@ -1,6 +1,23 @@
 ---
 name: writing-plans
 description: "Creates comprehensive implementation plans with exact file paths, complete code examples, and verification steps for engineers with zero codebase context. Assumes skilled developers who need domain-specific guidance, following DRY, YAGNI, and TDD principles. Use after brainstorming/design is complete when handing off to another developer or planning complex multi-step work. Do NOT use for simple tasks, quick fixes, or when you're implementing yourself and already understand the codebase - just start coding instead."
+inputs:
+  - from: pop-brainstorming
+    field: design_document
+    required: false
+  - from: any
+    field: topic
+    required: false
+outputs:
+  - field: plan_document
+    type: file_path
+  - field: github_issue
+    type: issue_number
+  - field: task_count
+    type: number
+next_skills:
+  - pop-executing-plans
+  - pop-subagent-driven
 ---
 
 # Writing Plans
@@ -13,9 +30,36 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
-
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
+
+## Step 0: Check Upstream Context
+
+**BEFORE creating a plan**, check for context from previous skills:
+
+```python
+from hooks.utils.skill_context import load_skill_context, get_artifact
+
+# Check for design context from brainstorming
+ctx = load_skill_context()
+
+if ctx and ctx.previous_skill == "pop-brainstorming":
+    # Use design document as input
+    design_doc = get_artifact("design_document") or ctx.artifacts.get("design_document")
+    topic = ctx.previous_output.get("topic")
+    approach = ctx.previous_output.get("approach")
+
+    # Don't re-ask decisions that were already made
+    existing_decisions = ctx.shared_decisions
+
+    print(f"Using design from brainstorming: {design_doc}")
+    print(f"Topic: {topic}, Approach: {approach}")
+else:
+    # No upstream context - need to gather information
+    # Check for existing design docs
+    design_doc = None
+```
+
+If design document exists, **read it first** instead of asking questions already answered.
 
 ## Bite-Sized Task Granularity
 
@@ -94,6 +138,76 @@ git commit -m "feat: add specific feature"
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
 
+## After Plan Created: GitHub Issue
+
+**Check for existing issue or create one:**
+
+```bash
+# Search for existing issue
+gh issue list --search "<topic>" --state open --json number,title --limit 5
+```
+
+**If no issue exists, offer to create:**
+
+```
+Use AskUserQuestion tool with:
+- question: "No GitHub issue exists for this work. Create one?"
+- header: "Issue"
+- options:
+  - label: "Create issue"
+    description: "Create tracking issue with plan summary and task checklist"
+  - label: "Link existing"
+    description: "I'll provide an issue number to link"
+  - label: "Skip"
+    description: "Don't track in GitHub"
+- multiSelect: false
+```
+
+**If creating issue:**
+
+```bash
+gh issue create --title "[Feature] <topic>" --body "$(cat <<'EOF'
+## Summary
+<brief description>
+
+## Implementation Plan
+See: `docs/plans/YYYY-MM-DD-<feature>.md`
+
+## Tasks
+- [ ] Task 1
+- [ ] Task 2
+...
+
+---
+*Plan created by PopKit*
+EOF
+)"
+```
+
+## Context Output (for downstream skills)
+
+```python
+from hooks.utils.skill_context import save_skill_context, SkillOutput, link_workflow_to_issue
+
+# Save plan context for executing-plans or subagent-driven
+save_skill_context(SkillOutput(
+    skill_name="pop-writing-plans",
+    status="completed",
+    output={
+        "plan_file": "docs/plans/YYYY-MM-DD-<feature>.md",
+        "task_count": <number of tasks>,
+        "github_issue": <issue number if created>
+    },
+    artifacts=["docs/plans/YYYY-MM-DD-<feature>.md"],
+    next_suggested="pop-executing-plans",
+    decisions_made=[<list of AskUserQuestion results>]
+))
+
+# Link to GitHub issue
+if issue_number:
+    link_workflow_to_issue(issue_number)
+```
+
 ## Execution Handoff
 
 After saving the plan, use AskUserQuestion to offer execution choice:
@@ -118,7 +232,9 @@ Use AskUserQuestion tool with:
 - Use subagent-driven-development skill
 - Stay in this session
 - Fresh subagent per task + code review
+- Context automatically passed via skill_context
 
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
 - New session uses executing-plans skill
+- Context available via `.popkit/context/current-workflow.json`

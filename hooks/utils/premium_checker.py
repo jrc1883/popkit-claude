@@ -310,7 +310,7 @@ def _get_upgrade_message(feature: PremiumFeature, user_tier: Tier) -> str:
     price = "$9/mo" if feature.required_tier == Tier.PRO else "$29/mo"
 
     msg = f"""
-⭐ Premium Feature: {feature.name}
+[PREMIUM] {feature.name}
 
 {feature.description}
 
@@ -460,12 +460,12 @@ def format_rate_limit_message(result: RateLimitResult) -> str:
     """Generate a user-friendly rate limit message."""
     if result.allowed:
         if result.limit == -1:
-            return f"✅ {result.feature}: Unlimited usage ({result.tier} tier)"
-        return f"✅ {result.feature}: {result.remaining} remaining today"
+            return f"[OK] {result.feature}: Unlimited usage ({result.tier} tier)"
+        return f"[OK] {result.feature}: {result.remaining} remaining today"
 
     # Rate limited
     msg = f"""
-⚠️ Rate Limit Reached: {result.feature}
+[!] Rate Limit Reached: {result.feature}
 
 You've used {result.current} of {result.limit} allowed today.
 Resets at: {result.reset_at}
@@ -475,7 +475,7 @@ Your tier: {result.tier}
 
     if result.tier == "free":
         msg += """
-💡 Upgrade to Pro for unlimited access!
+[TIP] Upgrade to Pro for unlimited access!
 Run `/popkit:upgrade` to unlock.
 """
 
@@ -750,7 +750,7 @@ def get_coming_soon_message(feature: PremiumFeature, user_tier: Tier) -> str:
     tier_name = feature.required_tier.value.title()
 
     msg = f"""
-🎉 Coming Soon: {feature.name}
+[COMING SOON] {feature.name}
 
 {feature.description}
 

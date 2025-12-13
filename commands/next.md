@@ -1,5 +1,6 @@
 ---
 description: "[quick|verbose] - Analyze project state and recommend next actions"
+argument-hint: "[quick|verbose]"
 ---
 
 # /popkit:next

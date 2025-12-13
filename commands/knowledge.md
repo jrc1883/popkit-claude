@@ -1,5 +1,6 @@
 ---
 description: "list | add | remove | sync | search <query>"
+argument-hint: "<subcommand> [query|url]"
 ---
 
 # /popkit:knowledge

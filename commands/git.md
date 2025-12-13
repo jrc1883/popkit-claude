@@ -1,5 +1,6 @@
 ---
 description: "commit | push | pr | review | ci | release | publish | prune | finish [--draft, --squash]"
+argument-hint: "<subcommand> [options]"
 ---
 
 # /popkit:git - Git Workflow Management

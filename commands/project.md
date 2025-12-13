@@ -1,5 +1,6 @@
 ---
 description: "init | analyze | board | embed | generate | mcp | setup | skills | observe [--power, --json]"
+argument-hint: "<subcommand> [options]"
 ---
 
 # /popkit:project - Project Analysis & Setup

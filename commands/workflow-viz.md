@@ -1,5 +1,6 @@
 ---
 description: "[workflow-name] [--validate, --metrics, --ascii]"
+argument-hint: "[workflow-name] [options]"
 ---
 
 # /popkit:workflow-viz

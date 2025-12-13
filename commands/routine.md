@@ -1,5 +1,6 @@
 ---
 description: "morning | nightly [run|quick|generate|list|set|edit|delete]"
+argument-hint: "<routine> [subcommand] [options]"
 ---
 
 # /popkit:routine - Day Routines

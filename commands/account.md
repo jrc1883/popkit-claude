@@ -1,6 +1,7 @@
 ---
 name: account
 description: "status | keys | billing | logout - Manage your PopKit account"
+argument-hint: "<subcommand>"
 ---
 
 # /popkit:account

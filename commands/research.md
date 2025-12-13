@@ -1,5 +1,6 @@
 ---
 description: "list | search | add | tag | show | delete [--type, --project]"
+argument-hint: "<subcommand> [query|id] [options]"
 ---
 
 # /popkit:research - Research Management

@@ -1,3 +1,8 @@
+---
+description: "session | today | week | cloud | reset - Efficiency metrics"
+argument-hint: "[subcommand] [options]"
+---
+
 # /popkit:stats - Efficiency Metrics
 
 Display PopKit efficiency metrics showing token savings, collaboration stats, and overall value.

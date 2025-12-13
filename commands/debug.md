@@ -1,5 +1,6 @@
 ---
 description: "code | routing [--trace, --verbose]"
+argument-hint: "<mode> [options]"
 ---
 
 # /popkit:debug - Debugging Tools

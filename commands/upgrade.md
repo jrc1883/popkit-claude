@@ -1,6 +1,7 @@
 ---
 name: upgrade
 description: "upgrade | pro | team [--open] - Upgrade to PopKit Premium"
+argument-hint: "<tier> [options]"
 ---
 
 # /popkit:upgrade

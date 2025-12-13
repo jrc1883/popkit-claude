@@ -1,5 +1,6 @@
 ---
 description: "list | create | close | report | health [--json, --verbose]"
+argument-hint: "<subcommand> [name] [options]"
 ---
 
 # /popkit:milestone - Milestone Management

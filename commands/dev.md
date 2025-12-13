@@ -1,5 +1,6 @@
 ---
 description: "full | work #N | brainstorm | plan | execute | quick | prd | suite [-T, --power]"
+argument-hint: "<mode> [topic|#issue] [flags]"
 ---
 
 # /popkit:dev - Development Workflows

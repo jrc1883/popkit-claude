@@ -1,5 +1,6 @@
 ---
 description: "quarterly | yearly | stale | duplicates | health | ip-leak [--verbose, --fix]"
+argument-hint: "<type> [options]"
 ---
 
 # /popkit:audit - Project Audit & Review

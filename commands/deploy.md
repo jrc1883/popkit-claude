@@ -1,5 +1,6 @@
 ---
 description: "init | setup | validate | execute | rollback [--target, --all, --dry-run]"
+argument-hint: "<subcommand> [target] [options]"
 ---
 
 # /popkit:deploy - Universal Deployment Orchestration

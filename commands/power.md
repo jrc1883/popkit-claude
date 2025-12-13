@@ -1,5 +1,6 @@
 ---
 description: "start | stop | status | init | metrics | widgets | consensus [--consensus, --agents N]"
+argument-hint: "<subcommand> [options]"
 ---
 
 # /popkit:power - Power Mode Management

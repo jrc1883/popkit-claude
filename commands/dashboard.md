@@ -1,5 +1,6 @@
 ---
 description: "[add|remove|refresh|switch|discover] - Multi-project management"
+argument-hint: "<subcommand> [path]"
 ---
 
 # /popkit:dashboard - Multi-Project Dashboard

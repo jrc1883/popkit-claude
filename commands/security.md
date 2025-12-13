@@ -1,5 +1,6 @@
 ---
 description: "scan | list | fix | report [--dry-run, --severity, --fix]"
+argument-hint: "<subcommand> [options]"
 ---
 
 # /popkit:security - Security Vulnerability Management

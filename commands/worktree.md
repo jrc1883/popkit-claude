@@ -1,5 +1,6 @@
 ---
 description: "create <branch> | list | analyze | remove [--force]"
+argument-hint: "<subcommand> [branch] [options]"
 ---
 
 # /popkit:worktree - Git Worktree Management

@@ -1,5 +1,6 @@
 ---
 description: "report | search | share [--issue, --share]"
+argument-hint: "<subcommand> [options]"
 ---
 
 # /popkit:bug - Bug Reporter

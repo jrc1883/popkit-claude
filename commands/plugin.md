@@ -1,5 +1,6 @@
 ---
 description: "test | docs | sync | detect | version [--verbose, --json]"
+argument-hint: "<subcommand> [options]"
 ---
 
 # /popkit:plugin - Plugin Management

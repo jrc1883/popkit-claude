@@ -1,5 +1,6 @@
 ---
 description: "status | consent | export | delete | level [strict|moderate|minimal]"
+argument-hint: "<subcommand> [level]"
 ---
 
 # /popkit:privacy - Privacy Controls

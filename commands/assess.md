@@ -1,5 +1,6 @@
 ---
 description: "anthropic | security | performance | ux | architect | docs | all [--fix, --json]"
+argument-hint: "<perspective> [options]"
 ---
 
 # /popkit:assess - Multi-Perspective Self-Assessment

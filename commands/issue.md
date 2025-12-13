@@ -1,5 +1,6 @@
 ---
 description: "create | list | view | close | comment | edit | link [--state, --label]"
+argument-hint: "<subcommand> [#number] [options]"
 ---
 
 # /popkit:issue - GitHub Issue Management

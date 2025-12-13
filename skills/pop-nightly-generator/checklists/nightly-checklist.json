@@ -1,0 +1,161 @@
+{
+  "name": "Nightly Cleanup Checklist",
+  "version": "1.0.0",
+  "description": "Checklist for end-of-day cleanup and maintenance",
+  "categories": [
+    {
+      "name": "Git Status",
+      "checks": [
+        {
+          "id": "no_uncommitted",
+          "name": "No uncommitted changes",
+          "description": "All work committed or stashed",
+          "required": true,
+          "automated": true,
+          "weight": 30
+        },
+        {
+          "id": "no_conflicts",
+          "name": "No merge conflicts",
+          "description": "No unresolved conflicts in working directory",
+          "required": true,
+          "automated": true,
+          "weight": 0
+        },
+        {
+          "id": "synced_remote",
+          "name": "Synced with remote",
+          "description": "Local changes pushed to remote",
+          "required": false,
+          "automated": true,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "name": "Session State",
+      "checks": [
+        {
+          "id": "status_saved",
+          "name": "STATUS.json updated",
+          "description": "Session state captured for tomorrow",
+          "required": true,
+          "automated": true,
+          "weight": 20
+        },
+        {
+          "id": "tasks_documented",
+          "name": "In-progress tasks documented",
+          "description": "Current work state is clear",
+          "required": false,
+          "automated": false,
+          "weight": 5
+        },
+        {
+          "id": "blockers_noted",
+          "name": "Blockers noted",
+          "description": "Any blockers documented for follow-up",
+          "required": false,
+          "automated": true,
+          "weight": 0
+        }
+      ]
+    },
+    {
+      "name": "Git Maintenance",
+      "checks": [
+        {
+          "id": "gc_run",
+          "name": "Git garbage collection",
+          "description": "git gc --auto completed",
+          "required": false,
+          "automated": true,
+          "weight": 5
+        },
+        {
+          "id": "remotes_pruned",
+          "name": "Remote branches pruned",
+          "description": "Stale remote tracking branches removed",
+          "required": false,
+          "automated": true,
+          "weight": 5
+        },
+        {
+          "id": "merged_branches_cleaned",
+          "name": "Merged branches cleaned",
+          "description": "Old merged branches deleted",
+          "required": false,
+          "automated": true,
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "checks": [
+        {
+          "id": "audit_clean",
+          "name": "Security audit clean",
+          "description": "npm audit shows no critical vulnerabilities",
+          "required": false,
+          "automated": true,
+          "weight": 15
+        },
+        {
+          "id": "no_secrets",
+          "name": "No exposed secrets",
+          "description": "No credentials in uncommitted files",
+          "required": true,
+          "automated": false,
+          "weight": 0
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "checks": [
+        {
+          "id": "caches_under_limit",
+          "name": "Caches under size limit",
+          "description": "Build caches under 500MB",
+          "required": false,
+          "automated": true,
+          "weight": 10
+        },
+        {
+          "id": "old_logs_cleaned",
+          "name": "Old logs cleaned",
+          "description": "Log files older than 7 days removed",
+          "required": false,
+          "automated": true,
+          "weight": 10
+        },
+        {
+          "id": "temp_files_removed",
+          "name": "Temp files removed",
+          "description": "Temporary files cleaned up",
+          "required": false,
+          "automated": true,
+          "weight": 0
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "excellent": {"min": 90, "description": "Ready for a restful night!"},
+    "good": {"min": 70, "description": "Good shape, minor items remain"},
+    "fair": {"min": 50, "description": "Some cleanup recommended"},
+    "needs_attention": {"min": 0, "description": "Please address issues before ending"}
+  },
+  "cleanup_targets": {
+    "node_js": [".next/", "out/", "dist/", "node_modules/.cache/", ".eslintcache", ".tsbuildinfo"],
+    "python": ["__pycache__/", ".pytest_cache/", ".mypy_cache/", "*.pyc"],
+    "rust": ["target/debug/", "target/debug/incremental/"],
+    "general": ["coverage/", "*.log", "*.tmp", ".DS_Store"]
+  },
+  "scripts": {
+    "audit": "python scripts/calculate_sleep_score.py --mode=check",
+    "score": "python scripts/calculate_sleep_score.py --mode=score",
+    "report": "python scripts/calculate_sleep_score.py --mode=report --format=display"
+  }
+}

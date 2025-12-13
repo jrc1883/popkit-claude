@@ -1,0 +1,261 @@
+{
+  "name": "Dashboard Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for multi-project dashboard management",
+  "phases": [
+    {
+      "id": "gather",
+      "name": "Gather Metrics",
+      "description": "Load registry and gather project metrics",
+      "steps": [
+        {
+          "id": "load_registry",
+          "name": "Load Project Registry",
+          "type": "automated",
+          "script": "scripts/gather_metrics.py --operation=load_registry"
+        },
+        {
+          "id": "health_check",
+          "name": "Calculate Health Scores",
+          "type": "automated",
+          "script": "scripts/gather_metrics.py --operation=health_check",
+          "when": "registry.projects.length > 0"
+        },
+        {
+          "id": "activity_check",
+          "name": "Gather Recent Activity",
+          "type": "automated",
+          "script": "scripts/gather_metrics.py --operation=activity"
+        }
+      ]
+    },
+    {
+      "id": "format",
+      "name": "Format Dashboard",
+      "description": "Format data for dashboard display",
+      "steps": [
+        {
+          "id": "aggregate",
+          "name": "Aggregate Statistics",
+          "type": "automated",
+          "action": "Calculate totals, health distribution, alerts"
+        },
+        {
+          "id": "sort_projects",
+          "name": "Sort Projects",
+          "type": "automated",
+          "action": "Sort by health score (descending) then activity (descending)"
+        },
+        {
+          "id": "generate_dashboard",
+          "name": "Generate Dashboard",
+          "type": "automated",
+          "template": "templates/dashboard.md.template"
+        }
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Display Dashboard",
+      "description": "Present dashboard and handle actions",
+      "steps": [
+        {
+          "id": "show_dashboard",
+          "name": "Display Dashboard",
+          "type": "automated",
+          "action": "Render dashboard with health indicators"
+        },
+        {
+          "id": "show_alerts",
+          "name": "Show Alerts",
+          "type": "automated",
+          "action": "Highlight projects needing attention",
+          "when": "alerts.length > 0"
+        },
+        {
+          "id": "offer_action",
+          "name": "Offer Actions",
+          "type": "interactive",
+          "prompt": "What would you like to do?",
+          "options": [
+            {
+              "label": "Switch to a project",
+              "action": "switch"
+            },
+            {
+              "label": "Add current project",
+              "action": "add"
+            },
+            {
+              "label": "Refresh all health scores",
+              "action": "refresh"
+            },
+            {
+              "label": "Just viewing",
+              "action": "none"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "operations": {
+    "add": {
+      "name": "Add Project",
+      "steps": [
+        {
+          "id": "detect_project",
+          "name": "Detect Project Info",
+          "action": "Auto-detect name, repo, type from manifest files"
+        },
+        {
+          "id": "calculate_health",
+          "name": "Calculate Initial Health",
+          "action": "Run full health check on new project"
+        },
+        {
+          "id": "register",
+          "name": "Register Project",
+          "action": "Add to registry with tags"
+        }
+      ]
+    },
+    "remove": {
+      "name": "Remove Project",
+      "steps": [
+        {
+          "id": "confirm",
+          "name": "Confirm Removal",
+          "type": "interactive",
+          "prompt": "Remove {{project_name}} from dashboard?"
+        },
+        {
+          "id": "remove",
+          "name": "Remove from Registry",
+          "action": "Remove project entry (files unchanged)"
+        }
+      ]
+    },
+    "switch": {
+      "name": "Switch Project",
+      "steps": [
+        {
+          "id": "select_project",
+          "name": "Select Project",
+          "type": "interactive",
+          "prompt": "Which project would you like to switch to?",
+          "options_from": "projects"
+        },
+        {
+          "id": "change_directory",
+          "name": "Change to Project",
+          "action": "cd to project path"
+        },
+        {
+          "id": "update_activity",
+          "name": "Update Activity",
+          "action": "Touch last_accessed timestamp"
+        },
+        {
+          "id": "show_summary",
+          "name": "Show Project Summary",
+          "action": "Display quick health + recent activity"
+        }
+      ]
+    },
+    "refresh": {
+      "name": "Refresh Health Scores",
+      "steps": [
+        {
+          "id": "iterate_projects",
+          "name": "Iterate Projects",
+          "action": "For each registered project"
+        },
+        {
+          "id": "calculate_health",
+          "name": "Calculate Health",
+          "action": "Run health check per project"
+        },
+        {
+          "id": "update_registry",
+          "name": "Update Registry",
+          "action": "Save new health scores"
+        }
+      ]
+    },
+    "discover": {
+      "name": "Auto-Discover Projects",
+      "steps": [
+        {
+          "id": "scan_directories",
+          "name": "Scan Common Directories",
+          "action": "Search ~/Code, ~/Projects, ~/Documents for git repos"
+        },
+        {
+          "id": "filter_candidates",
+          "name": "Filter Candidates",
+          "action": "Only include repos with package.json, pyproject.toml, etc."
+        },
+        {
+          "id": "suggest_add",
+          "name": "Suggest Projects",
+          "type": "interactive",
+          "prompt": "Found {{count}} projects. Add them to dashboard?"
+        }
+      ]
+    }
+  },
+  "health_scoring": {
+    "components": {
+      "git_status": {
+        "max_points": 20,
+        "clean": 20,
+        "uncommitted_penalty": -5,
+        "unpushed_penalty": -5
+      },
+      "build_status": {
+        "max_points": 20,
+        "passed": 20,
+        "warning_penalty": -2,
+        "failed": 0
+      },
+      "test_coverage": {
+        "max_points": 20,
+        "thresholds": {
+          "80+": 20,
+          "60-80": 15,
+          "40-60": 10,
+          "<40": 5
+        }
+      },
+      "issue_health": {
+        "max_points": 20,
+        "no_stale": 20,
+        "stale_penalty": -2,
+        "stale_days": 30
+      },
+      "activity": {
+        "max_points": 20,
+        "today": 20,
+        "week": 15,
+        "month": 10,
+        "older": 5
+      }
+    }
+  },
+  "registry_location": "~/.claude/popkit/projects.json",
+  "triggers": {
+    "automatic": [
+      "User mentions managing multiple projects",
+      "User asks about project status across repos"
+    ],
+    "manual": [
+      "/popkit:dashboard",
+      "Invoke pop-dashboard skill"
+    ]
+  },
+  "output": {
+    "format": "dashboard_display",
+    "sections": ["summary", "project_table", "alerts", "activity_feed"]
+  }
+}

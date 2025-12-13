@@ -1,0 +1,132 @@
+{
+  "name": "Morning Routine Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for morning health check and readiness score",
+  "phases": [
+    {
+      "id": "health_check",
+      "name": "Health Check",
+      "description": "Check system and service health",
+      "steps": [
+        {
+          "id": "git_status",
+          "name": "Check Git Status",
+          "type": "automated",
+          "script": "scripts/health_check.py --section=git"
+        },
+        {
+          "id": "service_status",
+          "name": "Check Services",
+          "type": "automated",
+          "script": "scripts/health_check.py --section=services"
+        },
+        {
+          "id": "code_quality",
+          "name": "Check Code Quality",
+          "type": "automated",
+          "script": "scripts/health_check.py --section=quality"
+        }
+      ]
+    },
+    {
+      "id": "prioritize",
+      "name": "Prioritize Work",
+      "description": "Determine what to work on today",
+      "steps": [
+        {
+          "id": "load_tasks",
+          "name": "Load Pending Tasks",
+          "type": "automated",
+          "script": "scripts/prioritize_work.py --source=tasks"
+        },
+        {
+          "id": "check_issues",
+          "name": "Check Open Issues",
+          "type": "automated",
+          "script": "scripts/prioritize_work.py --source=issues"
+        },
+        {
+          "id": "check_blockers",
+          "name": "Check Blockers",
+          "type": "automated",
+          "action": "Review any blocked tasks from STATUS.json"
+        },
+        {
+          "id": "rank_priorities",
+          "name": "Rank Priorities",
+          "type": "automated",
+          "script": "scripts/prioritize_work.py --mode=rank"
+        }
+      ]
+    },
+    {
+      "id": "plan",
+      "name": "Plan Day",
+      "description": "Create focused plan for the day",
+      "steps": [
+        {
+          "id": "calculate_score",
+          "name": "Calculate Ready Score",
+          "type": "automated",
+          "script": "scripts/health_check.py --mode=score"
+        },
+        {
+          "id": "display_report",
+          "name": "Display Morning Report",
+          "type": "automated",
+          "action": "Present health status and priorities"
+        },
+        {
+          "id": "suggest_first_action",
+          "name": "Suggest First Action",
+          "type": "automated",
+          "action": "Recommend what to work on first"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "max_score": 100,
+    "categories": [
+      {
+        "name": "Services Running",
+        "weight": 30,
+        "checks": ["dev_server", "database", "cache"]
+      },
+      {
+        "name": "Clean Working Directory",
+        "weight": 20,
+        "checks": ["no_uncommitted", "no_conflicts"]
+      },
+      {
+        "name": "Remote Sync",
+        "weight": 10,
+        "checks": ["up_to_date", "no_diverged"]
+      },
+      {
+        "name": "Code Quality",
+        "weight": 15,
+        "checks": ["typescript_clean", "lint_clean"]
+      },
+      {
+        "name": "Tests Passing",
+        "weight": 25,
+        "checks": ["tests_pass", "coverage_ok"]
+      }
+    ]
+  },
+  "triggers": {
+    "automatic": [
+      "Session start (morning hours)",
+      "After long break (> 4 hours)"
+    ],
+    "manual": [
+      "/popkit:routine morning",
+      "Invoke pop-morning-generator skill"
+    ]
+  },
+  "output": {
+    "format": "morning_report",
+    "sections": ["health", "priorities", "ready_score", "first_action"]
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "name": "Session Resume Checklist",
+  "version": "1.0.0",
+  "description": "Checklist for session restoration process",
+  "categories": [
+    {
+      "name": "State Loading",
+      "checks": [
+        {
+          "id": "status_found",
+          "name": "STATUS.json found",
+          "description": "Located STATUS.json in expected location",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "status_valid",
+          "name": "STATUS.json valid",
+          "description": "JSON is well-formed and parseable",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "timestamp_present",
+          "name": "Timestamp present",
+          "description": "lastUpdate field exists and is valid",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "session_type_calculated",
+          "name": "Session type calculated",
+          "description": "Determined Continuation/Resume/Fresh Start",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Git Verification",
+      "applies_to": ["Fresh Start"],
+      "checks": [
+        {
+          "id": "branch_matches",
+          "name": "Branch matches",
+          "description": "Current branch matches saved branch",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "uncommitted_count",
+          "name": "Uncommitted files count",
+          "description": "Number of uncommitted files matches or is reported",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "new_commits_noted",
+          "name": "New commits noted",
+          "description": "Any commits since last session are highlighted",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Context Restoration",
+      "checks": [
+        {
+          "id": "focus_area_loaded",
+          "name": "Focus area loaded",
+          "description": "Current focus area is available",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "next_action_loaded",
+          "name": "Next action loaded",
+          "description": "Recommended next action is available",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "tasks_loaded",
+          "name": "Tasks loaded",
+          "description": "In-progress and blocked tasks are listed",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "key_decisions_loaded",
+          "name": "Key decisions loaded",
+          "description": "Important decisions from last session are available",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "User Interaction",
+      "checks": [
+        {
+          "id": "summary_displayed",
+          "name": "Summary displayed",
+          "description": "Session summary shown to user",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "options_presented",
+          "name": "Options presented",
+          "description": "User given choice to continue, review, or start fresh",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "discrepancies_reported",
+          "name": "Discrepancies reported",
+          "description": "Any state differences are highlighted",
+          "required": false,
+          "automated": true
+        }
+      ]
+    }
+  ],
+  "session_type_thresholds": {
+    "Continuation": {
+      "max_hours": 0.5,
+      "behavior": "Quick restore, assume full context",
+      "verification_level": "minimal"
+    },
+    "Resume": {
+      "min_hours": 0.5,
+      "max_hours": 4,
+      "behavior": "Restore context, brief refresh",
+      "verification_level": "standard"
+    },
+    "Fresh Start": {
+      "min_hours": 4,
+      "behavior": "Full context load, verify state",
+      "verification_level": "full"
+    }
+  },
+  "scripts": {
+    "find": "python scripts/restore_state.py --mode=find",
+    "parse": "python scripts/restore_state.py --mode=parse",
+    "verify": "python scripts/restore_state.py --mode=verify-git",
+    "summary": "python scripts/restore_state.py --mode=summary",
+    "full": "python scripts/restore_state.py --mode=all"
+  }
+}

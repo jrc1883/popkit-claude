@@ -30,6 +30,19 @@ try:
 except ImportError:
     SKILL_STATE_AVAILABLE = False
 
+# Import workflow response router (Issue #206)
+try:
+    from response_router import (
+        route_user_response,
+        should_route_response,
+        format_hook_output,
+        get_workflow_status,
+        get_pending_decision
+    )
+    WORKFLOW_ROUTER_AVAILABLE = True
+except ImportError:
+    WORKFLOW_ROUTER_AVAILABLE = False
+
 class PostToolUseHook:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
@@ -656,6 +669,52 @@ class PostToolUseHook:
         except Exception:
             pass  # Silent failure - never block tool execution
 
+    def route_workflow_response(self, tool_name: str, tool_output: Dict[str, Any]) -> Dict[str, Any]:
+        """Route AskUserQuestion responses to active workflows (Issue #206).
+
+        When a user responds to an AskUserQuestion and there's an active workflow
+        waiting for a decision, this routes the response to the workflow engine
+        to advance to the next step.
+
+        Args:
+            tool_name: Name of the tool that was executed
+            tool_output: Output from the tool
+
+        Returns:
+            Dict with routing result and any guidance for next steps
+        """
+        if not WORKFLOW_ROUTER_AVAILABLE:
+            return {"routed": False, "reason": "workflow_router_unavailable"}
+
+        # Only route AskUserQuestion responses
+        if not should_route_response(tool_name):
+            return {"routed": False, "reason": "not_ask_user_question"}
+
+        try:
+            # Route the response to the workflow
+            result = route_user_response(tool_output)
+
+            if result.routed:
+                return {
+                    "routed": True,
+                    "workflow_id": result.workflow_id,
+                    "next_step": result.next_step,
+                    "step_type": result.step_type,
+                    "skill": result.skill,
+                    "agent": result.agent,
+                    "message": result.message,
+                    "context": result.context
+                }
+            else:
+                return {
+                    "routed": False,
+                    "reason": result.message or result.error,
+                    "workflow_id": result.workflow_id
+                }
+
+        except Exception as e:
+            return {"routed": False, "reason": f"routing_error: {e}"}
+
 def check_stop_reason(input_data: Dict[str, Any]) -> Dict[str, Any]:
     """Check and handle Claude API stop reasons.
 
@@ -725,6 +784,10 @@ def main():
         pending_decision = hook.check_pending_skill_decisions(tool_name, tool_result)
         result["pending_skill_decision"] = pending_decision
 
+        # Route AskUserQuestion responses to active workflows (Issue #206)
+        workflow_result = hook.route_workflow_response(tool_name, tool_result)
+        result["workflow_routing"] = workflow_result
+
         # Add stop reason info to result
         result["stop_info"] = stop_info
 
@@ -737,7 +800,8 @@ def main():
             "followup_agents": result.get("followup_agents", []),
             "recommendations": result.get("recommendations", []),
             "metrics": result.get("metrics", {}),
-            "stop_info": result.get("stop_info", {})
+            "stop_info": result.get("stop_info", {}),
+            "workflow_routing": result.get("workflow_routing", {})
         }
 
         # Add truncation warning to recommendations if applicable
@@ -792,6 +856,21 @@ def main():
                 for opt in decision["options"]:
                     print(f"     • {opt.get('label')}: {opt.get('description', '')}", file=sys.stderr)
             print(f"   💡 Use AskUserQuestion tool to get user input", file=sys.stderr)
+            print(f"", file=sys.stderr)
+
+        # Output workflow routing guidance if applicable (Issue #206)
+        if workflow_result.get("routed"):
+            print(f"", file=sys.stderr)
+            print(f"🔀 Workflow Advanced: {workflow_result.get('workflow_id')}", file=sys.stderr)
+            print(f"   → Next step: {workflow_result.get('next_step')}", file=sys.stderr)
+
+            if workflow_result.get("skill"):
+                print(f"   💡 Invoke skill: {workflow_result.get('skill')}", file=sys.stderr)
+            elif workflow_result.get("agent"):
+                print(f"   💡 Use agent: {workflow_result.get('agent')}", file=sys.stderr)
+
+            if workflow_result.get("message"):
+                print(f"   {workflow_result.get('message')}", file=sys.stderr)
             print(f"", file=sys.stderr)
 
         print(f"✅ Tool {tool_name} analysis complete", file=sys.stderr)

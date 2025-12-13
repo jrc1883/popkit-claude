@@ -264,6 +264,19 @@ def _parse_yaml_array(yaml_str: str, indent: int) -> Tuple[List[Any], int]:
                                         nested_arr, consumed = _parse_yaml_array('\n'.join(lines[k:]), look_indent)
                                         item_dict[nested_key] = nested_arr
                                         j = k + consumed - 1
+                                    elif look_indent > item_indent:
+                                        # Nested dict (like next_map)
+                                        nested_dict = _parse_yaml_dict('\n'.join(lines[k:]), look_indent)
+                                        item_dict[nested_key] = nested_dict
+                                        # Skip consumed lines
+                                        consumed = 0
+                                        for m in range(k, len(lines)):
+                                            if lines[m].strip() and not lines[m].strip().startswith('#'):
+                                                m_indent = len(lines[m]) - len(lines[m].lstrip())
+                                                if m_indent < look_indent:
+                                                    break
+                                            consumed += 1
+                                        j = k + consumed - 1
                                     else:
                                         item_dict[nested_key] = None
                                 else:
@@ -457,7 +470,7 @@ def validate_workflow_definition(workflow_data: Dict[str, Any]) -> ValidationRes
             result.add_error(f"Step '{step_id}' references unknown step: {next_id}")
 
         # Check next_map references
-        next_map = step.get("next_map", {})
+        next_map = step.get("next_map") or {}
         for key, target_id in next_map.items():
             if target_id not in step_ids:
                 result.add_error(f"Step '{step_id}' next_map[{key}] references unknown step: {target_id}")

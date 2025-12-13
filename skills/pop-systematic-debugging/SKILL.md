@@ -1,6 +1,209 @@
 ---
 name: systematic-debugging
 description: "Four-phase debugging framework for any bug, test failure, or unexpected behavior. Enforces root cause investigation before proposing fixes through pattern analysis, hypothesis testing, and validated implementation. Use when standard debugging fails, issues span multiple components, or you've already tried obvious fixes without success. Do NOT use for simple typos, obvious syntax errors, or issues where the cause is immediately clear - those are faster to fix directly."
+inputs:
+  - from: any
+    field: error_message
+    required: false
+  - from: any
+    field: reproduction_steps
+    required: false
+outputs:
+  - field: root_cause
+    type: string
+  - field: fix_applied
+    type: boolean
+  - field: github_issue
+    type: issue_number
+next_skills:
+  - pop-test-driven-development
+  - pop-root-cause-tracing
+workflow:
+  id: systematic-debugging
+  name: Systematic Debugging Workflow
+  version: 1
+  description: Four-phase debugging with enforced root cause investigation
+  steps:
+    - id: initial_triage
+      description: Gather error information and context
+      type: agent
+      agent: bug-whisperer
+      next: issue_type_decision
+    - id: issue_type_decision
+      description: Classify the type of issue
+      type: user_decision
+      question: "What type of issue are we debugging?"
+      header: "Issue Type"
+      options:
+        - id: test_failure
+          label: "Test failure"
+          description: "Test is failing - check for flakiness first"
+          next: flakiness_check
+        - id: runtime_bug
+          label: "Runtime bug"
+          description: "Bug in production or development"
+          next: phase1_investigate
+        - id: build_failure
+          label: "Build failure"
+          description: "Build or compilation error"
+          next: phase1_investigate
+        - id: performance
+          label: "Performance"
+          description: "Slow or degraded performance"
+          next: phase1_investigate
+      next_map:
+        test_failure: flakiness_check
+        runtime_bug: phase1_investigate
+        build_failure: phase1_investigate
+        performance: phase1_investigate
+    - id: flakiness_check
+      description: Run test 5x to check for flakiness
+      type: agent
+      agent: test-writer-fixer
+      next: flakiness_result
+    - id: flakiness_result
+      description: Determine if test is flaky
+      type: user_decision
+      question: "What were the flakiness check results?"
+      header: "Flaky?"
+      options:
+        - id: consistent_fail
+          label: "Fails 5/5"
+          description: "Consistent failure - investigate as bug"
+          next: phase1_investigate
+        - id: consistent_pass
+          label: "Passes 5/5"
+          description: "Not flaky - investigate normally"
+          next: phase1_investigate
+        - id: flaky
+          label: "Mixed results"
+          description: "Flaky test - fix test first"
+          next: fix_flaky_test
+      next_map:
+        consistent_fail: phase1_investigate
+        consistent_pass: phase1_investigate
+        flaky: fix_flaky_test
+    - id: fix_flaky_test
+      description: Fix the flaky test before debugging code
+      type: skill
+      skill: pop-test-driven-development
+      next: phase1_investigate
+    - id: phase1_investigate
+      description: "Phase 1: Root cause investigation"
+      type: spawn_agents
+      agents:
+        - type: bug-whisperer
+          task: "Read error messages, check recent changes, trace data flow"
+        - type: code-explorer
+          task: "Explore related code and dependencies"
+      wait_for: all
+      next: phase2_patterns
+    - id: phase2_patterns
+      description: "Phase 2: Pattern analysis - find working examples"
+      type: agent
+      agent: code-explorer
+      next: root_cause_decision
+    - id: root_cause_decision
+      description: Confirm root cause understanding
+      type: user_decision
+      question: "Do we have a clear root cause hypothesis?"
+      header: "Root Cause"
+      options:
+        - id: yes
+          label: "Yes"
+          description: "Root cause identified - proceed to fix"
+          next: phase3_hypothesis
+        - id: need_more
+          label: "Need more info"
+          description: "Gather more evidence"
+          next: gather_more_evidence
+        - id: architectural
+          label: "Architectural"
+          description: "Looks like an architectural issue"
+          next: architectural_decision
+      next_map:
+        yes: phase3_hypothesis
+        need_more: gather_more_evidence
+        architectural: architectural_decision
+    - id: gather_more_evidence
+      description: Add diagnostic instrumentation and gather evidence
+      type: skill
+      skill: pop-root-cause-tracing
+      next: root_cause_decision
+    - id: architectural_decision
+      description: Decide how to handle architectural issue
+      type: user_decision
+      question: "How should we handle this architectural problem?"
+      header: "Approach"
+      options:
+        - id: refactor
+          label: "Refactor"
+          description: "Address the architectural issue"
+          next: plan_refactor
+        - id: workaround
+          label: "Workaround"
+          description: "Apply workaround for now"
+          next: phase3_hypothesis
+        - id: escalate
+          label: "Escalate"
+          description: "Need team discussion"
+          next: complete
+      next_map:
+        refactor: plan_refactor
+        workaround: phase3_hypothesis
+        escalate: complete
+    - id: plan_refactor
+      description: Create refactoring plan
+      type: skill
+      skill: pop-writing-plans
+      next: complete
+    - id: phase3_hypothesis
+      description: "Phase 3: Form and test hypothesis"
+      type: agent
+      agent: bug-whisperer
+      next: phase4_implement
+    - id: phase4_implement
+      description: "Phase 4: Create failing test and implement fix"
+      type: skill
+      skill: pop-test-driven-development
+      next: verify_fix
+    - id: verify_fix
+      description: Verify the fix worked
+      type: user_decision
+      question: "Did the fix resolve the issue?"
+      header: "Verified?"
+      options:
+        - id: fixed
+          label: "Fixed"
+          description: "Issue resolved, tests pass"
+          next: complete
+        - id: not_fixed
+          label: "Not fixed"
+          description: "Issue persists"
+          next: retry_decision
+      next_map:
+        fixed: complete
+        not_fixed: retry_decision
+    - id: retry_decision
+      description: Decide whether to retry or escalate
+      type: user_decision
+      question: "How many fix attempts so far? (3+ suggests architectural issue)"
+      header: "Attempts"
+      options:
+        - id: under_three
+          label: "Less than 3"
+          description: "Re-analyze with new information"
+          next: phase1_investigate
+        - id: three_plus
+          label: "3 or more"
+          description: "Stop and question architecture"
+          next: architectural_decision
+      next_map:
+        under_three: phase1_investigate
+        three_plus: architectural_decision
+    - id: complete
+      description: Debugging workflow complete
+      type: terminal
 ---
 
 # Systematic Debugging

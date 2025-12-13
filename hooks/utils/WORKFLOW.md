@@ -302,6 +302,196 @@ def handle_tool_output(tool_name: str, tool_output: dict):
             }
 ```
 
+## Authoring Guide
+
+This section explains how to add workflow definitions to PopKit skills.
+
+### Quick Start
+
+Add a `workflow:` section to your skill's YAML frontmatter:
+
+```yaml
+---
+name: my-skill
+description: Description of what this skill does
+
+workflow:
+  id: my-workflow
+  name: My Workflow
+  version: 1
+  description: Brief workflow description
+  steps:
+    - id: start
+      description: First step
+      type: agent
+      agent: code-explorer
+      next: decision
+
+    - id: decision
+      description: User chooses path
+      type: user_decision
+      question: "Which path?"
+      header: "Path"
+      options:
+        - id: path_a
+          label: "Path A"
+          description: "First option"
+          next: complete
+        - id: path_b
+          label: "Path B"
+          description: "Second option"
+          next: complete
+      next_map:
+        path_a: complete
+        path_b: complete
+
+    - id: complete
+      description: Done
+      type: terminal
+---
+```
+
+### Step Type Reference
+
+#### `skill` - Invoke Another Skill
+
+```yaml
+- id: gather_context
+  description: Run research skill
+  type: skill
+  skill: pop-knowledge-lookup
+  next: next_step
+```
+
+#### `agent` - Use a Specific Agent
+
+```yaml
+- id: explore
+  description: Explore codebase
+  type: agent
+  agent: code-explorer
+  next: next_step
+```
+
+Available agents: `code-explorer`, `code-architect`, `code-reviewer`, `bug-whisperer`, `test-writer-fixer`, `security-auditor`, `performance-optimizer`, etc.
+
+#### `user_decision` - Interactive Choice
+
+```yaml
+- id: approach_decision
+  description: Choose approach
+  type: user_decision
+  question: "Which approach should we use?"
+  header: "Approach"        # Max 12 chars
+  options:
+    - id: minimal
+      label: "Minimal"
+      description: "Quick implementation"
+      next: minimal_path
+    - id: full
+      label: "Full"
+      description: "Complete with tests"
+      next: full_path
+  next_map:
+    minimal: minimal_path
+    full: full_path
+```
+
+**Rules:**
+- `header` must be 12 characters or less
+- 2-4 options required
+- Each option needs `id`, `label`, `description`, `next`
+- `next_map` must match all option `id` values
+
+#### `spawn_agents` - Parallel Execution
+
+```yaml
+- id: parallel_work
+  description: Run agents in parallel
+  type: spawn_agents
+  agents:
+    - type: code-reviewer
+      task: "Review the implementation"
+    - type: test-writer-fixer
+      task: "Write tests for new code"
+  wait_for: all              # or "any"
+  next: next_step
+```
+
+#### `terminal` - End Workflow
+
+```yaml
+- id: complete
+  description: Workflow finished
+  type: terminal
+```
+
+### Validation Rules
+
+The JSON Schema (`workflow_schema.json`) enforces:
+
+1. **Workflow level:**
+   - `id` required, lowercase with hyphens (`^[a-z][a-z0-9-]*$`)
+   - `steps` required, at least 1 step
+
+2. **Step level:**
+   - `id` required, lowercase with hyphens/underscores
+   - `type` required, one of: `skill`, `agent`, `user_decision`, `spawn_agents`, `terminal`
+
+3. **Type-specific:**
+   - `skill` type requires `skill` field
+   - `agent` type requires `agent` field
+   - `user_decision` type requires `question`, `options`
+   - `spawn_agents` type requires `agents` array
+
+### Best Practices
+
+1. **Start with exploration** - First step should gather context
+2. **Use decisions for branching** - Let users choose their path
+3. **End with terminal** - Every path must reach a terminal step
+4. **Keep headers short** - 12 char limit for AskUserQuestion
+5. **Descriptive step IDs** - Use `_decision` suffix for decision steps
+6. **Reachability** - Ensure all steps are reachable from start
+
+### Example: Complete Workflow
+
+See these skills for reference implementations:
+
+| Skill | Workflow | Features |
+|-------|----------|----------|
+| `pop-brainstorming` | `brainstorming` | GitHub check, decisions, skill chaining |
+| `pop-analyze-project` | `analyze-project` | Depth selection, spawn_agents, output formats |
+| `pop-systematic-debugging` | `systematic-debugging` | 4-phase process, retry loops |
+| `pop-security-scan` | `security-scan` | Severity thresholds, fix/rollback paths |
+| `pop-executing-plans` | `executing-plans` | Batch execution, checkpoints, next actions |
+
+### Testing Workflows
+
+Use the workflow parser to validate:
+
+```python
+from hooks.utils.workflow_parser import parse_skill_workflow, validate_workflow_definition
+
+# Parse from skill file
+workflow = parse_skill_workflow(Path("skills/my-skill/SKILL.md"))
+
+# Validate
+result = validate_workflow_definition(workflow)
+if not result.valid:
+    print(f"Errors: {result.errors}")
+    print(f"Warnings: {result.warnings}")
+```
+
+### Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Missing `next` on non-terminal steps | Add `next: step_id` |
+| `next_map` doesn't match options | Ensure all option IDs are in next_map |
+| Header too long | Keep under 12 characters |
+| Unreachable steps | Check all `next` references |
+| Invalid step type | Use one of: skill, agent, user_decision, spawn_agents, terminal |
+
 ## Related Issues
 
 - #206 - File-Based Workflow Engine (this implementation)

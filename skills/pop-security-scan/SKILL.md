@@ -1,6 +1,193 @@
 ---
 name: pop-security-scan
 description: Scan for security vulnerabilities and automatically create GitHub issues for tracking
+inputs:
+  - from: any
+    field: severity_threshold
+    required: false
+  - from: any
+    field: fix_mode
+    required: false
+outputs:
+  - field: vulnerabilities_found
+    type: number
+  - field: issues_created
+    type: array
+  - field: report_path
+    type: file_path
+next_skills:
+  - pop-writing-plans
+workflow:
+  id: security-scan
+  name: Security Scan Workflow
+  version: 1
+  description: Automated security vulnerability detection with GitHub integration
+  steps:
+    - id: run_audit
+      description: Run npm audit and analyze results
+      type: agent
+      agent: security-auditor
+      next: severity_decision
+    - id: severity_decision
+      description: Choose minimum severity threshold
+      type: user_decision
+      question: "What severity level should we flag?"
+      header: "Severity"
+      options:
+        - id: critical_only
+          label: "Critical only"
+          description: "Only report critical vulnerabilities"
+          next: check_existing
+        - id: high_plus
+          label: "High+"
+          description: "High and critical (Recommended)"
+          next: check_existing
+        - id: all
+          label: "All"
+          description: "Report all vulnerabilities"
+          next: check_existing
+      next_map:
+        critical_only: check_existing
+        high_plus: check_existing
+        all: check_existing
+    - id: check_existing
+      description: Check for existing GitHub issues
+      type: skill
+      skill: pop-knowledge-lookup
+      next: duplicates_found
+    - id: duplicates_found
+      description: Handle duplicate detection results
+      type: user_decision
+      question: "Found existing issues. How should we proceed?"
+      header: "Duplicates"
+      options:
+        - id: skip_all
+          label: "Skip tracked"
+          description: "Don't create issues for tracked vulns"
+          next: action_decision
+        - id: update_existing
+          label: "Update existing"
+          description: "Add comments to existing issues"
+          next: action_decision
+        - id: create_all
+          label: "Create anyway"
+          description: "Create new issues regardless"
+          next: action_decision
+      next_map:
+        skip_all: action_decision
+        update_existing: action_decision
+        create_all: action_decision
+    - id: action_decision
+      description: Choose what action to take
+      type: user_decision
+      question: "What should we do with the vulnerabilities?"
+      header: "Action"
+      options:
+        - id: report_only
+          label: "Report only"
+          description: "Generate report without changes"
+          next: generate_report
+        - id: create_issues
+          label: "Create issues"
+          description: "Create GitHub issues for tracking"
+          next: create_issues
+        - id: auto_fix
+          label: "Auto-fix"
+          description: "Attempt automatic remediation"
+          next: fix_decision
+      next_map:
+        report_only: generate_report
+        create_issues: create_issues
+        auto_fix: fix_decision
+    - id: create_issues
+      description: Create GitHub issues for vulnerabilities
+      type: skill
+      skill: pop-research-capture
+      next: generate_report
+    - id: fix_decision
+      description: Choose fix approach
+      type: user_decision
+      question: "How should we apply fixes?"
+      header: "Fix Mode"
+      options:
+        - id: safe
+          label: "Safe only"
+          description: "npm audit fix (no breaking changes)"
+          next: apply_fixes
+        - id: force
+          label: "Force"
+          description: "Include breaking change fixes"
+          next: apply_fixes
+        - id: pr
+          label: "Create PR"
+          description: "Apply fixes in a pull request"
+          next: apply_fixes
+      next_map:
+        safe: apply_fixes
+        force: apply_fixes
+        pr: apply_fixes
+    - id: apply_fixes
+      description: Apply security fixes
+      type: agent
+      agent: security-auditor
+      next: verify_fixes
+    - id: verify_fixes
+      description: Verify fixes resolved vulnerabilities
+      type: user_decision
+      question: "Did the fixes resolve all vulnerabilities?"
+      header: "Verified?"
+      options:
+        - id: all_fixed
+          label: "All fixed"
+          description: "No remaining vulnerabilities"
+          next: generate_report
+        - id: some_remain
+          label: "Some remain"
+          description: "Manual remediation needed"
+          next: manual_remediation
+        - id: failed
+          label: "Failed"
+          description: "Fixes caused issues"
+          next: rollback_decision
+      next_map:
+        all_fixed: generate_report
+        some_remain: manual_remediation
+        failed: rollback_decision
+    - id: manual_remediation
+      description: Plan manual fixes for remaining vulnerabilities
+      type: skill
+      skill: pop-writing-plans
+      next: generate_report
+    - id: rollback_decision
+      description: Decide how to handle failed fixes
+      type: user_decision
+      question: "Fixes caused issues. What should we do?"
+      header: "Rollback"
+      options:
+        - id: rollback
+          label: "Rollback"
+          description: "Revert all changes"
+          next: rollback_fixes
+        - id: partial
+          label: "Keep working"
+          description: "Keep what worked, debug rest"
+          next: manual_remediation
+      next_map:
+        rollback: rollback_fixes
+        partial: manual_remediation
+    - id: rollback_fixes
+      description: Rollback failed fixes
+      type: agent
+      agent: security-auditor
+      next: generate_report
+    - id: generate_report
+      description: Generate security scan report
+      type: skill
+      skill: pop-auto-docs
+      next: complete
+    - id: complete
+      description: Security scan workflow complete
+      type: terminal
 ---
 
 # Security Scan

@@ -13,6 +13,106 @@ outputs:
 next_skills:
   - pop-writing-plans
   - pop-subagent-driven
+workflow:
+  id: brainstorming
+  name: Brainstorming Workflow
+  version: 1
+  description: Transform rough ideas into fully-formed designs
+  steps:
+    - id: github_check
+      description: Check for existing related work in GitHub
+      type: skill
+      skill: pop-knowledge-lookup
+      next: existing_work_decision
+    - id: existing_work_decision
+      description: Decide how to proceed with existing work
+      type: user_decision
+      question: "Found existing work. How should we proceed?"
+      header: "Existing"
+      options:
+        - id: use_existing
+          label: "Use existing"
+          description: "Build on what's already there"
+          next: gather_context
+        - id: enhance
+          label: "Enhance"
+          description: "Extend existing with new features"
+          next: gather_context
+        - id: fresh
+          label: "Start fresh"
+          description: "Create new design"
+          next: gather_context
+      next_map:
+        use_existing: gather_context
+        enhance: gather_context
+        fresh: gather_context
+    - id: gather_context
+      description: Understand the idea through questions
+      type: agent
+      agent: code-explorer
+      next: approach_decision
+    - id: approach_decision
+      description: Choose implementation approach
+      type: user_decision
+      question: "Which approach should we take?"
+      header: "Approach"
+      options:
+        - id: minimal
+          label: "Minimal"
+          description: "Simple, quick implementation"
+          next: present_design
+        - id: balanced
+          label: "Balanced"
+          description: "Standard approach with reasonable coverage"
+          next: present_design
+        - id: comprehensive
+          label: "Comprehensive"
+          description: "Full implementation with all edge cases"
+          next: present_design
+      next_map:
+        minimal: present_design
+        balanced: present_design
+        comprehensive: present_design
+    - id: present_design
+      description: Present design in sections for validation
+      type: skill
+      skill: pop-auto-docs
+      next: next_step_decision
+    - id: next_step_decision
+      description: Decide what to do after design
+      type: user_decision
+      question: "Design complete. What's next?"
+      header: "Next Step"
+      options:
+        - id: plan
+          label: "Create plan"
+          description: "Generate implementation plan"
+          next: create_plan
+        - id: issue
+          label: "Create issue"
+          description: "Create GitHub issue only"
+          next: create_issue
+        - id: done
+          label: "Done"
+          description: "Stop here for now"
+          next: complete
+      next_map:
+        plan: create_plan
+        issue: create_issue
+        done: complete
+    - id: create_plan
+      description: Generate implementation plan
+      type: skill
+      skill: pop-writing-plans
+      next: complete
+    - id: create_issue
+      description: Create GitHub issue from design
+      type: skill
+      skill: pop-research-capture
+      next: complete
+    - id: complete
+      description: Brainstorming workflow complete
+      type: terminal
 ---
 
 # Brainstorming Ideas Into Designs

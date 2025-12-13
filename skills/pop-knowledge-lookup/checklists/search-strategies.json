@@ -1,0 +1,138 @@
+{
+  "name": "Knowledge Search Strategies",
+  "version": "1.0.0",
+  "description": "Search strategy selection and optimization guidelines",
+  "strategies": [
+    {
+      "id": "semantic_first",
+      "name": "Semantic-First Search",
+      "description": "Try vector similarity search, fall back to keyword",
+      "when_to_use": [
+        "Conceptual questions (how does X work?)",
+        "Questions with synonyms or paraphrasing",
+        "Finding related content across topics"
+      ],
+      "configuration": {
+        "semantic_weight": 0.7,
+        "keyword_weight": 0.3,
+        "min_similarity": 0.7,
+        "fallback_on_low_results": true
+      },
+      "requirements": {
+        "embeddings_initialized": true,
+        "voyage_api_key": true
+      }
+    },
+    {
+      "id": "keyword_only",
+      "name": "Keyword-Only Search",
+      "description": "Traditional keyword matching",
+      "when_to_use": [
+        "Exact term searches",
+        "Code or command name lookups",
+        "When embeddings unavailable",
+        "High-precision requirements"
+      ],
+      "configuration": {
+        "case_sensitive": false,
+        "word_boundaries": true,
+        "include_context": true,
+        "context_lines": 2
+      },
+      "requirements": {
+        "embeddings_initialized": false,
+        "voyage_api_key": false
+      }
+    },
+    {
+      "id": "hybrid",
+      "name": "Hybrid Search",
+      "description": "Combine semantic and keyword for best results",
+      "when_to_use": [
+        "General knowledge queries",
+        "Unknown query complexity",
+        "Maximum recall needed"
+      ],
+      "configuration": {
+        "semantic_weight": 0.7,
+        "keyword_weight": 0.3,
+        "merge_strategy": "reciprocal_rank_fusion",
+        "rrf_k": 60,
+        "deduplicate": true
+      },
+      "requirements": {
+        "embeddings_initialized": "optional",
+        "voyage_api_key": "optional"
+      }
+    }
+  ],
+  "source_selection": {
+    "checks": [
+      {
+        "id": "source_freshness",
+        "name": "Check source freshness",
+        "description": "Verify sources are within TTL",
+        "ttl_hours": 24,
+        "action_if_stale": "warn_and_continue"
+      },
+      {
+        "id": "source_relevance",
+        "name": "Identify relevant sources",
+        "description": "Map query to most likely sources",
+        "min_relevance": 0.2
+      },
+      {
+        "id": "source_availability",
+        "name": "Verify sources exist",
+        "description": "Check cached content is available",
+        "required": true
+      }
+    ]
+  },
+  "result_ranking": {
+    "factors": [
+      {
+        "id": "relevance_score",
+        "weight": 0.5,
+        "description": "Combined semantic/keyword score"
+      },
+      {
+        "id": "source_authority",
+        "weight": 0.2,
+        "description": "Official docs ranked higher than blog"
+      },
+      {
+        "id": "recency",
+        "weight": 0.15,
+        "description": "More recent content preferred"
+      },
+      {
+        "id": "specificity",
+        "weight": 0.15,
+        "description": "Exact matches ranked higher"
+      }
+    ]
+  },
+  "fallback_chain": [
+    {
+      "order": 1,
+      "strategy": "semantic_first",
+      "fallback_trigger": "no_results_or_error"
+    },
+    {
+      "order": 2,
+      "strategy": "keyword_only",
+      "fallback_trigger": "no_results"
+    },
+    {
+      "order": 3,
+      "action": "suggest_refresh",
+      "message": "No results found. Try /popkit:knowledge refresh"
+    }
+  ],
+  "quality_thresholds": {
+    "high_confidence": {"min_score": 0.8, "max_results": 3},
+    "medium_confidence": {"min_score": 0.5, "max_results": 5},
+    "low_confidence": {"min_score": 0.3, "max_results": 10, "warn": true}
+  }
+}

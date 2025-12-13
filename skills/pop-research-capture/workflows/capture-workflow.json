@@ -1,0 +1,120 @@
+{
+  "name": "Research Capture Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for capturing and organizing research findings",
+  "phases": [
+    {
+      "id": "gather",
+      "name": "Gather Information",
+      "description": "Collect information from various sources",
+      "steps": [
+        {
+          "id": "identify_sources",
+          "name": "Identify Sources",
+          "prompt": "What sources should be captured?",
+          "type": "multiselect",
+          "options": [
+            {"label": "Web pages", "value": "web", "description": "URLs to fetch and analyze"},
+            {"label": "Documentation", "value": "docs", "description": "Official docs and guides"},
+            {"label": "Code repositories", "value": "repos", "description": "GitHub repos and code samples"},
+            {"label": "API references", "value": "apis", "description": "API documentation"},
+            {"label": "Discussion threads", "value": "discussions", "description": "Forums, issues, Stack Overflow"},
+            {"label": "Manual notes", "value": "manual", "description": "Your own observations"}
+          ]
+        },
+        {
+          "id": "collect_content",
+          "name": "Collect Content",
+          "type": "automated",
+          "action": "Fetch and extract content from sources"
+        },
+        {
+          "id": "extract_findings",
+          "name": "Extract Key Findings",
+          "type": "automated",
+          "script": "scripts/extract_findings.py"
+        }
+      ]
+    },
+    {
+      "id": "organize",
+      "name": "Organize Findings",
+      "description": "Structure and categorize research findings",
+      "steps": [
+        {
+          "id": "categorize",
+          "name": "Categorize Findings",
+          "prompt": "How should findings be categorized?",
+          "type": "selection",
+          "options": [
+            {"label": "By topic", "value": "topic", "description": "Group by subject matter"},
+            {"label": "By source", "value": "source", "description": "Group by information source"},
+            {"label": "By relevance", "value": "relevance", "description": "Group by importance level"},
+            {"label": "By date", "value": "date", "description": "Chronological ordering"}
+          ]
+        },
+        {
+          "id": "assign_tags",
+          "name": "Assign Tags",
+          "prompt": "Add tags to help with future retrieval",
+          "type": "input",
+          "multiValue": true
+        },
+        {
+          "id": "assess_quality",
+          "name": "Assess Quality",
+          "type": "automated",
+          "checklist": "checklists/research-quality.json"
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "name": "Store Research",
+      "description": "Persist research findings for future use",
+      "steps": [
+        {
+          "id": "generate_note",
+          "name": "Generate Research Note",
+          "type": "automated",
+          "template": "templates/research-note.md.template"
+        },
+        {
+          "id": "choose_location",
+          "name": "Choose Storage Location",
+          "prompt": "Where should the research be stored?",
+          "type": "selection",
+          "options": [
+            {"label": "docs/research/", "value": "docs/research/", "description": "Project research directory"},
+            {"label": "docs/decisions/", "value": "docs/decisions/", "description": "Decision records"},
+            {"label": "Custom path", "value": "custom", "description": "Specify custom path"}
+          ]
+        },
+        {
+          "id": "save_note",
+          "name": "Save Research Note",
+          "type": "automated",
+          "action": "Write to chosen location"
+        },
+        {
+          "id": "embed_content",
+          "name": "Embed for Search",
+          "type": "automated",
+          "conditional": "embeddings_enabled",
+          "action": "Generate embeddings for semantic search"
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [],
+    "manual": [
+      "Invoke pop-research-capture skill",
+      "Research a topic"
+    ]
+  },
+  "output": {
+    "primary": "docs/research/YYYY-MM-DD-<topic>.md",
+    "secondary": "Embeddings stored in vector database"
+  }
+}

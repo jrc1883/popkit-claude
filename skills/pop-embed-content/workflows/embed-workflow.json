@@ -1,0 +1,147 @@
+{
+  "name": "Content Embedding Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for embedding project content for semantic discovery",
+  "phases": [
+    {
+      "id": "discover",
+      "name": "Discover Content",
+      "description": "Find all embeddable content in the project",
+      "steps": [
+        {
+          "id": "scan_locations",
+          "name": "Scan Content Locations",
+          "type": "automated",
+          "script": "scripts/chunk_content.py --mode=discover",
+          "locations": [
+            ".claude/skills/*/SKILL.md",
+            ".claude/agents/*/AGENT.md",
+            ".claude/commands/*.md",
+            ".generated/skills/*/SKILL.md",
+            ".generated/agents/*/AGENT.md",
+            "MCP tool definitions"
+          ]
+        },
+        {
+          "id": "classify_content",
+          "name": "Classify Content Types",
+          "type": "automated",
+          "action": "Categorize as skill, agent, command, or tool"
+        },
+        {
+          "id": "check_api",
+          "name": "Check API Availability",
+          "type": "automated",
+          "action": "Verify VOYAGE_API_KEY is set"
+        }
+      ]
+    },
+    {
+      "id": "chunk",
+      "name": "Chunk Content",
+      "description": "Split content into embeddable chunks",
+      "steps": [
+        {
+          "id": "extract_metadata",
+          "name": "Extract Metadata",
+          "type": "automated",
+          "action": "Parse frontmatter and headers"
+        },
+        {
+          "id": "split_sections",
+          "name": "Split into Sections",
+          "type": "automated",
+          "script": "scripts/chunk_content.py --mode=chunk"
+        },
+        {
+          "id": "generate_descriptions",
+          "name": "Generate Descriptions",
+          "type": "automated",
+          "action": "Create embedding-friendly descriptions"
+        }
+      ]
+    },
+    {
+      "id": "embed",
+      "name": "Compute Embeddings",
+      "description": "Generate vector embeddings via Voyage AI",
+      "steps": [
+        {
+          "id": "check_cache",
+          "name": "Check Existing Embeddings",
+          "type": "automated",
+          "action": "Compare content hashes with stored embeddings"
+        },
+        {
+          "id": "batch_items",
+          "name": "Batch Items",
+          "type": "automated",
+          "action": "Group items respecting rate limits (50 items per batch)"
+        },
+        {
+          "id": "compute_embeddings",
+          "name": "Compute Embeddings",
+          "type": "automated",
+          "script": "scripts/chunk_content.py --mode=embed",
+          "rate_limiting": {
+            "requests_per_minute": 3,
+            "delay_between_batches": 21
+          }
+        },
+        {
+          "id": "store_embeddings",
+          "name": "Store Embeddings",
+          "type": "automated",
+          "action": "Save to SQLite embedding store"
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "Verify & Report",
+      "description": "Validate embeddings and report results",
+      "steps": [
+        {
+          "id": "validate_storage",
+          "name": "Validate Storage",
+          "type": "automated",
+          "action": "Confirm embeddings are retrievable"
+        },
+        {
+          "id": "generate_report",
+          "name": "Generate Report",
+          "type": "automated",
+          "action": "Summarize embedded, skipped, and failed items"
+        },
+        {
+          "id": "export_option",
+          "name": "Export Option",
+          "type": "conditional",
+          "condition": "--export flag",
+          "action": "Export to .claude/tool_embeddings.json"
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [
+      "After skill generation",
+      "After agent generation",
+      "After MCP server generation"
+    ],
+    "manual": [
+      "/popkit:project embed",
+      "Invoke pop-embed-content skill"
+    ]
+  },
+  "configuration": {
+    "embedding_model": "voyage-3.5",
+    "dimension": 1024,
+    "batch_size": 50,
+    "rate_limit_delay": 21
+  },
+  "output": {
+    "storage": "~/.claude/embeddings/embeddings.db",
+    "export": ".claude/tool_embeddings.json"
+  }
+}

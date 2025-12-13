@@ -1,0 +1,176 @@
+{
+  "name": "Project Embedding Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for embedding project-local content for semantic discovery",
+  "premium": {
+    "required_tier": "pro",
+    "free_fallback": "basic_search"
+  },
+  "phases": [
+    {
+      "id": "entitlement",
+      "name": "Check Entitlement",
+      "description": "Verify user has Pro tier access",
+      "steps": [
+        {
+          "id": "check_tier",
+          "name": "Check User Tier",
+          "type": "automated",
+          "script": "scripts/scan_project.py --mode=entitlement"
+        },
+        {
+          "id": "fallback_if_free",
+          "name": "Provide Free Tier Fallback",
+          "type": "conditional",
+          "condition": "tier == free",
+          "action": "Show basic search alternatives"
+        }
+      ]
+    },
+    {
+      "id": "scan",
+      "name": "Scan Project",
+      "description": "Find all embeddable project items",
+      "steps": [
+        {
+          "id": "scan_locations",
+          "name": "Scan Project Locations",
+          "type": "automated",
+          "script": "scripts/scan_project.py --mode=scan",
+          "locations": [
+            ".claude/skills/*/SKILL.md",
+            ".claude/agents/*/AGENT.md",
+            ".claude/commands/*.md",
+            ".generated/skills/*/SKILL.md",
+            ".generated/agents/*/AGENT.md"
+          ]
+        },
+        {
+          "id": "extract_metadata",
+          "name": "Extract Metadata",
+          "type": "automated",
+          "action": "Parse frontmatter for name and description"
+        },
+        {
+          "id": "compute_hashes",
+          "name": "Compute Content Hashes",
+          "type": "automated",
+          "action": "SHA256 hash for change detection"
+        }
+      ]
+    },
+    {
+      "id": "filter",
+      "name": "Filter Items",
+      "description": "Determine which items need embedding",
+      "steps": [
+        {
+          "id": "check_existing",
+          "name": "Check Existing Embeddings",
+          "type": "automated",
+          "action": "Query embedding store for existing items"
+        },
+        {
+          "id": "identify_changes",
+          "name": "Identify Changed Items",
+          "type": "automated",
+          "action": "Compare content hashes with stored hashes"
+        },
+        {
+          "id": "apply_filters",
+          "name": "Apply Type Filters",
+          "type": "conditional",
+          "condition": "--type flag provided",
+          "action": "Filter to specified content type"
+        },
+        {
+          "id": "force_mode",
+          "name": "Force Mode Check",
+          "type": "conditional",
+          "condition": "--force flag",
+          "action": "Include all items regardless of hash"
+        }
+      ]
+    },
+    {
+      "id": "embed",
+      "name": "Compute Embeddings",
+      "description": "Generate vector embeddings via Voyage AI",
+      "steps": [
+        {
+          "id": "verify_api",
+          "name": "Verify API Key",
+          "type": "automated",
+          "action": "Check VOYAGE_API_KEY is set"
+        },
+        {
+          "id": "batch_items",
+          "name": "Batch Items",
+          "type": "automated",
+          "action": "Group into batches of 50"
+        },
+        {
+          "id": "embed_batches",
+          "name": "Embed Batches",
+          "type": "automated",
+          "script": "scripts/scan_project.py --mode=embed",
+          "rate_limiting": {
+            "requests_per_minute": 3,
+            "delay_between_batches": 21,
+            "show_progress": true
+          }
+        },
+        {
+          "id": "store_results",
+          "name": "Store Embeddings",
+          "type": "automated",
+          "action": "Save to SQLite embedding store with metadata"
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "Verify & Report",
+      "description": "Confirm embeddings and report results",
+      "steps": [
+        {
+          "id": "verify_storage",
+          "name": "Verify Storage",
+          "type": "automated",
+          "action": "Confirm all items are retrievable"
+        },
+        {
+          "id": "test_search",
+          "name": "Test Semantic Search",
+          "type": "automated",
+          "action": "Perform sample search to verify functionality"
+        },
+        {
+          "id": "generate_report",
+          "name": "Generate Report",
+          "type": "automated",
+          "action": "Summarize embedded, skipped, and failed items"
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [
+      "After manual skill/agent/command creation"
+    ],
+    "manual": [
+      "/popkit:project embed",
+      "Invoke pop-embed-project skill"
+    ]
+  },
+  "free_tier_fallback": {
+    "search_skills": "ls .claude/skills/*/SKILL.md 2>/dev/null",
+    "search_agents": "ls .claude/agents/*/AGENT.md 2>/dev/null",
+    "search_commands": "ls .claude/commands/*.md 2>/dev/null",
+    "keyword_search": "grep -r 'keyword' .claude/"
+  },
+  "output": {
+    "storage": "~/.claude/embeddings/embeddings.db",
+    "report_format": "summary"
+  }
+}

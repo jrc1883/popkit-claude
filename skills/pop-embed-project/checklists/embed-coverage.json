@@ -1,0 +1,178 @@
+{
+  "name": "Project Embedding Coverage",
+  "version": "1.0.0",
+  "description": "Coverage checklist for project embedding completeness",
+  "categories": [
+    {
+      "name": "Content Discovery",
+      "checks": [
+        {
+          "id": "skills_scanned",
+          "name": "Skills directory scanned",
+          "description": ".claude/skills/*/SKILL.md checked",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "agents_scanned",
+          "name": "Agents directory scanned",
+          "description": ".claude/agents/*/AGENT.md checked",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "commands_scanned",
+          "name": "Commands directory scanned",
+          "description": ".claude/commands/*.md checked",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "generated_scanned",
+          "name": "Generated content scanned",
+          "description": ".generated/skills and agents checked",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Content Quality",
+      "checks": [
+        {
+          "id": "has_frontmatter",
+          "name": "All items have frontmatter",
+          "description": "YAML frontmatter present at start of file",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "has_name",
+          "name": "All items have name field",
+          "description": "Name field in frontmatter",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "has_description",
+          "name": "All items have description",
+          "description": "Description field in frontmatter (required for embedding)",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "description_quality",
+          "name": "Descriptions are meaningful",
+          "description": "Description > 20 characters and explains purpose",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Embedding Coverage",
+      "checks": [
+        {
+          "id": "all_skills_embedded",
+          "name": "All skills embedded",
+          "description": "Every skill with description has embedding",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "all_agents_embedded",
+          "name": "All agents embedded",
+          "description": "Every agent with description has embedding",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "all_commands_embedded",
+          "name": "All commands embedded",
+          "description": "Every command with description has embedding",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_stale_embeddings",
+          "name": "No stale embeddings",
+          "description": "All embeddings match current content hashes",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Search Verification",
+      "checks": [
+        {
+          "id": "retrieval_works",
+          "name": "Retrieval works",
+          "description": "Can search and retrieve embedded items",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "similarity_correct",
+          "name": "Similarity scores reasonable",
+          "description": "Related items return high similarity",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "routing_functional",
+          "name": "Routing uses embeddings",
+          "description": "Semantic router can find project items",
+          "required": false,
+          "automated": true
+        }
+      ]
+    }
+  ],
+  "coverage_targets": {
+    "minimum": {
+      "percentage": 80,
+      "description": "80% of discoverable items embedded"
+    },
+    "recommended": {
+      "percentage": 95,
+      "description": "95% of items with descriptions embedded"
+    },
+    "complete": {
+      "percentage": 100,
+      "description": "All items with descriptions embedded"
+    }
+  },
+  "content_requirements": {
+    "frontmatter_required": true,
+    "description_min_length": 20,
+    "name_required": true
+  },
+  "scan_locations": [
+    {
+      "path": ".claude/skills/*/SKILL.md",
+      "type": "project-skill"
+    },
+    {
+      "path": ".claude/agents/*/AGENT.md",
+      "type": "project-agent"
+    },
+    {
+      "path": ".claude/commands/*.md",
+      "type": "project-command"
+    },
+    {
+      "path": ".generated/skills/*/SKILL.md",
+      "type": "generated-skill"
+    },
+    {
+      "path": ".generated/agents/*/AGENT.md",
+      "type": "generated-agent"
+    }
+  ],
+  "scripts": {
+    "scan": "python scripts/scan_project.py --mode=scan",
+    "status": "python scripts/scan_project.py --mode=status",
+    "embed": "python scripts/scan_project.py --mode=embed"
+  }
+}

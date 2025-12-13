@@ -1,0 +1,178 @@
+{
+  "name": "NPM Publish Checklist",
+  "version": "1.0.0",
+  "description": "Pre and post publish checks for npm packages",
+  "categories": [
+    {
+      "name": "Pre-Publish",
+      "checks": [
+        {
+          "id": "npm_authenticated",
+          "name": "Authenticated with npm",
+          "description": "npm whoami returns username",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "version_bumped",
+          "name": "Version bumped",
+          "description": "Version in package.json updated",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "version_not_published",
+          "name": "Version not already published",
+          "description": "This version doesn't exist on npm",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "changelog_updated",
+          "name": "Changelog updated",
+          "description": "CHANGELOG.md has entry for this version",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tests_passing",
+          "name": "All tests pass",
+          "description": "npm test exits with code 0",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "build_succeeds",
+          "name": "Build succeeds",
+          "description": "npm run build completes without errors",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Package Quality",
+      "checks": [
+        {
+          "id": "readme_exists",
+          "name": "README.md exists",
+          "description": "Package has documentation",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "license_specified",
+          "name": "License specified",
+          "description": "License field in package.json",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "main_entry_exists",
+          "name": "Main entry point exists",
+          "description": "File specified in 'main' field exists",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "types_included",
+          "name": "TypeScript types included",
+          "description": "Types field or @types package referenced",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "engines_specified",
+          "name": "Node engines specified",
+          "description": "engines.node field set",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "checks": [
+        {
+          "id": "no_secrets_in_package",
+          "name": "No secrets in package",
+          "description": "API keys/tokens not in published files",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "npmignore_configured",
+          "name": ".npmignore or files field",
+          "description": "Control what gets published",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_vulnerabilities",
+          "name": "No known vulnerabilities",
+          "description": "npm audit shows no high/critical",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "package_not_private",
+          "name": "Package not marked private",
+          "description": "private: false in package.json",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Pre-Publish Verification",
+      "checks": [
+        {
+          "id": "pack_contents_reviewed",
+          "name": "Pack contents reviewed",
+          "description": "npm pack --dry-run shows expected files",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "package_size_reasonable",
+          "name": "Package size reasonable",
+          "description": "Packed size under expected limit",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Post-Publish",
+      "checks": [
+        {
+          "id": "version_on_registry",
+          "name": "Version on registry",
+          "description": "npm view package@version works",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "install_works",
+          "name": "Install works",
+          "description": "Can npm install the new version",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "git_tag_created",
+          "name": "Git tag created",
+          "description": "Version tag pushed to repository",
+          "required": true,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "validate": "python scripts/npm_publish.py --validate-only",
+    "publish": "python scripts/npm_publish.py",
+    "publish_beta": "python scripts/npm_publish.py --tag beta",
+    "dry_run": "python scripts/npm_publish.py --dry-run"
+  }
+}

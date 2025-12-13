@@ -1,0 +1,171 @@
+{
+  "name": "Docker Deployment Checklist",
+  "version": "1.0.0",
+  "description": "Pre and post deployment checks for Docker deployments",
+  "categories": [
+    {
+      "name": "Pre-Build",
+      "checks": [
+        {
+          "id": "dockerfile_exists",
+          "name": "Dockerfile exists",
+          "description": "Verify Dockerfile is present in project root",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "dockerignore_exists",
+          "name": ".dockerignore configured",
+          "description": "Ensure .dockerignore excludes node_modules, .git, etc.",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_secrets_in_dockerfile",
+          "name": "No secrets in Dockerfile",
+          "description": "Verify no API keys, passwords, or tokens in Dockerfile",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "base_image_pinned",
+          "name": "Base image version pinned",
+          "description": "Use specific version tags, not 'latest'",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "multi_stage_build",
+          "name": "Multi-stage build used",
+          "description": "Separate build and production stages for smaller images",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "checks": [
+        {
+          "id": "non_root_user",
+          "name": "Non-root user configured",
+          "description": "Container runs as non-root user",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_privileged_mode",
+          "name": "No privileged mode",
+          "description": "Container doesn't require --privileged flag",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "vulnerability_scan",
+          "name": "Image vulnerability scan",
+          "description": "Run docker scout or trivy scan",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "minimal_base_image",
+          "name": "Minimal base image",
+          "description": "Use alpine or distroless when possible",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Build Verification",
+      "checks": [
+        {
+          "id": "build_succeeds",
+          "name": "Docker build succeeds",
+          "description": "Image builds without errors",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "image_size_reasonable",
+          "name": "Image size reasonable",
+          "description": "Final image under 500MB (ideally under 200MB)",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "health_check_configured",
+          "name": "Health check configured",
+          "description": "HEALTHCHECK instruction in Dockerfile",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "container_starts",
+          "name": "Container starts successfully",
+          "description": "docker run completes without immediate exit",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Registry",
+      "checks": [
+        {
+          "id": "registry_authenticated",
+          "name": "Registry authentication",
+          "description": "Logged into container registry",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tags_applied",
+          "name": "Version tags applied",
+          "description": "Image tagged with version, latest, and git SHA",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "push_succeeds",
+          "name": "Push succeeds",
+          "description": "Image pushed to registry without errors",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Post-Deployment",
+      "checks": [
+        {
+          "id": "pull_works",
+          "name": "Image pullable",
+          "description": "Can pull image from registry",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "health_check_passes",
+          "name": "Health check passes",
+          "description": "Container health check returns healthy",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "logs_clean",
+          "name": "No error logs",
+          "description": "Container logs show no errors on startup",
+          "required": true,
+          "automated": true
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "pre_build": "python scripts/docker_build.py --dry-run",
+    "build": "python scripts/docker_build.py",
+    "push": "python scripts/docker_push.py",
+    "scan": "docker scout cves ${IMAGE_TAG}"
+  }
+}

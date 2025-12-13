@@ -1,0 +1,179 @@
+{
+  "name": "Vercel Deployment Checklist",
+  "version": "1.0.0",
+  "description": "Pre and post deployment checks for Vercel",
+  "categories": [
+    {
+      "name": "Pre-Deployment",
+      "checks": [
+        {
+          "id": "vercel_cli_installed",
+          "name": "Vercel CLI installed",
+          "description": "npm i -g vercel",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "vercel_authenticated",
+          "name": "Authenticated with Vercel",
+          "description": "vercel login completed",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "project_linked",
+          "name": "Project linked",
+          "description": ".vercel/project.json exists",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "build_succeeds_locally",
+          "name": "Build succeeds locally",
+          "description": "npm run build completes without errors",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Configuration",
+      "checks": [
+        {
+          "id": "vercel_json_valid",
+          "name": "vercel.json valid",
+          "description": "Configuration file syntax correct",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "framework_detected",
+          "name": "Framework detected",
+          "description": "Vercel auto-detects framework or manual config",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "environment_variables_set",
+          "name": "Environment variables configured",
+          "description": "Required env vars set in Vercel dashboard",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "build_command_configured",
+          "name": "Build command configured",
+          "description": "Correct build command in settings or vercel.json",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "output_directory_set",
+          "name": "Output directory configured",
+          "description": "Correct output directory specified",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Serverless Functions",
+      "checks": [
+        {
+          "id": "api_routes_valid",
+          "name": "API routes valid",
+          "description": "api/ directory functions export correctly",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "function_size_ok",
+          "name": "Function size acceptable",
+          "description": "Functions under 50MB limit",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "cold_start_acceptable",
+          "name": "Cold start time acceptable",
+          "description": "Functions start within timeout",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "checks": [
+        {
+          "id": "no_secrets_in_code",
+          "name": "No secrets in code",
+          "description": "API keys and tokens in environment variables only",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "security_headers_set",
+          "name": "Security headers configured",
+          "description": "X-Frame-Options, CSP, etc. in vercel.json",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "password_protection",
+          "name": "Password protection if needed",
+          "description": "Preview deployments protected if sensitive",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Post-Deployment",
+      "checks": [
+        {
+          "id": "deploy_successful",
+          "name": "Deploy successful",
+          "description": "Deployment completed without errors",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "site_accessible",
+          "name": "Site accessible",
+          "description": "Can access deployed URL",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "preview_url_works",
+          "name": "Preview URL works",
+          "description": "Deploy preview accessible for non-prod",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "api_endpoints_working",
+          "name": "API endpoints working",
+          "description": "Serverless functions respond correctly",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "domain_configured",
+          "name": "Custom domain configured",
+          "description": "Production domain points to deployment",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "deploy_preview": "python scripts/vercel_deploy.py",
+    "deploy_production": "python scripts/vercel_deploy.py --prod",
+    "list_deploys": "python scripts/vercel_deploy.py --list",
+    "rollback": "python scripts/vercel_deploy.py --rollback",
+    "promote": "python scripts/vercel_deploy.py --promote URL"
+  }
+}

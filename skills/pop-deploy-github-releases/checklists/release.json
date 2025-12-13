@@ -1,0 +1,137 @@
+{
+  "name": "GitHub Release Checklist",
+  "version": "1.0.0",
+  "description": "Pre and post release checks for GitHub releases",
+  "categories": [
+    {
+      "name": "Pre-Release",
+      "checks": [
+        {
+          "id": "version_bumped",
+          "name": "Version bumped",
+          "description": "Version number updated in package.json/pyproject.toml",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "changelog_updated",
+          "name": "Changelog updated",
+          "description": "CHANGELOG.md has entry for this version",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tests_passing",
+          "name": "All tests pass",
+          "description": "CI/CD pipeline shows green",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tag_created",
+          "name": "Git tag created",
+          "description": "Version tag exists (e.g., v1.0.0)",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tag_pushed",
+          "name": "Tag pushed to remote",
+          "description": "Tag visible on GitHub",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Release Content",
+      "checks": [
+        {
+          "id": "title_descriptive",
+          "name": "Release title descriptive",
+          "description": "Title conveys the main changes",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "release_notes_complete",
+          "name": "Release notes complete",
+          "description": "All significant changes documented",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "breaking_changes_highlighted",
+          "name": "Breaking changes highlighted",
+          "description": "Breaking changes clearly marked if any",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "migration_guide_if_needed",
+          "name": "Migration guide included",
+          "description": "Upgrade instructions for breaking changes",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "checks": [
+        {
+          "id": "assets_built",
+          "name": "Release assets built",
+          "description": "All distributable files generated",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "assets_uploaded",
+          "name": "Assets uploaded",
+          "description": "Binary files attached to release",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "checksums_provided",
+          "name": "Checksums provided",
+          "description": "SHA256 checksums for all assets",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Post-Release",
+      "checks": [
+        {
+          "id": "release_visible",
+          "name": "Release visible on GitHub",
+          "description": "Release page accessible",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "assets_downloadable",
+          "name": "Assets downloadable",
+          "description": "All attached files can be downloaded",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "announcement_posted",
+          "name": "Announcement posted",
+          "description": "Release announced (if applicable)",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "create_release": "python scripts/create_release.py ${TAG}",
+    "upload_assets": "python scripts/upload_assets.py ${TAG} ${ASSETS}",
+    "auto_notes": "python scripts/create_release.py ${TAG} --auto-notes"
+  }
+}

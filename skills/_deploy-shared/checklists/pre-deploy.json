@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "pre-deploy",
+  "version": "1.0.0",
+  "description": "Pre-deployment checklist for all platforms",
+  "categories": [
+    {
+      "id": "code-quality",
+      "name": "Code Quality",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "PD-001",
+          "name": "All Tests Pass",
+          "description": "Run test suite and verify 100% pass rate",
+          "command": "npm test || pytest",
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "PD-002",
+          "name": "Lint Clean",
+          "description": "No linting errors or warnings",
+          "command": "npm run lint || ruff check",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "PD-003",
+          "name": "Type Check",
+          "description": "No type errors",
+          "command": "npm run typecheck || mypy .",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "PD-004",
+          "name": "Build Succeeds",
+          "description": "Production build completes without errors",
+          "command": "npm run build",
+          "severity": "critical",
+          "automated": true
+        }
+      ]
+    },
+    {
+      "id": "version-control",
+      "name": "Version Control",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "PD-010",
+          "name": "Clean Working Directory",
+          "description": "No uncommitted changes",
+          "command": "git status --porcelain",
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "PD-011",
+          "name": "On Correct Branch",
+          "description": "Deploying from main/master branch",
+          "command": "git branch --show-current",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "PD-012",
+          "name": "Up to Date",
+          "description": "Local branch up to date with remote",
+          "command": "git fetch && git status",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "PD-013",
+          "name": "Version Tagged",
+          "description": "Current commit has version tag",
+          "command": "git describe --tags --exact-match",
+          "severity": "medium",
+          "automated": true
+        }
+      ]
+    },
+    {
+      "id": "documentation",
+      "name": "Documentation",
+      "weight": 15,
+      "checks": [
+        {
+          "id": "PD-020",
+          "name": "Changelog Updated",
+          "description": "CHANGELOG.md has entry for new version",
+          "severity": "high",
+          "automated": false
+        },
+        {
+          "id": "PD-021",
+          "name": "Version Bumped",
+          "description": "Version numbers updated in all files",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "PD-022",
+          "name": "README Current",
+          "description": "README reflects current functionality",
+          "severity": "medium",
+          "automated": false
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "PD-030",
+          "name": "No Secrets in Code",
+          "description": "No hardcoded secrets or credentials",
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "PD-031",
+          "name": "Dependencies Audited",
+          "description": "No high/critical vulnerabilities",
+          "command": "npm audit || safety check",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "PD-032",
+          "name": "Environment Variables Set",
+          "description": "Required env vars configured for target",
+          "severity": "critical",
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 90,
+    "critical_must_pass": true
+  }
+}

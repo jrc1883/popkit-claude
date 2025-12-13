@@ -1,0 +1,164 @@
+{
+  "name": "Netlify Deployment Checklist",
+  "version": "1.0.0",
+  "description": "Pre and post deployment checks for Netlify",
+  "categories": [
+    {
+      "name": "Pre-Deployment",
+      "checks": [
+        {
+          "id": "netlify_cli_installed",
+          "name": "Netlify CLI installed",
+          "description": "npm i -g netlify-cli",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "netlify_authenticated",
+          "name": "Authenticated with Netlify",
+          "description": "Run netlify login if needed",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "site_linked",
+          "name": "Site linked",
+          "description": "Project linked to Netlify site",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "build_succeeds_locally",
+          "name": "Build succeeds locally",
+          "description": "npm run build completes without errors",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "netlify_toml_valid",
+          "name": "netlify.toml valid",
+          "description": "Configuration file syntax correct",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Build Configuration",
+      "checks": [
+        {
+          "id": "build_command_set",
+          "name": "Build command configured",
+          "description": "Build command specified in netlify.toml or UI",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "publish_directory_set",
+          "name": "Publish directory configured",
+          "description": "Output directory specified correctly",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "environment_variables_set",
+          "name": "Environment variables configured",
+          "description": "Required env vars set in Netlify UI",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "node_version_specified",
+          "name": "Node version specified",
+          "description": "NODE_VERSION set in build environment",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Functions",
+      "checks": [
+        {
+          "id": "functions_directory_exists",
+          "name": "Functions directory exists",
+          "description": "netlify/functions or specified directory",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "functions_tested",
+          "name": "Functions tested locally",
+          "description": "netlify dev works correctly",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "checks": [
+        {
+          "id": "no_secrets_in_code",
+          "name": "No secrets in code",
+          "description": "API keys and tokens in environment variables only",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "security_headers_set",
+          "name": "Security headers configured",
+          "description": "X-Frame-Options, CSP, etc. in netlify.toml",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "https_enforced",
+          "name": "HTTPS enforced",
+          "description": "Site forces HTTPS (default on Netlify)",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Post-Deployment",
+      "checks": [
+        {
+          "id": "deploy_successful",
+          "name": "Deploy successful",
+          "description": "Deployment completed without errors",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "site_accessible",
+          "name": "Site accessible",
+          "description": "Can access deployed URL",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "preview_url_works",
+          "name": "Preview URL works",
+          "description": "Deploy preview accessible for non-prod deploys",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "functions_working",
+          "name": "Functions working",
+          "description": "Serverless functions respond correctly",
+          "required": false,
+          "automated": true
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "deploy_preview": "python scripts/netlify_deploy.py",
+    "deploy_production": "python scripts/netlify_deploy.py --prod",
+    "list_deploys": "python scripts/netlify_deploy.py --list",
+    "rollback": "python scripts/netlify_deploy.py --rollback"
+  }
+}

@@ -318,7 +318,7 @@ Parallel agent orchestration.
 | `/popkit:power` | start | stop | status | init | metrics | widgets | consensus [--consensus, --age |
 | `/popkit:privacy` | status | consent | export | delete | level [strict|moderate|minimal] |
 | `/popkit:project` | init | analyze | board | embed | generate | mcp | setup | skills | observe [--po |
-| `/popkit:research` | list | search | add | tag | show | delete [--type, --project] |
+| `/popkit:research` | list | search | add | tag | show | delete | merge [--type, --project] |
 | `/popkit:routine` | morning | nightly [run|quick|generate|list|set|edit|delete] |
 | `/popkit:security` | scan | list | fix | report [--dry-run, --severity, --fix] |
 | `/popkit:stats` | session | today | week | cloud | reset - Efficiency metrics |

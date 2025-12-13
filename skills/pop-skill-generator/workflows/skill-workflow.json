@@ -1,0 +1,202 @@
+{
+  "name": "Skill Generation Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for generating new PopKit skills with full resource structure",
+  "phases": [
+    {
+      "id": "design",
+      "name": "Design Skill",
+      "description": "Define what the skill does and how it works",
+      "steps": [
+        {
+          "id": "skill_name",
+          "name": "Skill Name",
+          "prompt": "What is the skill name? (use kebab-case with pop- prefix)",
+          "type": "input",
+          "validation": "^pop-[a-z0-9-]+$",
+          "examples": ["pop-deploy-kubernetes", "pop-analyze-performance"]
+        },
+        {
+          "id": "description",
+          "name": "Skill Description",
+          "prompt": "Describe what this skill does in one sentence:",
+          "type": "input"
+        },
+        {
+          "id": "category",
+          "name": "Skill Category",
+          "prompt": "What category does this skill belong to?",
+          "type": "selection",
+          "options": [
+            {"label": "Development Workflow", "value": "dev-workflow"},
+            {"label": "Deployment", "value": "deployment"},
+            {"label": "Code Quality", "value": "quality"},
+            {"label": "Project Setup", "value": "setup"},
+            {"label": "Analysis", "value": "analysis"},
+            {"label": "Documentation", "value": "documentation"},
+            {"label": "Integration", "value": "integration"},
+            {"label": "Utility", "value": "utility"}
+          ]
+        },
+        {
+          "id": "triggers",
+          "name": "Skill Triggers",
+          "prompt": "What triggers should activate this skill?",
+          "type": "multiselect",
+          "options": [
+            {"label": "Keywords in prompt", "value": "keywords"},
+            {"label": "File patterns", "value": "file_patterns"},
+            {"label": "Project type", "value": "project_type"},
+            {"label": "Manual invocation only", "value": "manual"}
+          ]
+        },
+        {
+          "id": "has_workflow",
+          "name": "Include Workflow?",
+          "prompt": "Does this skill need a multi-phase workflow?",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "id": "has_scripts",
+          "name": "Include Scripts?",
+          "prompt": "Will this skill include Python automation scripts?",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "id": "has_templates",
+          "name": "Include Templates?",
+          "prompt": "Will this skill generate files from templates?",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "id": "has_checklists",
+          "name": "Include Checklists?",
+          "prompt": "Should this skill include verification checklists?",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "id": "generate",
+      "name": "Generate Skill",
+      "description": "Create the skill directory and files",
+      "steps": [
+        {
+          "id": "create_directory",
+          "name": "Create Skill Directory",
+          "type": "automated",
+          "action": "mkdir skills/{skill_name}"
+        },
+        {
+          "id": "generate_skill_md",
+          "name": "Generate SKILL.md",
+          "type": "automated",
+          "template": "templates/skill/SKILL.md.template"
+        },
+        {
+          "id": "generate_workflow",
+          "name": "Generate Workflow",
+          "type": "automated",
+          "conditional": "has_workflow == true",
+          "template": "templates/skill/workflows/workflow.json.template"
+        },
+        {
+          "id": "generate_scripts",
+          "name": "Generate Scripts",
+          "type": "automated",
+          "conditional": "has_scripts == true",
+          "template": "templates/skill/scripts/"
+        },
+        {
+          "id": "generate_checklists",
+          "name": "Generate Checklists",
+          "type": "automated",
+          "conditional": "has_checklists == true",
+          "template": "templates/skill/checklists/"
+        },
+        {
+          "id": "generate_templates",
+          "name": "Generate Templates",
+          "type": "automated",
+          "conditional": "has_templates == true",
+          "action": "mkdir skills/{skill_name}/templates"
+        }
+      ]
+    },
+    {
+      "id": "test",
+      "name": "Test Skill",
+      "description": "Verify the generated skill works",
+      "steps": [
+        {
+          "id": "validate_structure",
+          "name": "Validate Structure",
+          "type": "automated",
+          "checks": [
+            "SKILL.md exists and valid",
+            "workflows/ if workflow enabled",
+            "scripts/ if scripts enabled",
+            "checklists/ if checklists enabled"
+          ]
+        },
+        {
+          "id": "validate_syntax",
+          "name": "Validate Syntax",
+          "type": "automated",
+          "checks": [
+            "SKILL.md frontmatter valid YAML",
+            "JSON files are valid",
+            "Python scripts have no syntax errors"
+          ]
+        },
+        {
+          "id": "test_invocation",
+          "name": "Test Invocation",
+          "type": "manual",
+          "prompt": "Test the skill by invoking it manually"
+        }
+      ]
+    },
+    {
+      "id": "integrate",
+      "name": "Integrate Skill",
+      "description": "Add skill to PopKit configuration",
+      "steps": [
+        {
+          "id": "update_config",
+          "name": "Update agents/config.json",
+          "type": "automated",
+          "action": "Add skill to skill_routing"
+        },
+        {
+          "id": "document",
+          "name": "Update Documentation",
+          "type": "automated",
+          "action": "Add to skill listing"
+        },
+        {
+          "id": "next_steps",
+          "name": "Show Next Steps",
+          "type": "display",
+          "content": "Skill created. Customize SKILL.md and test with /popkit:plugin test"
+        }
+      ]
+    }
+  ],
+  "output_structure": {
+    "directory": "skills/{skill_name}/",
+    "files": {
+      "always": ["SKILL.md"],
+      "conditional": {
+        "has_workflow": ["workflows/{skill_name}-workflow.json"],
+        "has_scripts": ["scripts/main.py"],
+        "has_checklists": ["checklists/checklist.json"],
+        "has_templates": ["templates/"]
+      }
+    }
+  }
+}

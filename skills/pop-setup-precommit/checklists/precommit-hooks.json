@@ -1,0 +1,146 @@
+{
+  "name": "Pre-commit Setup Checklist",
+  "version": "1.0.0",
+  "description": "Verification checklist for pre-commit hook setup",
+  "categories": [
+    {
+      "name": "Installation",
+      "checks": [
+        {
+          "id": "framework_installed",
+          "name": "Framework installed",
+          "description": "pre-commit, husky, or lefthook installed",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "config_exists",
+          "name": "Configuration file exists",
+          "description": ".pre-commit-config.yaml, .husky/, or lefthook.yml",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "hooks_installed",
+          "name": "Git hooks installed",
+          "description": ".git/hooks/pre-commit exists and is executable",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Hook Configuration",
+      "checks": [
+        {
+          "id": "linter_configured",
+          "name": "Linter hook configured",
+          "description": "ESLint, Ruff, or equivalent configured",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "formatter_configured",
+          "name": "Formatter hook configured",
+          "description": "Prettier, Black, or equivalent configured",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "typecheck_configured",
+          "name": "Type checker configured",
+          "description": "TypeScript or mypy if applicable",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "commit_msg_hook",
+          "name": "Commit message hook",
+          "description": "Conventional commit validation",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "checks": [
+        {
+          "id": "hooks_run",
+          "name": "Hooks run successfully",
+          "description": "pre-commit run --all-files passes",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "staged_files_work",
+          "name": "Staged file hooks work",
+          "description": "Hooks run on staged files only",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "commit_works",
+          "name": "Commit succeeds",
+          "description": "Can make a valid commit",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Team Setup",
+      "checks": [
+        {
+          "id": "documented",
+          "name": "Setup documented",
+          "description": "README includes hook setup instructions",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "ci_integration",
+          "name": "CI integration",
+          "description": "Hooks also run in CI pipeline",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "available_hooks": {
+    "general": [
+      {"id": "trailing-whitespace", "name": "Trailing Whitespace", "description": "Remove trailing whitespace"},
+      {"id": "end-of-file-fixer", "name": "End of File Fixer", "description": "Ensure files end with newline"},
+      {"id": "check-yaml", "name": "Check YAML", "description": "Validate YAML syntax"},
+      {"id": "check-json", "name": "Check JSON", "description": "Validate JSON syntax"},
+      {"id": "check-merge-conflict", "name": "Check Merge Conflict", "description": "Detect merge conflict markers"},
+      {"id": "detect-secrets", "name": "Detect Secrets", "description": "Find accidentally committed secrets"}
+    ],
+    "javascript": [
+      {"id": "eslint", "name": "ESLint", "description": "JavaScript/TypeScript linting"},
+      {"id": "prettier", "name": "Prettier", "description": "Code formatting"},
+      {"id": "tsc", "name": "TypeScript Check", "description": "Type checking"},
+      {"id": "jest", "name": "Jest", "description": "Run affected tests"}
+    ],
+    "python": [
+      {"id": "ruff", "name": "Ruff", "description": "Fast Python linting"},
+      {"id": "ruff-format", "name": "Ruff Format", "description": "Fast Python formatting"},
+      {"id": "black", "name": "Black", "description": "Python formatting"},
+      {"id": "isort", "name": "isort", "description": "Import sorting"},
+      {"id": "mypy", "name": "mypy", "description": "Static type checking"},
+      {"id": "pytest", "name": "pytest", "description": "Run affected tests"}
+    ],
+    "commit": [
+      {"id": "commitlint", "name": "Commitlint", "description": "Validate commit message format"},
+      {"id": "conventional-pre-commit", "name": "Conventional Commits", "description": "Enforce conventional commits"}
+    ]
+  },
+  "scripts": {
+    "detect": "python scripts/detect_stack.py --suggest",
+    "install_precommit": "pip install pre-commit && pre-commit install",
+    "install_husky": "npm install -D husky lint-staged && npx husky init",
+    "run_all": "pre-commit run --all-files",
+    "update": "pre-commit autoupdate"
+  }
+}

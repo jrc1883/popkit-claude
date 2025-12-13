@@ -1,0 +1,168 @@
+{
+  "name": "Pre-commit Setup Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for setting up pre-commit hooks",
+  "phases": [
+    {
+      "id": "detect",
+      "name": "Detect Stack",
+      "description": "Analyze project to determine appropriate hooks",
+      "steps": [
+        {
+          "id": "detect_language",
+          "name": "Detect Primary Language",
+          "prompt": "Detecting primary language and tools...",
+          "type": "automated",
+          "script": "scripts/detect_stack.py"
+        },
+        {
+          "id": "detect_tools",
+          "name": "Detect Existing Tools",
+          "prompt": "Checking for existing linters and formatters...",
+          "type": "automated",
+          "checks": [
+            "ESLint configuration",
+            "Prettier configuration",
+            "Ruff configuration",
+            "Black configuration",
+            "TypeScript configuration"
+          ]
+        },
+        {
+          "id": "check_existing_hooks",
+          "name": "Check Existing Hooks",
+          "prompt": "Checking for existing pre-commit configuration...",
+          "type": "automated",
+          "files": [
+            ".pre-commit-config.yaml",
+            ".husky/",
+            "lefthook.yml"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure",
+      "name": "Configure Hooks",
+      "description": "Select and configure pre-commit hooks",
+      "steps": [
+        {
+          "id": "select_framework",
+          "name": "Select Framework",
+          "prompt": "Which pre-commit framework would you like to use?",
+          "type": "selection",
+          "options": [
+            {"label": "pre-commit (Python)", "value": "pre-commit", "description": "Most popular, works with any language"},
+            {"label": "Husky (Node.js)", "value": "husky", "description": "Native Node.js solution"},
+            {"label": "Lefthook", "value": "lefthook", "description": "Fast, polyglot hook manager"}
+          ]
+        },
+        {
+          "id": "select_hooks",
+          "name": "Select Hooks",
+          "prompt": "Which hooks would you like to enable?",
+          "type": "multiselect",
+          "options_by_language": {
+            "javascript": [
+              {"label": "ESLint", "value": "eslint", "default": true},
+              {"label": "Prettier", "value": "prettier", "default": true},
+              {"label": "TypeScript Check", "value": "tsc", "default": true},
+              {"label": "Jest (staged)", "value": "jest"},
+              {"label": "Commitlint", "value": "commitlint"}
+            ],
+            "python": [
+              {"label": "Ruff (lint + format)", "value": "ruff", "default": true},
+              {"label": "Black", "value": "black"},
+              {"label": "isort", "value": "isort"},
+              {"label": "mypy", "value": "mypy", "default": true},
+              {"label": "pytest (staged)", "value": "pytest"}
+            ],
+            "general": [
+              {"label": "Trailing whitespace", "value": "trailing-whitespace", "default": true},
+              {"label": "End of file fixer", "value": "end-of-file-fixer", "default": true},
+              {"label": "Check YAML", "value": "check-yaml", "default": true},
+              {"label": "Check JSON", "value": "check-json"},
+              {"label": "Detect secrets", "value": "detect-secrets"},
+              {"label": "Commitlint", "value": "commitlint"}
+            ]
+          }
+        },
+        {
+          "id": "configure_commit_msg",
+          "name": "Configure Commit Message",
+          "prompt": "Would you like to enforce conventional commits?",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "id": "install",
+      "name": "Install Hooks",
+      "description": "Generate configuration and install hooks",
+      "steps": [
+        {
+          "id": "generate_config",
+          "name": "Generate Configuration",
+          "type": "automated",
+          "action": "Generate .pre-commit-config.yaml or equivalent"
+        },
+        {
+          "id": "install_deps",
+          "name": "Install Dependencies",
+          "type": "automated",
+          "commands": {
+            "pre-commit": ["pip install pre-commit", "pre-commit install"],
+            "husky": ["npm install -D husky lint-staged", "npx husky init"],
+            "lefthook": ["npm install -D lefthook", "npx lefthook install"]
+          }
+        },
+        {
+          "id": "install_hooks",
+          "name": "Install Git Hooks",
+          "type": "automated",
+          "action": "pre-commit install or husky install"
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "Verify Setup",
+      "description": "Test the pre-commit hooks",
+      "steps": [
+        {
+          "id": "run_all",
+          "name": "Run All Hooks",
+          "type": "automated",
+          "command": "pre-commit run --all-files"
+        },
+        {
+          "id": "test_commit",
+          "name": "Test with Sample Commit",
+          "type": "manual",
+          "prompt": "Try making a test commit to verify hooks work"
+        },
+        {
+          "id": "show_next_steps",
+          "name": "Show Next Steps",
+          "type": "display",
+          "content": "Pre-commit hooks installed. They will run automatically on git commit."
+        }
+      ]
+    }
+  ],
+  "frameworks": {
+    "pre-commit": {
+      "config_file": ".pre-commit-config.yaml",
+      "install": "pip install pre-commit && pre-commit install"
+    },
+    "husky": {
+      "config_file": ".husky/",
+      "install": "npm install -D husky && npx husky init"
+    },
+    "lefthook": {
+      "config_file": "lefthook.yml",
+      "install": "npm install -D lefthook && npx lefthook install"
+    }
+  }
+}

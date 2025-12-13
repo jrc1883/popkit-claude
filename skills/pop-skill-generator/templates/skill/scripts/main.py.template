@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""
+{{SKILL_NAME}} Main Script.
+
+{{DESCRIPTION}}
+
+Usage:
+    python main.py [OPTIONS]
+
+Output:
+    JSON object with results
+"""
+
+import json
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+def main_operation(
+    input_path: Path = None,
+    options: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """
+    Main operation for {{SKILL_NAME}}.
+
+    Args:
+        input_path: Path to input file or directory
+        options: Additional options
+
+    Returns:
+        Dictionary with operation results
+    """
+    start_time = datetime.now()
+    options = options or {}
+
+    # TODO: Implement main logic here
+    results = {
+        "items_processed": 0,
+        "items_succeeded": 0,
+        "items_failed": 0,
+        "details": []
+    }
+
+    # Example processing loop
+    # for item in items:
+    #     try:
+    #         process_item(item)
+    #         results["items_succeeded"] += 1
+    #     except Exception as e:
+    #         results["items_failed"] += 1
+    #         results["details"].append({
+    #             "item": str(item),
+    #             "error": str(e)
+    #         })
+    #     results["items_processed"] += 1
+
+    duration = (datetime.now() - start_time).total_seconds()
+
+    return {
+        "success": results["items_failed"] == 0,
+        "duration_seconds": round(duration, 2),
+        **results
+    }
+
+
+def validate_input(input_path: Path) -> Dict[str, Any]:
+    """
+    Validate input before processing.
+
+    Args:
+        input_path: Path to validate
+
+    Returns:
+        Dictionary with validation results
+    """
+    issues = []
+    warnings = []
+
+    if input_path and not input_path.exists():
+        issues.append(f"Path does not exist: {input_path}")
+
+    # TODO: Add more validation checks
+
+    return {
+        "valid": len(issues) == 0,
+        "issues": issues,
+        "warnings": warnings
+    }
+
+
+def generate_report(results: Dict[str, Any]) -> str:
+    """
+    Generate human-readable report from results.
+
+    Args:
+        results: Results from main_operation
+
+    Returns:
+        Formatted report string
+    """
+    lines = [
+        "=" * 60,
+        "{{SKILL_NAME}} Report",
+        "=" * 60,
+        "",
+        f"Status: {'SUCCESS' if results['success'] else 'FAILED'}",
+        f"Duration: {results['duration_seconds']}s",
+        "",
+        f"Processed: {results['items_processed']}",
+        f"Succeeded: {results['items_succeeded']}",
+        f"Failed: {results['items_failed']}",
+    ]
+
+    if results.get("details"):
+        lines.extend(["", "Details:"])
+        for detail in results["details"]:
+            lines.append(f"  - {detail}")
+
+    lines.append("=" * 60)
+
+    return "\n".join(lines)
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="{{DESCRIPTION}}")
+    parser.add_argument("input", nargs="?", help="Input path")
+    parser.add_argument("--validate-only", action="store_true",
+                        help="Only validate input, don't process")
+    parser.add_argument("--format", choices=["json", "report"],
+                        default="json", help="Output format")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Show what would be done without doing it")
+    # TODO: Add more arguments as needed
+    args = parser.parse_args()
+
+    input_path = Path(args.input) if args.input else None
+
+    # Validate input
+    if input_path:
+        validation = validate_input(input_path)
+        if args.validate_only:
+            print(json.dumps({
+                "operation": "validate",
+                **validation
+            }, indent=2))
+            return 0 if validation["valid"] else 1
+
+        if not validation["valid"]:
+            print(json.dumps({
+                "operation": "{{SKILL_NAME}}",
+                "success": False,
+                "validation_failed": True,
+                **validation
+            }, indent=2))
+            return 1
+
+    # Dry run
+    if args.dry_run:
+        print(json.dumps({
+            "operation": "{{SKILL_NAME}}",
+            "dry_run": True,
+            "input": str(input_path) if input_path else None,
+            "would_process": "TODO: List what would be processed"
+        }, indent=2))
+        return 0
+
+    # Run main operation
+    results = main_operation(input_path)
+
+    # Output results
+    if args.format == "report":
+        print(generate_report(results))
+    else:
+        print(json.dumps({
+            "operation": "{{SKILL_NAME}}",
+            **results
+        }, indent=2))
+
+    return 0 if results["success"] else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

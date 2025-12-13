@@ -1,0 +1,162 @@
+{
+  "name": "Project Initialization Checklist",
+  "version": "1.0.0",
+  "description": "Verification checklist for new project initialization",
+  "categories": [
+    {
+      "name": "Project Structure",
+      "checks": [
+        {
+          "id": "root_files_exist",
+          "name": "Root configuration files exist",
+          "description": "package.json or pyproject.toml created",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "src_directory",
+          "name": "Source directory created",
+          "description": "src/ directory with initial files",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "gitignore_exists",
+          "name": ".gitignore configured",
+          "description": "Proper gitignore for project type",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "readme_exists",
+          "name": "README.md created",
+          "description": "Basic project documentation",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Configuration",
+      "checks": [
+        {
+          "id": "typescript_config",
+          "name": "TypeScript configured",
+          "description": "tsconfig.json with proper settings",
+          "required": false,
+          "automated": true,
+          "condition": "typescript == true"
+        },
+        {
+          "id": "eslint_config",
+          "name": "ESLint configured",
+          "description": "Linting rules set up",
+          "required": false,
+          "automated": true,
+          "condition": "eslint == true"
+        },
+        {
+          "id": "prettier_config",
+          "name": "Prettier configured",
+          "description": "Code formatting rules",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "env_example",
+          "name": "Environment example file",
+          "description": ".env.example with all required vars",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Dependencies",
+      "checks": [
+        {
+          "id": "deps_installed",
+          "name": "Dependencies installed",
+          "description": "npm install or pip install completed",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_vulnerabilities",
+          "name": "No known vulnerabilities",
+          "description": "npm audit or pip audit clean",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "lockfile_exists",
+          "name": "Lockfile created",
+          "description": "package-lock.json or poetry.lock exists",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Git Setup",
+      "checks": [
+        {
+          "id": "git_initialized",
+          "name": "Git repository initialized",
+          "description": ".git directory exists",
+          "required": false,
+          "automated": true,
+          "condition": "git_init == true"
+        },
+        {
+          "id": "initial_commit",
+          "name": "Initial commit created",
+          "description": "First commit with all files",
+          "required": false,
+          "automated": true,
+          "condition": "git_init == true"
+        },
+        {
+          "id": "github_repo_created",
+          "name": "GitHub repository created",
+          "description": "Remote repository set up",
+          "required": false,
+          "automated": true,
+          "condition": "github_repo == true"
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "checks": [
+        {
+          "id": "build_succeeds",
+          "name": "Build succeeds",
+          "description": "npm run build or python -m build works",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tests_run",
+          "name": "Tests run successfully",
+          "description": "Test suite executes (even if empty)",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "dev_server_starts",
+          "name": "Dev server starts",
+          "description": "npm run dev or uvicorn works",
+          "required": false,
+          "automated": true,
+          "condition": "project_type in ['nextjs', 'fastapi']"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "detect": "python scripts/detect_project_type.py",
+    "verify_structure": "test -d src && test -f README.md",
+    "verify_build": "npm run build 2>/dev/null || python -m build 2>/dev/null"
+  }
+}

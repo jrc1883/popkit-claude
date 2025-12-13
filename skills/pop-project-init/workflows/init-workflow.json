@@ -1,0 +1,202 @@
+{
+  "name": "Project Initialization Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for initializing new projects with best practices",
+  "phases": [
+    {
+      "id": "detect",
+      "name": "Detect Environment",
+      "description": "Analyze existing state and determine project type",
+      "steps": [
+        {
+          "id": "check_existing",
+          "name": "Check for Existing Project",
+          "prompt": "Checking for existing project files...",
+          "type": "automated",
+          "checks": [
+            "package.json exists",
+            "pyproject.toml exists",
+            ".git directory exists",
+            "README.md exists"
+          ]
+        },
+        {
+          "id": "detect_type",
+          "name": "Detect Project Type",
+          "prompt": "What type of project would you like to create?",
+          "type": "selection",
+          "options": [
+            {"label": "Next.js Application", "value": "nextjs", "description": "Full-stack React framework"},
+            {"label": "FastAPI Service", "value": "fastapi", "description": "Python API with async support"},
+            {"label": "CLI Tool", "value": "cli", "description": "Command-line application"},
+            {"label": "Library/Package", "value": "library", "description": "Reusable package for npm/PyPI"},
+            {"label": "Claude Code Plugin", "value": "plugin", "description": "Claude Code plugin with skills/commands"}
+          ]
+        },
+        {
+          "id": "detect_language",
+          "name": "Detect Primary Language",
+          "prompt": "What is the primary language?",
+          "type": "selection",
+          "conditional": "project_type in ['cli', 'library']",
+          "options": [
+            {"label": "TypeScript", "value": "typescript"},
+            {"label": "Python", "value": "python"},
+            {"label": "Go", "value": "go"},
+            {"label": "Rust", "value": "rust"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "configure",
+      "name": "Configure Project",
+      "description": "Gather project configuration details",
+      "steps": [
+        {
+          "id": "project_name",
+          "name": "Project Name",
+          "prompt": "What is the project name?",
+          "type": "input",
+          "validation": "kebab-case"
+        },
+        {
+          "id": "description",
+          "name": "Project Description",
+          "prompt": "Briefly describe the project:",
+          "type": "input"
+        },
+        {
+          "id": "features",
+          "name": "Select Features",
+          "prompt": "Which features would you like to include?",
+          "type": "multiselect",
+          "options_by_type": {
+            "nextjs": [
+              {"label": "TypeScript", "value": "typescript", "default": true},
+              {"label": "Tailwind CSS", "value": "tailwind", "default": true},
+              {"label": "ESLint", "value": "eslint", "default": true},
+              {"label": "App Router", "value": "app-router", "default": true},
+              {"label": "Prisma ORM", "value": "prisma"},
+              {"label": "NextAuth.js", "value": "nextauth"},
+              {"label": "Shadcn/UI", "value": "shadcn"}
+            ],
+            "fastapi": [
+              {"label": "SQLAlchemy ORM", "value": "sqlalchemy", "default": true},
+              {"label": "Alembic Migrations", "value": "alembic", "default": true},
+              {"label": "Pydantic Settings", "value": "pydantic-settings", "default": true},
+              {"label": "Redis Cache", "value": "redis"},
+              {"label": "Celery Tasks", "value": "celery"},
+              {"label": "OAuth2", "value": "oauth2"}
+            ],
+            "cli": [
+              {"label": "Rich Output", "value": "rich", "default": true},
+              {"label": "Click Framework", "value": "click", "default": true},
+              {"label": "Config File Support", "value": "config"},
+              {"label": "Shell Completion", "value": "completion"}
+            ],
+            "library": [
+              {"label": "TypeScript Types", "value": "types", "default": true},
+              {"label": "ESM + CJS", "value": "dual-module"},
+              {"label": "Jest Testing", "value": "jest", "default": true},
+              {"label": "Changeset Versioning", "value": "changeset"}
+            ]
+          }
+        },
+        {
+          "id": "git_init",
+          "name": "Initialize Git",
+          "prompt": "Initialize git repository?",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "id": "github_repo",
+          "name": "Create GitHub Repository",
+          "prompt": "Create GitHub repository?",
+          "type": "boolean",
+          "default": false,
+          "conditional": "git_init == true"
+        }
+      ]
+    },
+    {
+      "id": "scaffold",
+      "name": "Scaffold Project",
+      "description": "Generate project files and structure",
+      "steps": [
+        {
+          "id": "create_structure",
+          "name": "Create Directory Structure",
+          "type": "automated",
+          "action": "create_directories"
+        },
+        {
+          "id": "generate_config",
+          "name": "Generate Configuration Files",
+          "type": "automated",
+          "files": [
+            "package.json or pyproject.toml",
+            "tsconfig.json (if TypeScript)",
+            ".eslintrc.js (if ESLint)",
+            ".gitignore",
+            "README.md"
+          ]
+        },
+        {
+          "id": "generate_source",
+          "name": "Generate Source Files",
+          "type": "automated",
+          "action": "copy_templates"
+        },
+        {
+          "id": "install_dependencies",
+          "name": "Install Dependencies",
+          "type": "automated",
+          "action": "npm install or pip install"
+        }
+      ]
+    },
+    {
+      "id": "finalize",
+      "name": "Finalize Setup",
+      "description": "Complete project setup with git and optional GitHub",
+      "steps": [
+        {
+          "id": "git_setup",
+          "name": "Git Setup",
+          "type": "automated",
+          "conditional": "git_init == true",
+          "commands": [
+            "git init",
+            "git add .",
+            "git commit -m 'Initial commit'"
+          ]
+        },
+        {
+          "id": "github_setup",
+          "name": "GitHub Setup",
+          "type": "automated",
+          "conditional": "github_repo == true",
+          "commands": [
+            "gh repo create {project_name} --private --source=.",
+            "git push -u origin main"
+          ]
+        },
+        {
+          "id": "next_steps",
+          "name": "Show Next Steps",
+          "type": "display",
+          "content": "next_steps_template"
+        }
+      ]
+    }
+  ],
+  "templates": {
+    "nextjs": "templates/nextjs/",
+    "fastapi": "templates/fastapi/",
+    "cli": "templates/cli/",
+    "library": "templates/library/",
+    "plugin": "templates/plugin/"
+  }
+}

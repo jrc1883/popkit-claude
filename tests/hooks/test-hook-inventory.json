@@ -313,14 +313,32 @@
       "file": "hooks/utils/vote_fetcher.py",
       "tests": "test_vote_fetcher.py",
       "purpose": "Fetch votes from cloud"
+    },
+    {
+      "name": "workflow_engine",
+      "file": "hooks/utils/workflow_engine.py",
+      "tests": "test_workflow_engine.py",
+      "purpose": "File-based workflow state machine for skill orchestration"
+    },
+    {
+      "name": "workflow_parser",
+      "file": "hooks/utils/workflow_parser.py",
+      "tests": "test_workflow_parser.py",
+      "purpose": "Parse workflow definitions from skill YAML frontmatter"
+    },
+    {
+      "name": "response_router",
+      "file": "hooks/utils/response_router.py",
+      "tests": "test_response_router.py",
+      "purpose": "Route AskUserQuestion responses to workflows"
     }
   ],
 
   "coverage_summary": {
     "total_hooks": 23,
     "hooks_with_tests": 1,
-    "utils_with_tests": 20,
-    "python_tests_count": 58
+    "utils_with_tests": 23,
+    "python_tests_count": 113
   },
 
   "metadata": {

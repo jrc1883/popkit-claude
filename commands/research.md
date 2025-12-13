@@ -1,6 +1,6 @@
 ---
-description: "list | search | add | tag | show | delete [--type, --project]"
-argument-hint: "<subcommand> [query|id] [options]"
+description: "list | search | add | tag | show | delete | merge [--type, --project]"
+argument-hint: "<subcommand> [query|id|branch] [options]"
 ---
 
 # /popkit:research - Research Management
@@ -23,6 +23,7 @@ Capture, index, and surface research insights during development. Maintains a se
 | `tag` | Add/remove tags from entries |
 | `show` | View full research entry |
 | `delete` | Remove research entry |
+| `merge` | Process research branches from Claude Code Web sessions |
 
 ---
 
@@ -339,6 +340,115 @@ Use AskUserQuestion tool with:
 4. Update index
 5. Remove from vector store (if cloud API)
 6. Confirm deletion
+
+---
+
+## Subcommand: merge
+
+Process research branches from Claude Code Web sessions. Detects branches, previews content, and offers merge options.
+
+```
+/popkit:research merge                    # Process all detected branches
+/popkit:research merge <branch>           # Process specific branch
+/popkit:research merge --list             # List detected branches only
+/popkit:research merge --dry-run          # Preview without executing
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--list` | List detected branches without processing |
+| `--dry-run` | Preview merge operations without executing |
+| `--no-issue` | Merge without creating GitHub issue |
+| `--delete` | Delete remote branch after merge |
+
+### Branch Detection
+
+Detects branches matching patterns:
+- `claude/research-*` - Research branches from Claude Code Web
+- `*-research-*` - Manual research branches
+- Branches with `RESEARCH*.md` files
+
+### Process
+
+1. **Detect Branches**
+   ```bash
+   git fetch --all --prune
+   git branch -r | grep -E "research|claude/"
+   ```
+
+2. **Preview Content**
+   Shows for each branch:
+   - Topic and age
+   - Commit count
+   - Documentation files found
+   - Summary preview
+
+3. **User Decision**
+   ```
+   Use AskUserQuestion tool with:
+   - question: "Found research branch: [topic]. How should we process it?"
+   - header: "Research"
+   - options:
+     - label: "Merge + Issue"
+       description: "Squash-merge, organize docs, create GitHub issue"
+     - label: "Merge Only"
+       description: "Just merge the content"
+     - label: "Skip"
+       description: "Process later"
+     - label: "Delete"
+       description: "Discard research (cannot be undone)"
+   - multiSelect: false
+   ```
+
+4. **Execute Based on Choice**
+
+   **Merge + Issue:**
+   - Squash merge branch
+   - Move docs to `docs/research/`
+   - Create GitHub issue with findings
+   - Delete remote branch
+
+   **Merge Only:**
+   - Squash merge branch
+   - Optionally delete remote
+
+   **Skip:**
+   - No action, process later
+
+   **Delete:**
+   - Confirm, then delete remote branch
+
+### Output Format
+
+```
+## Research Branches Detected
+
+| Branch | Topic | Age | Commits | Docs |
+|--------|-------|-----|---------|------|
+| claude/research-vhs-01Rc... | VHS tape generation | 26h | 1 | 2 |
+| claude/review-changelog... | Claude Code 2.0.67 | 20h | 1 | 1 |
+
+Processing: research-vhs-01Rc...
+[ok] Merged to master
+[ok] Docs moved to docs/research/
+[ok] Issue #220 created
+[ok] Remote branch deleted
+
+## Summary
+| Branch | Action | Result |
+|--------|--------|--------|
+| research-vhs... | Merged + Issue | #220 |
+| review-changelog... | Skipped | - |
+```
+
+### Integration
+
+This command invokes the `pop-research-merge` skill which handles:
+- Conflict detection via `scripts/detect_conflicts.py`
+- Finding merging via `scripts/merge_findings.py`
+- Workflow coordination via `workflows/merge-workflow.json`
 
 ---
 

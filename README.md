@@ -321,7 +321,7 @@ Parallel agent orchestration.
 | `/popkit:research` | list | search | add | tag | show | delete [--type, --project] |
 | `/popkit:routine` | morning | nightly [run|quick|generate|list|set|edit|delete] |
 | `/popkit:security` | scan | list | fix | report [--dry-run, --severity, --fix] |
-| `/popkit:stats` | Display PopKit efficiency metrics showing token savings, collaboration stats, an |
+| `/popkit:stats` | session | today | week | cloud | reset - Efficiency metrics |
 | `/popkit:upgrade` | upgrade | pro | team [--open] - Upgrade to PopKit Premium |
 | `/popkit:workflow-viz` | [workflow-name] [--validate, --metrics, --ascii] |
 | `/popkit:worktree` | create <branch> | list | analyze | remove [--force] |

@@ -407,9 +407,9 @@
         "notes": "Extended thinking ON by default for Sonnet"
       },
       "opus": {
-        "enabled": false,
-        "flag_enabled": true,
-        "notes": "Thinking OFF by default, enable with -T flag"
+        "enabled": true,
+        "default_budget_tokens": 10000,
+        "notes": "Thinking ON by default in Claude Code 2.0.67+ (was OFF)"
       },
       "haiku": {
         "enabled": true,

@@ -19,7 +19,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.2.1-blue?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Claude%20Code-Plugin-purple?style=flat-square" alt="Claude Code Plugin">
 </p>
 

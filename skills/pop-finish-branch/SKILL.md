@@ -1,6 +1,227 @@
 ---
 name: finishing-a-development-branch
 description: "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup. Presents exactly 4 options: merge locally, create PR, keep as-is, or discard. Do NOT use when tests are failing or work is incomplete - fix issues first before finishing the branch."
+inputs:
+  - from: pop-executing-plans
+    field: tasks_completed
+    required: false
+  - from: pop-code-review
+    field: merge_ready
+    required: false
+outputs:
+  - field: completion_type
+    type: string
+  - field: pr_url
+    type: string
+  - field: issue_closed
+    type: boolean
+next_skills:
+  - pop-session-capture
+  - pop-using-git-worktrees
+workflow:
+  id: finish-branch
+  name: Branch Completion Workflow
+  version: 1
+  description: Structured branch completion with verification
+  steps:
+    - id: verify_tests
+      description: Run test suite to verify code works
+      type: agent
+      agent: test-writer-fixer
+      next: test_result
+    - id: test_result
+      description: Evaluate test results
+      type: user_decision
+      question: "Test results?"
+      header: "Tests"
+      options:
+        - id: passing
+          label: "All passing"
+          description: "Tests pass, ready to proceed"
+          next: determine_base
+        - id: failing
+          label: "Some failing"
+          description: "Tests fail, need to fix"
+          next: fix_tests
+        - id: no_tests
+          label: "No tests"
+          description: "No tests exist for this code"
+          next: add_tests_decision
+      next_map:
+        passing: determine_base
+        failing: fix_tests
+        no_tests: add_tests_decision
+    - id: fix_tests
+      description: Fix failing tests
+      type: skill
+      skill: pop-test-driven-development
+      next: verify_tests
+    - id: add_tests_decision
+      description: Decide on adding tests
+      type: user_decision
+      question: "Add tests before finishing?"
+      header: "Tests"
+      options:
+        - id: yes
+          label: "Add tests"
+          description: "Write tests for this code first"
+          next: fix_tests
+        - id: no
+          label: "Skip tests"
+          description: "Proceed without tests (not recommended)"
+          next: determine_base
+      next_map:
+        yes: fix_tests
+        no: determine_base
+    - id: determine_base
+      description: Determine base branch
+      type: agent
+      agent: code-explorer
+      next: completion_choice
+    - id: completion_choice
+      description: Choose how to complete the branch
+      type: user_decision
+      question: "Implementation complete. What would you like to do?"
+      header: "Complete"
+      options:
+        - id: merge
+          label: "Merge locally"
+          description: "Merge back to base branch and clean up"
+          next: merge_locally
+        - id: pr
+          label: "Create PR"
+          description: "Push and create a Pull Request for review"
+          next: create_pr
+        - id: keep
+          label: "Keep as-is"
+          description: "Keep the branch, I'll handle it later"
+          next: keep_branch
+        - id: discard
+          label: "Discard"
+          description: "Delete this work permanently"
+          next: confirm_discard
+      next_map:
+        merge: merge_locally
+        pr: create_pr
+        keep: keep_branch
+        discard: confirm_discard
+    - id: merge_locally
+      description: Merge to base branch
+      type: agent
+      agent: code-architect
+      next: post_merge_tests
+    - id: post_merge_tests
+      description: Verify tests after merge
+      type: agent
+      agent: test-writer-fixer
+      next: cleanup_branch
+    - id: create_pr
+      description: Push branch and create PR
+      type: agent
+      agent: code-architect
+      next: issue_close_decision
+    - id: keep_branch
+      description: Keep branch as-is
+      type: terminal
+    - id: confirm_discard
+      description: Confirm discarding work
+      type: user_decision
+      question: "This will permanently delete the branch and all commits. Are you sure?"
+      header: "Confirm"
+      options:
+        - id: yes
+          label: "Yes, discard"
+          description: "Permanently delete this work"
+          next: discard_branch
+        - id: no
+          label: "Cancel"
+          description: "Keep the branch"
+          next: completion_choice
+      next_map:
+        yes: discard_branch
+        no: completion_choice
+    - id: discard_branch
+      description: Delete branch and cleanup
+      type: agent
+      agent: code-architect
+      next: cleanup_worktree
+    - id: cleanup_branch
+      description: Delete merged branch
+      type: agent
+      agent: code-architect
+      next: issue_close_decision
+    - id: cleanup_worktree
+      description: Remove worktree if exists
+      type: skill
+      skill: pop-using-git-worktrees
+      next: complete
+    - id: issue_close_decision
+      description: Close related issue?
+      type: user_decision
+      question: "Close the related GitHub issue?"
+      header: "Issue"
+      options:
+        - id: yes
+          label: "Yes, close it"
+          description: "Mark issue as completed"
+          next: close_issue
+        - id: no
+          label: "No, keep open"
+          description: "Issue needs more work"
+          next: next_action
+      next_map:
+        yes: close_issue
+        no: next_action
+    - id: close_issue
+      description: Close GitHub issue
+      type: agent
+      agent: code-architect
+      next: check_epic
+    - id: check_epic
+      description: Check if part of epic
+      type: agent
+      agent: code-explorer
+      next: next_action
+    - id: next_action
+      description: Choose next action
+      type: user_decision
+      question: "What would you like to do next?"
+      header: "Next Action"
+      options:
+        - id: another_issue
+          label: "Another issue"
+          description: "Work on another GitHub issue"
+          next: fetch_issues
+        - id: run_checks
+          label: "Run checks"
+          description: "Run full test suite"
+          next: run_checks
+        - id: exit
+          label: "Exit"
+          description: "Save state and exit"
+          next: save_and_exit
+      next_map:
+        another_issue: fetch_issues
+        run_checks: run_checks
+        exit: save_and_exit
+    - id: fetch_issues
+      description: Fetch prioritized open issues
+      type: agent
+      agent: code-explorer
+      next: complete
+    - id: run_checks
+      description: Run full test and lint suite
+      type: agent
+      agent: test-writer-fixer
+      next: next_action
+    - id: save_and_exit
+      description: Save session state
+      type: skill
+      skill: pop-session-capture
+      next: complete
+    - id: complete
+      description: Branch completion workflow done
+      type: terminal
 ---
 
 # Finishing a Development Branch

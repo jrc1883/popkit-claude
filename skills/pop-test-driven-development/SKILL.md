@@ -1,6 +1,209 @@
 ---
 name: test-driven-development
 description: "RED-GREEN-REFACTOR workflow that writes tests before implementation code. Ensures tests actually verify behavior by requiring them to fail first, then writing minimal code to pass. Use when implementing features, fixing bugs, or when test coverage matters. Do NOT use for exploratory coding, prototypes, or throwaway scripts where test overhead isn't justified."
+inputs:
+  - from: pop-writing-plans
+    field: task
+    required: false
+  - from: any
+    field: feature_description
+    required: false
+outputs:
+  - field: test_file
+    type: file_path
+  - field: implementation_file
+    type: file_path
+  - field: coverage_delta
+    type: number
+next_skills:
+  - pop-code-review
+  - pop-finish-branch
+workflow:
+  id: test-driven-development
+  name: TDD Workflow
+  version: 1
+  description: Red-Green-Refactor cycle enforcement
+  steps:
+    - id: understand_requirement
+      description: Understand what to implement
+      type: agent
+      agent: code-explorer
+      next: tdd_approach_decision
+    - id: tdd_approach_decision
+      description: Choose TDD approach
+      type: user_decision
+      question: "How should I approach this feature?"
+      header: "TDD Mode"
+      options:
+        - id: strict
+          label: "Strict TDD"
+          description: "One test at a time, full red-green-refactor"
+          next: write_failing_test
+        - id: batch
+          label: "Batch tests"
+          description: "Write multiple related tests, then implement"
+          next: write_test_batch
+        - id: existing
+          label: "Add to existing"
+          description: "Feature exists, adding test coverage"
+          next: analyze_existing
+      next_map:
+        strict: write_failing_test
+        batch: write_test_batch
+        existing: analyze_existing
+    - id: write_failing_test
+      description: Write one failing test
+      type: agent
+      agent: test-writer-fixer
+      next: verify_red
+    - id: write_test_batch
+      description: Write batch of related tests
+      type: agent
+      agent: test-writer-fixer
+      next: verify_red
+    - id: analyze_existing
+      description: Analyze existing code for test gaps
+      type: agent
+      agent: code-explorer
+      next: write_failing_test
+    - id: verify_red
+      description: Run test to verify it fails correctly
+      type: agent
+      agent: test-writer-fixer
+      next: red_result
+    - id: red_result
+      description: Evaluate red phase result
+      type: user_decision
+      question: "Test result?"
+      header: "Red Phase"
+      options:
+        - id: fails_correctly
+          label: "Fails correctly"
+          description: "Test fails for expected reason"
+          next: write_implementation
+        - id: passes
+          label: "Already passes"
+          description: "Test passes - testing existing behavior"
+          next: fix_test
+        - id: errors
+          label: "Has errors"
+          description: "Syntax or setup errors"
+          next: fix_test
+      next_map:
+        fails_correctly: write_implementation
+        passes: fix_test
+        errors: fix_test
+    - id: fix_test
+      description: Fix the test to fail correctly
+      type: agent
+      agent: test-writer-fixer
+      next: verify_red
+    - id: write_implementation
+      description: Write minimal code to pass
+      type: agent
+      agent: code-architect
+      next: verify_green
+    - id: verify_green
+      description: Run test to verify it passes
+      type: agent
+      agent: test-writer-fixer
+      next: green_result
+    - id: green_result
+      description: Evaluate green phase result
+      type: user_decision
+      question: "Implementation result?"
+      header: "Green Phase"
+      options:
+        - id: passes
+          label: "Passes"
+          description: "Test passes, all tests green"
+          next: refactor_decision
+        - id: fails
+          label: "Still fails"
+          description: "Test still failing"
+          next: write_implementation
+        - id: breaks_others
+          label: "Breaks others"
+          description: "Other tests now fail"
+          next: fix_regression
+      next_map:
+        passes: refactor_decision
+        fails: write_implementation
+        breaks_others: fix_regression
+    - id: fix_regression
+      description: Fix regression in other tests
+      type: agent
+      agent: test-writer-fixer
+      next: verify_green
+    - id: refactor_decision
+      description: Decide on refactoring
+      type: user_decision
+      question: "Refactor the code?"
+      header: "Refactor"
+      options:
+        - id: yes
+          label: "Refactor"
+          description: "Clean up code while keeping tests green"
+          next: refactor
+        - id: no
+          label: "Skip"
+          description: "Code is clean enough"
+          next: more_tests_decision
+      next_map:
+        yes: refactor
+        no: more_tests_decision
+    - id: refactor
+      description: Refactor while keeping tests green
+      type: agent
+      agent: refactoring-expert
+      next: verify_still_green
+    - id: verify_still_green
+      description: Verify tests still pass after refactor
+      type: agent
+      agent: test-writer-fixer
+      next: more_tests_decision
+    - id: more_tests_decision
+      description: More tests needed?
+      type: user_decision
+      question: "Add more tests for this feature?"
+      header: "Continue"
+      options:
+        - id: yes
+          label: "More tests"
+          description: "Continue with more test cases"
+          next: write_failing_test
+        - id: no
+          label: "Done"
+          description: "Feature is complete"
+          next: coverage_check
+      next_map:
+        yes: write_failing_test
+        no: coverage_check
+    - id: coverage_check
+      description: Check test coverage
+      type: agent
+      agent: test-writer-fixer
+      next: coverage_result
+    - id: coverage_result
+      description: Evaluate coverage
+      type: user_decision
+      question: "Coverage adequate?"
+      header: "Coverage"
+      options:
+        - id: adequate
+          label: "Adequate"
+          description: "Coverage meets requirements"
+          next: complete
+        - id: gaps
+          label: "Gaps found"
+          description: "Need more coverage"
+          next: write_failing_test
+      next_map:
+        adequate: complete
+        gaps: write_failing_test
+    - id: complete
+      description: TDD cycle complete
+      type: terminal
 ---
 
 # Test-Driven Development (TDD)

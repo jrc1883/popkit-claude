@@ -1,6 +1,162 @@
 ---
 name: code-review
 description: "Confidence-based code review that filters issues to 80+ threshold, eliminating false positives and noise. Reviews implementation against plan or requirements for bugs, quality issues, and project conventions. Use after completing major features, before merging to main, or after each task in multi-step workflows. Do NOT use for quick fixes, single-line changes, or when you need immediate feedback - the thorough review adds overhead best reserved for significant changes."
+inputs:
+  - from: pop-executing-plans
+    field: completed_tasks
+    required: false
+  - from: any
+    field: git_range
+    required: false
+outputs:
+  - field: review_report
+    type: file_path
+  - field: quality_score
+    type: number
+  - field: merge_ready
+    type: boolean
+next_skills:
+  - pop-finish-branch
+  - pop-test-driven-development
+workflow:
+  id: code-review
+  name: Code Review Workflow
+  version: 1
+  description: Confidence-based code review with filtering
+  steps:
+    - id: gather_context
+      description: Gather changes to review
+      type: agent
+      agent: code-explorer
+      next: review_scope_decision
+    - id: review_scope_decision
+      description: Determine scope of review
+      type: user_decision
+      question: "What should I review?"
+      header: "Scope"
+      options:
+        - id: staged
+          label: "Staged changes"
+          description: "Review currently staged files"
+          next: run_review
+        - id: branch
+          label: "Branch diff"
+          description: "Review all changes on this branch"
+          next: run_review
+        - id: commit_range
+          label: "Commit range"
+          description: "Review specific commits"
+          next: run_review
+        - id: files
+          label: "Specific files"
+          description: "Review selected files only"
+          next: run_review
+      next_map:
+        staged: run_review
+        branch: run_review
+        commit_range: run_review
+        files: run_review
+    - id: run_review
+      description: Execute parallel review agents
+      type: spawn_agents
+      agents:
+        - type: code-reviewer
+          task: "Review for simplicity, DRY, and elegance issues"
+        - type: code-reviewer
+          task: "Review for bugs, correctness, and edge cases"
+        - type: code-reviewer
+          task: "Review for conventions and project patterns"
+      wait_for: all
+      next: consolidate_findings
+    - id: consolidate_findings
+      description: Consolidate and filter findings by confidence
+      type: agent
+      agent: code-reviewer
+      next: present_results
+    - id: present_results
+      description: Present filtered results to user
+      type: user_decision
+      question: "Review complete. How should I proceed?"
+      header: "Results"
+      options:
+        - id: fix_critical
+          label: "Fix critical"
+          description: "Auto-fix critical issues (90+ confidence)"
+          next: fix_issues
+        - id: fix_all
+          label: "Fix all"
+          description: "Auto-fix all reported issues (80+)"
+          next: fix_issues
+        - id: manual
+          label: "Review manually"
+          description: "I'll review and fix myself"
+          next: await_fixes
+        - id: approve
+          label: "Approve"
+          description: "No issues, ready to proceed"
+          next: complete
+      next_map:
+        fix_critical: fix_issues
+        fix_all: fix_issues
+        manual: await_fixes
+        approve: complete
+    - id: fix_issues
+      description: Apply automated fixes
+      type: agent
+      agent: code-architect
+      next: verify_fixes
+    - id: verify_fixes
+      description: Verify fixes don't break anything
+      type: spawn_agents
+      agents:
+        - type: test-writer-fixer
+          task: "Run tests to verify fixes"
+        - type: code-reviewer
+          task: "Re-review fixed code"
+      wait_for: all
+      next: fix_result
+    - id: fix_result
+      description: Evaluate fix results
+      type: user_decision
+      question: "Fixes applied. What next?"
+      header: "Fix Result"
+      options:
+        - id: more_issues
+          label: "More fixes"
+          description: "Found additional issues"
+          next: fix_issues
+        - id: done
+          label: "Done"
+          description: "All issues resolved"
+          next: complete
+      next_map:
+        more_issues: fix_issues
+        done: complete
+    - id: await_fixes
+      description: Wait for manual fixes
+      type: skill
+      skill: pop-session-capture
+      next: re_review_decision
+    - id: re_review_decision
+      description: Decide on re-review
+      type: user_decision
+      question: "Ready for re-review?"
+      header: "Re-review"
+      options:
+        - id: yes
+          label: "Re-review"
+          description: "Review my fixes"
+          next: run_review
+        - id: no
+          label: "Skip"
+          description: "No re-review needed"
+          next: complete
+      next_map:
+        yes: run_review
+        no: complete
+    - id: complete
+      description: Review workflow complete
+      type: terminal
 ---
 
 # Code Review with Confidence Filtering

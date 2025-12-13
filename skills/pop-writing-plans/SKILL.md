@@ -18,6 +18,155 @@ outputs:
 next_skills:
   - pop-executing-plans
   - pop-subagent-driven
+workflow:
+  id: writing-plans
+  name: Plan Creation Workflow
+  version: 1
+  description: Create comprehensive implementation plans with validation
+  steps:
+    - id: check_context
+      description: Check for upstream context from brainstorming
+      type: skill
+      skill: pop-knowledge-lookup
+      next: context_decision
+    - id: context_decision
+      description: Decide how to proceed with available context
+      type: user_decision
+      question: "Do you have design context to start from?"
+      header: "Context"
+      options:
+        - id: from_design
+          label: "From design"
+          description: "Use existing design document"
+          next: gather_requirements
+        - id: from_issue
+          label: "From issue"
+          description: "Use GitHub issue as input"
+          next: gather_requirements
+        - id: fresh
+          label: "Start fresh"
+          description: "No existing context"
+          next: gather_requirements
+      next_map:
+        from_design: gather_requirements
+        from_issue: gather_requirements
+        fresh: gather_requirements
+    - id: gather_requirements
+      description: Gather and understand requirements
+      type: agent
+      agent: code-explorer
+      next: approach_decision
+    - id: approach_decision
+      description: Choose planning approach
+      type: user_decision
+      question: "What level of detail for the plan?"
+      header: "Detail"
+      options:
+        - id: comprehensive
+          label: "Comprehensive"
+          description: "Full TDD with every step documented"
+          next: write_plan
+        - id: standard
+          label: "Standard"
+          description: "Task-level with code examples"
+          next: write_plan
+        - id: outline
+          label: "Outline"
+          description: "High-level tasks only"
+          next: write_plan
+      next_map:
+        comprehensive: write_plan
+        standard: write_plan
+        outline: write_plan
+    - id: write_plan
+      description: Write the implementation plan
+      type: agent
+      agent: code-architect
+      next: validate_plan
+    - id: validate_plan
+      description: Validate plan structure and completeness
+      type: skill
+      skill: pop-validation-engine
+      next: validation_result
+    - id: validation_result
+      description: Review validation results
+      type: user_decision
+      question: "Plan validation complete. How to proceed?"
+      header: "Validation"
+      options:
+        - id: approved
+          label: "Approved"
+          description: "Plan is complete and correct"
+          next: github_decision
+        - id: revise
+          label: "Revise"
+          description: "Need to fix issues"
+          next: write_plan
+      next_map:
+        approved: github_decision
+        revise: write_plan
+    - id: github_decision
+      description: Decide on GitHub issue integration
+      type: user_decision
+      question: "Create or link a GitHub issue for tracking?"
+      header: "GitHub"
+      options:
+        - id: create
+          label: "Create issue"
+          description: "Create new tracking issue"
+          next: create_issue
+        - id: link
+          label: "Link existing"
+          description: "Link to existing issue"
+          next: link_issue
+        - id: skip
+          label: "Skip"
+          description: "No GitHub tracking"
+          next: execution_decision
+      next_map:
+        create: create_issue
+        link: link_issue
+        skip: execution_decision
+    - id: create_issue
+      description: Create GitHub issue with task checklist
+      type: skill
+      skill: pop-research-capture
+      next: execution_decision
+    - id: link_issue
+      description: Link plan to existing issue
+      type: skill
+      skill: pop-knowledge-lookup
+      next: execution_decision
+    - id: execution_decision
+      description: Choose how to execute the plan
+      type: user_decision
+      question: "Plan saved. How would you like to execute it?"
+      header: "Execution"
+      options:
+        - id: subagent
+          label: "Subagent-Driven"
+          description: "Execute now with fresh subagent per task"
+          next: execute_subagent
+        - id: parallel
+          label: "Parallel Session"
+          description: "Open new session with executing-plans"
+          next: complete
+        - id: later
+          label: "Later"
+          description: "Save for manual execution"
+          next: complete
+      next_map:
+        subagent: execute_subagent
+        parallel: complete
+        later: complete
+    - id: execute_subagent
+      description: Execute plan with subagent-driven approach
+      type: skill
+      skill: pop-subagent-dev
+      next: complete
+    - id: complete
+      description: Plan creation workflow complete
+      type: terminal
 ---
 
 # Writing Plans

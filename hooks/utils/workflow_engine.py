@@ -978,3 +978,472 @@ if __name__ == "__main__":
     print("   Deleted")
 
     print("\n[OK] All tests passed!")
+
+
+# =============================================================================
+# Upstash Workflow Engine (Pro Tier - Issue #209)
+# =============================================================================
+
+class UpstashWorkflowEngine:
+    """Cloud-backed workflow engine for Pro tier users.
+
+    Provides durable workflow orchestration via Upstash Workflow:
+    - Survives Claude Code restarts
+    - Cross-session persistence
+    - Automatic retries
+    - Built-in observability
+
+    Requires:
+    - POPKIT_API_KEY environment variable
+    - Pro tier subscription
+
+    Part of Issue #209: Upstash Workflow Integration (Pro Tier)
+    """
+
+    # API URL (same as other PopKit cloud clients)
+    API_URL = os.environ.get(
+        "POPKIT_API_URL",
+        "https://popkit-cloud-api.joseph-cannon.workers.dev"
+    )
+
+    def __init__(
+        self,
+        workflow_id: str,
+        definition: Optional[WorkflowDefinition] = None,
+        api_key: Optional[str] = None
+    ):
+        """Initialize the cloud workflow engine.
+
+        Args:
+            workflow_id: Unique identifier for this workflow run
+            definition: Workflow definition (optional for load operations)
+            api_key: PopKit API key (defaults to POPKIT_API_KEY env var)
+        """
+        self.workflow_id = workflow_id
+        self.definition = definition
+        self.api_key = api_key or os.environ.get("POPKIT_API_KEY")
+        self._cached_status: Optional[Dict[str, Any]] = None
+
+    def _request(
+        self,
+        method: str,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Make authenticated request to PopKit Cloud API.
+
+        Args:
+            method: HTTP method (GET, POST, etc.)
+            endpoint: API endpoint path
+            data: Request body (for POST/PUT)
+
+        Returns:
+            JSON response as dict
+
+        Raises:
+            Exception if request fails
+        """
+        import urllib.request
+        import urllib.error
+
+        url = f"{self.API_URL}/v1/workflows{endpoint}"
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "popkit-plugin/0.2.0"
+        }
+
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        body = json.dumps(data).encode("utf-8") if data else None
+
+        request = urllib.request.Request(
+            url,
+            data=body,
+            headers=headers,
+            method=method
+        )
+
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8")
+            raise Exception(f"API error {e.code}: {error_body}")
+        except urllib.error.URLError as e:
+            raise Exception(f"Network error: {e.reason}")
+
+    # =========================================================================
+    # Factory Methods
+    # =========================================================================
+
+    @classmethod
+    def create_workflow(
+        cls,
+        workflow_id: str,
+        workflow_def: Union[Dict[str, Any], WorkflowDefinition],
+        initial_context: Optional[Dict[str, Any]] = None,
+        github_issue: Optional[int] = None,
+        workflow_type: str = "feature-dev"
+    ) -> 'UpstashWorkflowEngine':
+        """Create a new workflow in the cloud.
+
+        Args:
+            workflow_id: Unique identifier for this run
+            workflow_def: Workflow definition
+            initial_context: Initial context data
+            github_issue: Optional linked GitHub issue
+            workflow_type: Type of workflow ("feature-dev" or "power-mode")
+
+        Returns:
+            UpstashWorkflowEngine instance
+        """
+        # Parse definition if needed
+        if isinstance(workflow_def, dict):
+            definition = WorkflowDefinition.from_dict(workflow_def)
+        else:
+            definition = workflow_def
+
+        engine = cls(workflow_id, definition)
+
+        # Start workflow in cloud
+        response = engine._request("POST", f"/{workflow_type}", {
+            "feature": definition.name,
+            "projectPath": os.getcwd(),
+            "sessionId": workflow_id,
+            "userId": os.environ.get("POPKIT_USER_ID", "anonymous"),
+            "phaseResults": initial_context or {}
+        })
+
+        # Store the cloud workflow ID
+        engine.workflow_id = response.get("workflowId", workflow_id)
+
+        return engine
+
+    @classmethod
+    def load_workflow(cls, workflow_id: str) -> Optional['UpstashWorkflowEngine']:
+        """Load an existing workflow from the cloud.
+
+        Args:
+            workflow_id: Cloud workflow run ID
+
+        Returns:
+            UpstashWorkflowEngine if found, None otherwise
+        """
+        engine = cls(workflow_id)
+
+        try:
+            status = engine._request("GET", f"/status/{workflow_id}")
+            if status.get("status") == "unknown":
+                return None
+            engine._cached_status = status
+            return engine
+        except Exception:
+            return None
+
+    # =========================================================================
+    # Status Methods
+    # =========================================================================
+
+    def get_status(self) -> str:
+        """Get current workflow status from cloud.
+
+        Returns:
+            Status string: "running", "waiting", "complete", "error"
+        """
+        try:
+            status = self._request("GET", f"/status/{self.workflow_id}")
+            self._cached_status = status
+            return status.get("status", "unknown")
+        except Exception:
+            return "error"
+
+    def get_state(self) -> WorkflowState:
+        """Get workflow state from cloud.
+
+        Returns:
+            WorkflowState object with current state
+        """
+        status = self._cached_status or {}
+
+        try:
+            if not self._cached_status:
+                status = self._request("GET", f"/status/{self.workflow_id}")
+                self._cached_status = status
+        except Exception:
+            pass
+
+        return WorkflowState(
+            workflow_id=self.workflow_id,
+            workflow_type=status.get("workflowType", "unknown"),
+            workflow_name=status.get("workflowName", "Cloud Workflow"),
+            current_step=status.get("currentPhase", ""),
+            context=status.get("context", {}),
+            status=status.get("status", "unknown"),
+            step_history=[],
+            pending_events=[]
+        )
+
+    def get_current_step(self) -> Optional[WorkflowStep]:
+        """Get the current step in the workflow.
+
+        Returns:
+            WorkflowStep for current phase, or None
+        """
+        status = self.get_status()
+        current_phase = self._cached_status.get("currentPhase") if self._cached_status else None
+
+        if not current_phase or not self.definition:
+            # Return a simple step based on phase name
+            return WorkflowStep(
+                id=current_phase or "unknown",
+                description=f"Phase: {current_phase}",
+                step_type="skill"
+            )
+
+        return self.definition.get_step(current_phase)
+
+    def get_context(self) -> Dict[str, Any]:
+        """Get accumulated workflow context from cloud.
+
+        Returns:
+            Context dictionary
+        """
+        state = self.get_state()
+        return state.context
+
+    # =========================================================================
+    # Workflow Control Methods
+    # =========================================================================
+
+    def advance_step(self, result: Optional[Dict[str, Any]] = None) -> Optional[WorkflowStep]:
+        """Advance the workflow to the next step.
+
+        Args:
+            result: Result data from current step
+
+        Returns:
+            Next WorkflowStep, or None if complete
+        """
+        current_phase = self._cached_status.get("currentPhase") if self._cached_status else None
+
+        # Update cloud with phase result
+        self._request("POST", f"/update/{self.workflow_id}", {
+            "phase": current_phase,
+            "result": json.dumps(result) if result else "complete"
+        })
+
+        # Refresh status
+        new_status = self._request("GET", f"/status/{self.workflow_id}")
+        self._cached_status = new_status
+
+        new_phase = new_status.get("currentPhase")
+        if not new_phase or new_status.get("status") == "complete":
+            return None
+
+        return WorkflowStep(
+            id=new_phase,
+            description=f"Phase: {new_phase}",
+            step_type="skill"
+        )
+
+    def wait_for_event(self, event_id: str) -> None:
+        """Mark workflow as waiting for an event.
+
+        For cloud workflows, this is tracked in the cloud.
+
+        Args:
+            event_id: Event to wait for
+        """
+        # Cloud workflows use waitForEvent internally
+        # We just track it locally for the response router
+        if self._cached_status:
+            self._cached_status["waitingFor"] = event_id
+
+    def notify_event(self, event_id: str, data: Dict[str, Any]) -> bool:
+        """Notify the workflow that an event occurred.
+
+        Args:
+            event_id: Event identifier
+            data: Event data (e.g., user decision)
+
+        Returns:
+            True if event was processed
+        """
+        try:
+            # For cloud workflows, we notify the cloud API
+            self._request("POST", f"/{self.workflow_id}/events", {
+                "event_id": event_id,
+                "data": data
+            })
+            return True
+        except Exception:
+            return False
+
+    def set_error(self, error_message: str) -> None:
+        """Mark the workflow as errored."""
+        # Update cloud with error
+        try:
+            self._request("POST", f"/update/{self.workflow_id}", {
+                "phase": "error",
+                "result": error_message
+            })
+        except Exception:
+            pass
+
+    def cancel(self) -> None:
+        """Cancel the workflow."""
+        self.set_error("Cancelled by user")
+
+    def delete(self) -> None:
+        """Delete workflow (cloud workflows expire automatically)."""
+        # Cloud workflows have TTL, no explicit delete needed
+        pass
+
+    # =========================================================================
+    # Utility Methods
+    # =========================================================================
+
+    def get_summary(self) -> Dict[str, Any]:
+        """Get workflow summary from cloud.
+
+        Returns:
+            Summary dictionary
+        """
+        status = self._request("GET", f"/status/{self.workflow_id}")
+
+        return {
+            "workflow_id": self.workflow_id,
+            "workflow_type": status.get("workflowType", "unknown"),
+            "status": status.get("status", "unknown"),
+            "current_phase": status.get("currentPhase"),
+            "phases_completed": len([
+                p for p in status.get("phases", [])
+                if p.get("status") == "complete"
+            ]),
+            "total_phases": len(status.get("phases", [])),
+            "started_at": status.get("startedAt"),
+            "completed_at": status.get("completedAt"),
+            "storage": "upstash_cloud"
+        }
+
+
+# =============================================================================
+# Workflow Engine Factory (Issue #209)
+# =============================================================================
+
+def is_pro_tier() -> bool:
+    """Check if user has Pro tier subscription.
+
+    Returns:
+        True if Pro or Team tier
+    """
+    # Import here to avoid circular dependency
+    try:
+        from premium_checker import get_user_tier, Tier
+        tier = get_user_tier()
+        return tier in (Tier.PRO, Tier.TEAM)
+    except ImportError:
+        pass
+
+    # Fallback: Check environment variable
+    tier = os.environ.get("POPKIT_TIER", "free").lower()
+    return tier in ("pro", "team")
+
+
+def get_workflow_engine(
+    workflow_id: Optional[str] = None,
+    force_local: bool = False,
+    force_cloud: bool = False
+) -> Union[FileWorkflowEngine, UpstashWorkflowEngine, None]:
+    """Factory to get the appropriate workflow engine.
+
+    Selection priority:
+    1. force_local=True → FileWorkflowEngine
+    2. force_cloud=True → UpstashWorkflowEngine (fails if not Pro)
+    3. Pro tier → UpstashWorkflowEngine
+    4. Free tier → FileWorkflowEngine
+
+    Args:
+        workflow_id: Workflow ID to load (None for new workflows)
+        force_local: Force file-based engine
+        force_cloud: Force cloud-based engine
+
+    Returns:
+        Appropriate workflow engine, or None if not found
+    """
+    # Force local file-based engine
+    if force_local:
+        if workflow_id:
+            return FileWorkflowEngine.load_workflow(workflow_id)
+        return None  # Need to call create_workflow explicitly
+
+    # Force cloud engine (requires Pro)
+    if force_cloud:
+        if not is_pro_tier():
+            raise Exception("Cloud workflows require Pro tier subscription")
+        if workflow_id:
+            return UpstashWorkflowEngine.load_workflow(workflow_id)
+        return None
+
+    # Auto-select based on tier
+    if is_pro_tier():
+        # Pro users get cloud workflows
+        if workflow_id:
+            # Try cloud first, fall back to local
+            engine = UpstashWorkflowEngine.load_workflow(workflow_id)
+            if engine:
+                return engine
+            return FileWorkflowEngine.load_workflow(workflow_id)
+        return None
+    else:
+        # Free users get file-based workflows
+        if workflow_id:
+            return FileWorkflowEngine.load_workflow(workflow_id)
+        return None
+
+
+def create_workflow_engine(
+    workflow_id: str,
+    workflow_def: Union[Dict[str, Any], WorkflowDefinition],
+    initial_context: Optional[Dict[str, Any]] = None,
+    github_issue: Optional[int] = None,
+    force_local: bool = False,
+    force_cloud: bool = False
+) -> Union[FileWorkflowEngine, UpstashWorkflowEngine]:
+    """Factory to create a new workflow with appropriate engine.
+
+    Args:
+        workflow_id: Unique identifier for this run
+        workflow_def: Workflow definition
+        initial_context: Initial context data
+        github_issue: Optional linked GitHub issue
+        force_local: Force file-based engine
+        force_cloud: Force cloud-based engine
+
+    Returns:
+        Appropriate workflow engine with workflow created
+    """
+    if force_local or not is_pro_tier():
+        return FileWorkflowEngine.create_workflow(
+            workflow_id=workflow_id,
+            workflow_def=workflow_def,
+            initial_context=initial_context,
+            github_issue=github_issue
+        )
+
+    if force_cloud or is_pro_tier():
+        return UpstashWorkflowEngine.create_workflow(
+            workflow_id=workflow_id,
+            workflow_def=workflow_def,
+            initial_context=initial_context,
+            github_issue=github_issue
+        )
+
+    # Default fallback
+    return FileWorkflowEngine.create_workflow(
+        workflow_id=workflow_id,
+        workflow_def=workflow_def,
+        initial_context=initial_context,
+        github_issue=github_issue
+    )

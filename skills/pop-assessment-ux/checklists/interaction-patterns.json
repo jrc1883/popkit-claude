@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "interaction-patterns",
+  "version": "1.0.0",
+  "description": "Checklist for interaction pattern assessment",
+  "categories": [
+    {
+      "id": "user-input",
+      "name": "User Input Handling",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "IP-001",
+          "name": "AskUserQuestion Usage",
+          "description": "Use AskUserQuestion tool for all user decisions",
+          "requirements": [
+            "Never present options as plain text",
+            "Always use structured choices",
+            "Include 'Other' option automatically"
+          ]
+        },
+        {
+          "id": "IP-002",
+          "name": "Input Validation",
+          "description": "Validate user input before processing",
+          "checks": [
+            "Type checking",
+            "Range validation",
+            "Format validation"
+          ]
+        },
+        {
+          "id": "IP-003",
+          "name": "Default Values",
+          "description": "Provide sensible defaults where possible",
+          "examples": [
+            "Default branch: main",
+            "Default output format: json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "feedback",
+      "name": "User Feedback",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "IP-004",
+          "name": "Progress Indication",
+          "description": "Show progress for long operations",
+          "methods": [
+            "Status line updates",
+            "Progress messages",
+            "Phase indicators"
+          ]
+        },
+        {
+          "id": "IP-005",
+          "name": "Completion Confirmation",
+          "description": "Confirm successful operations",
+          "examples": [
+            "Created project successfully",
+            "3 files updated",
+            "Build completed in 4.2s"
+          ]
+        },
+        {
+          "id": "IP-006",
+          "name": "Operation Summary",
+          "description": "Summarize what was done",
+          "includes": [
+            "Files modified",
+            "Actions taken",
+            "Next steps"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "navigation",
+      "name": "Navigation and Flow",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "IP-007",
+          "name": "Clear Entry Points",
+          "description": "Easy to discover starting commands",
+          "examples": [
+            "/popkit:help for overview",
+            "/popkit:project init for setup"
+          ]
+        },
+        {
+          "id": "IP-008",
+          "name": "Consistent Workflows",
+          "description": "Similar tasks follow similar patterns",
+          "pattern": "init → configure → execute → verify"
+        },
+        {
+          "id": "IP-009",
+          "name": "Escape Routes",
+          "description": "Users can cancel or go back",
+          "mechanisms": [
+            "Ctrl+C to cancel",
+            "Undo operations where safe",
+            "--dry-run for preview"
+          ]
+        },
+        {
+          "id": "IP-010",
+          "name": "Guided Workflows",
+          "description": "Multi-step tasks are guided",
+          "features": [
+            "Step indicators (Step 1 of 4)",
+            "What's next suggestions",
+            "Related commands"
+          ]
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70
+  }
+}

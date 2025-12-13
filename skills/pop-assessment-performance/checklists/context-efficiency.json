@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "context-efficiency",
+  "version": "1.0.0",
+  "description": "Checklist for context window efficiency assessment",
+  "categories": [
+    {
+      "id": "skill-context",
+      "name": "Skill Context Usage",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "CE-001",
+          "name": "Skill Prompt Size",
+          "description": "SKILL.md files under 2000 tokens",
+          "target": "<2000 tokens",
+          "warning": "2000-4000 tokens",
+          "critical": ">4000 tokens",
+          "automated": true
+        },
+        {
+          "id": "CE-002",
+          "name": "Skill Frontmatter Efficiency",
+          "description": "Concise YAML frontmatter without redundancy",
+          "checks": [
+            "Description under 200 characters",
+            "2-5 trigger phrases",
+            "No duplicate information"
+          ]
+        },
+        {
+          "id": "CE-003",
+          "name": "Skill Content Structure",
+          "description": "Well-organized content for efficient parsing",
+          "checks": [
+            "Clear section hierarchy",
+            "No redundant examples",
+            "Tables over verbose lists"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-context",
+      "name": "Agent Context Usage",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "CE-004",
+          "name": "Agent Prompt Size",
+          "description": "AGENT.md files under 5000 tokens",
+          "target": "<5000 tokens",
+          "warning": "5000-8000 tokens",
+          "critical": ">8000 tokens",
+          "automated": true
+        },
+        {
+          "id": "CE-005",
+          "name": "Agent Tool List",
+          "description": "Only necessary tools listed",
+          "checks": [
+            "Tools match agent purpose",
+            "No unnecessary tool access",
+            "Restricted tools documented"
+          ]
+        },
+        {
+          "id": "CE-006",
+          "name": "Agent Workflow Clarity",
+          "description": "Concise workflow descriptions",
+          "checks": [
+            "Steps numbered and clear",
+            "No verbose explanations",
+            "Exit conditions specified"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "config-context",
+      "name": "Configuration Context",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "CE-007",
+          "name": "Config File Sizes",
+          "description": "Configuration files within limits",
+          "thresholds": {
+            "agents/config.json": 10000,
+            "plugin.json": 2000,
+            "hooks.json": 3000
+          }
+        },
+        {
+          "id": "CE-008",
+          "name": "Config Deduplication",
+          "description": "No duplicate data across configs",
+          "checks": [
+            "Keywords not duplicated",
+            "Patterns defined once",
+            "References used where possible"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "output-context",
+      "name": "Output Style Context",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "CE-009",
+          "name": "Output Style Size",
+          "description": "Output styles are concise templates",
+          "target": "<500 tokens per style",
+          "automated": true
+        },
+        {
+          "id": "CE-010",
+          "name": "Template Efficiency",
+          "description": "Templates use placeholders effectively",
+          "checks": [
+            "Variables over literal text",
+            "Reusable sections",
+            "No hardcoded content"
+          ]
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70
+  }
+}

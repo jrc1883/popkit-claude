@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "architecture-review",
+  "version": "1.0.0",
+  "description": "Architecture review checklist for code quality assessment",
+  "categories": [
+    {
+      "id": "structure",
+      "name": "Project Structure",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "ARCH-001",
+          "name": "Clear Module Boundaries",
+          "description": "Modules have well-defined responsibilities and boundaries",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "ARCH-002",
+          "name": "Consistent Directory Structure",
+          "description": "Directory organization follows a consistent pattern",
+          "severity": "medium",
+          "automated": true
+        },
+        {
+          "id": "ARCH-003",
+          "name": "Appropriate Nesting Depth",
+          "description": "Directory nesting does not exceed 6-8 levels",
+          "severity": "low",
+          "automated": true,
+          "threshold": 8
+        },
+        {
+          "id": "ARCH-004",
+          "name": "No Empty Directories",
+          "description": "No orphaned empty directories in the project",
+          "severity": "low",
+          "automated": true
+        }
+      ]
+    },
+    {
+      "id": "patterns",
+      "name": "Design Patterns",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "ARCH-010",
+          "name": "Consistent Pattern Usage",
+          "description": "Design patterns are used consistently throughout",
+          "severity": "medium",
+          "automated": false
+        },
+        {
+          "id": "ARCH-011",
+          "name": "Appropriate Pattern Selection",
+          "description": "Patterns match the problem they solve",
+          "severity": "high",
+          "automated": false
+        },
+        {
+          "id": "ARCH-012",
+          "name": "No Pattern Overuse",
+          "description": "Patterns are not used when simpler solutions suffice",
+          "severity": "medium",
+          "automated": false
+        }
+      ]
+    },
+    {
+      "id": "solid",
+      "name": "SOLID Principles",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "ARCH-020",
+          "name": "Single Responsibility Principle",
+          "description": "Classes/modules have one reason to change",
+          "severity": "high",
+          "automated": true,
+          "pattern": "Files <300 lines, focused purpose"
+        },
+        {
+          "id": "ARCH-021",
+          "name": "Open/Closed Principle",
+          "description": "Open for extension, closed for modification",
+          "severity": "medium",
+          "automated": false
+        },
+        {
+          "id": "ARCH-022",
+          "name": "Liskov Substitution Principle",
+          "description": "Subtypes substitutable for base types",
+          "severity": "medium",
+          "automated": false
+        },
+        {
+          "id": "ARCH-023",
+          "name": "Interface Segregation Principle",
+          "description": "Specific interfaces over general ones",
+          "severity": "medium",
+          "automated": false
+        },
+        {
+          "id": "ARCH-024",
+          "name": "Dependency Inversion Principle",
+          "description": "Depend on abstractions, not concretions",
+          "severity": "high",
+          "automated": true,
+          "pattern": "Limited direct instantiation"
+        }
+      ]
+    },
+    {
+      "id": "coupling",
+      "name": "Coupling & Cohesion",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "ARCH-030",
+          "name": "Low Module Coupling",
+          "description": "Modules have minimal dependencies on each other",
+          "severity": "high",
+          "automated": true
+        },
+        {
+          "id": "ARCH-031",
+          "name": "High Module Cohesion",
+          "description": "Related functionality grouped together",
+          "severity": "high",
+          "automated": false
+        },
+        {
+          "id": "ARCH-032",
+          "name": "No Circular Dependencies",
+          "description": "No circular import/require chains",
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "ARCH-033",
+          "name": "Appropriate Abstraction Level",
+          "description": "Dependencies flow toward abstractions",
+          "severity": "medium",
+          "automated": false
+        }
+      ]
+    },
+    {
+      "id": "anti_patterns",
+      "name": "Anti-Pattern Avoidance",
+      "weight": 10,
+      "checks": [
+        {
+          "id": "ARCH-040",
+          "name": "No God Classes",
+          "description": "No classes with excessive responsibilities",
+          "severity": "high",
+          "automated": true,
+          "threshold": 500
+        },
+        {
+          "id": "ARCH-041",
+          "name": "No Deep Nesting",
+          "description": "Control flow nesting kept shallow",
+          "severity": "medium",
+          "automated": true,
+          "threshold": 4
+        },
+        {
+          "id": "ARCH-042",
+          "name": "No Magic Numbers",
+          "description": "Numeric literals are named constants",
+          "severity": "low",
+          "automated": true
+        },
+        {
+          "id": "ARCH-043",
+          "name": "No Long Methods",
+          "description": "Methods kept under 50 lines",
+          "severity": "medium",
+          "automated": true,
+          "threshold": 50
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70,
+    "severity_weights": {
+      "critical": 20,
+      "high": 10,
+      "medium": 5,
+      "low": 2
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "file-access-patterns",
+  "version": "1.0.0",
+  "description": "Checklist for file access pattern efficiency",
+  "categories": [
+    {
+      "id": "read-patterns",
+      "name": "File Read Patterns",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "FA-001",
+          "name": "Reads Per Operation",
+          "description": "Minimize file reads per operation",
+          "target": "<5 reads",
+          "warning": "5-10 reads",
+          "critical": ">10 reads",
+          "automated": true
+        },
+        {
+          "id": "FA-002",
+          "name": "Read Caching",
+          "description": "File contents cached when appropriate",
+          "checks": [
+            "Config files cached",
+            "Repeated reads avoided",
+            "Cache invalidation implemented"
+          ]
+        },
+        {
+          "id": "FA-003",
+          "name": "Selective Reading",
+          "description": "Read only necessary file sections",
+          "checks": [
+            "Frontmatter parsed separately",
+            "Large files read incrementally",
+            "Binary files skipped"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search-patterns",
+      "name": "File Search Patterns",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "FA-004",
+          "name": "Glob Usage",
+          "description": "Efficient glob pattern usage",
+          "checks": [
+            "Specific patterns over wildcards",
+            "Directory scope limited",
+            "Results cached when static"
+          ]
+        },
+        {
+          "id": "FA-005",
+          "name": "Grep Efficiency",
+          "description": "Efficient search patterns",
+          "checks": [
+            "File type filters applied",
+            "Search scope limited",
+            "Early termination on match"
+          ]
+        },
+        {
+          "id": "FA-006",
+          "name": "Recursive Operations",
+          "description": "Recursive operations controlled",
+          "checks": [
+            "rglob used sparingly",
+            "Exclude patterns applied",
+            "Depth limits where possible"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "write-patterns",
+      "name": "File Write Patterns",
+      "weight": 30,
+      "checks": [
+        {
+          "id": "FA-007",
+          "name": "Write Batching",
+          "description": "Multiple writes batched",
+          "checks": [
+            "Related changes combined",
+            "Atomic file operations",
+            "Backup before modification"
+          ]
+        },
+        {
+          "id": "FA-008",
+          "name": "State File Management",
+          "description": "State files managed efficiently",
+          "checks": [
+            "Single state file when possible",
+            "JSON over multiple small files",
+            "Cleanup of temporary files"
+          ]
+        }
+      ]
+    }
+  ],
+  "anti_patterns": [
+    {
+      "id": "FA-AP-001",
+      "name": "Read in Loop",
+      "description": "Reading same file multiple times in a loop",
+      "severity": "high",
+      "fix": "Read once, store in variable"
+    },
+    {
+      "id": "FA-AP-002",
+      "name": "Unbounded Glob",
+      "description": "Using **/* without exclusions",
+      "severity": "medium",
+      "fix": "Add explicit exclusions for node_modules, etc."
+    },
+    {
+      "id": "FA-AP-003",
+      "name": "Synchronous Everything",
+      "description": "All file operations synchronous",
+      "severity": "low",
+      "fix": "Use async where possible for parallelism"
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70
+  }
+}

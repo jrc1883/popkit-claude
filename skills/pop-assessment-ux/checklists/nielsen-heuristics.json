@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "nielsen-heuristics",
+  "version": "1.0.0",
+  "description": "Nielsen's 10 Usability Heuristics for CLI plugins",
+  "heuristics": [
+    {
+      "id": "NH-001",
+      "number": 1,
+      "name": "Visibility of System Status",
+      "description": "Keep users informed through appropriate feedback within reasonable time",
+      "cli_applications": [
+        "Show progress for long operations",
+        "Display current state/mode",
+        "Confirm action completion",
+        "Status line updates"
+      ],
+      "checks": [
+        "Long operations show progress",
+        "Current working context visible",
+        "Success/failure clearly indicated"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-002",
+      "number": 2,
+      "name": "Match Between System and Real World",
+      "description": "Use familiar language and concepts",
+      "cli_applications": [
+        "Natural language command names",
+        "Domain-appropriate terminology",
+        "Logical information ordering",
+        "Real-world conventions"
+      ],
+      "checks": [
+        "Commands use common verbs",
+        "Output uses natural phrases",
+        "Workflow mirrors real tasks"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-003",
+      "number": 3,
+      "name": "User Control and Freedom",
+      "description": "Provide undo and cancel options",
+      "cli_applications": [
+        "Ctrl+C to cancel operations",
+        "Undo for reversible actions",
+        "--dry-run to preview changes",
+        "Confirmation for destructive ops"
+      ],
+      "checks": [
+        "Operations can be cancelled",
+        "Destructive actions require confirmation",
+        "Preview mode available"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-004",
+      "number": 4,
+      "name": "Consistency and Standards",
+      "description": "Follow platform conventions and internal consistency",
+      "cli_applications": [
+        "Consistent flag naming (--verbose, -v)",
+        "Standard exit codes",
+        "Predictable output formats",
+        "Consistent command structure"
+      ],
+      "checks": [
+        "All commands follow same pattern",
+        "Flags are consistent across commands",
+        "Output format predictable"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-005",
+      "number": 5,
+      "name": "Error Prevention",
+      "description": "Prevent errors before they occur",
+      "cli_applications": [
+        "Validate input before processing",
+        "Confirm destructive operations",
+        "Suggest corrections for typos",
+        "Check prerequisites upfront"
+      ],
+      "checks": [
+        "Input validated early",
+        "Prerequisites checked first",
+        "Typo suggestions offered"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-006",
+      "number": 6,
+      "name": "Recognition Rather Than Recall",
+      "description": "Minimize memory load with visible options",
+      "cli_applications": [
+        "Tab completion for commands",
+        "Help text readily available",
+        "Recent commands accessible",
+        "Option menus vs free text"
+      ],
+      "checks": [
+        "Help easily accessible",
+        "Options shown not memorized",
+        "Context preserved across sessions"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-007",
+      "number": 7,
+      "name": "Flexibility and Efficiency of Use",
+      "description": "Cater to both novice and expert users",
+      "cli_applications": [
+        "Shortcuts for common operations",
+        "Batch processing support",
+        "Configurable defaults",
+        "Power user modes"
+      ],
+      "checks": [
+        "Quick commands for experts",
+        "Guided mode for beginners",
+        "Configurable behavior"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-008",
+      "number": 8,
+      "name": "Aesthetic and Minimalist Design",
+      "description": "Remove unnecessary information",
+      "cli_applications": [
+        "Concise output by default",
+        "--verbose for detail",
+        "Essential info first",
+        "Clean formatting"
+      ],
+      "checks": [
+        "Default output is concise",
+        "No unnecessary verbosity",
+        "Clear visual hierarchy"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-009",
+      "number": 9,
+      "name": "Help Users Recognize, Diagnose, and Recover from Errors",
+      "description": "Express errors in plain language with solutions",
+      "cli_applications": [
+        "Clear error messages",
+        "Suggested fixes",
+        "Links to documentation",
+        "Actionable next steps"
+      ],
+      "checks": [
+        "Errors explain what went wrong",
+        "Errors suggest how to fix",
+        "Recovery path provided"
+      ],
+      "weight": 10
+    },
+    {
+      "id": "NH-010",
+      "number": 10,
+      "name": "Help and Documentation",
+      "description": "Provide easy-to-search, task-focused documentation",
+      "cli_applications": [
+        "--help for all commands",
+        "Examples in help text",
+        "Quick start guides",
+        "Searchable documentation"
+      ],
+      "checks": [
+        "Every command has --help",
+        "Examples provided",
+        "Quick start available"
+      ],
+      "weight": 10
+    }
+  ],
+  "scoring": {
+    "method": "weighted_sum",
+    "max_score": 100,
+    "pass_threshold": 70
+  }
+}

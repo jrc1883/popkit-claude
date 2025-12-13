@@ -1,0 +1,47 @@
+{
+  "name": "Morning Routine Health Check",
+  "description": "Shows daily health check with Ready to Code score",
+  "category": "core-features",
+  "output_file": "morning-routine.gif",
+  "dimensions": {
+    "width": 800,
+    "height": 500
+  },
+  "theme": "Catppuccin Mocha",
+  "font_size": 14,
+  "padding": 20,
+  "screenshots": [
+    {
+      "filename": "01-command-typed.png",
+      "description": "User types /popkit:routine morning and presses Enter",
+      "timing": "0ms",
+      "notes": "Command entry"
+    },
+    {
+      "filename": "02-health-check-running.png",
+      "description": "Health check in progress",
+      "timing": "500ms",
+      "notes": "Processing animation"
+    },
+    {
+      "filename": "03-results-displayed.png",
+      "description": "Health check results with Ready to Code score",
+      "timing": "3000ms",
+      "notes": "Shows git status, TypeScript errors, dependencies, etc."
+    }
+  ],
+  "key_insights": [
+    "Single command checks entire project health",
+    "Ready to Code score (0-100) gives instant status",
+    "Identifies blockers before starting work",
+    "Part of day-bracketing workflow"
+  ],
+  "readme_sections": [
+    "Quick Start",
+    "Features > Day Routines",
+    "Commands > /popkit:routine"
+  ],
+  "tags": ["routine", "health-check", "quick-start", "daily-workflow"],
+  "status": "active",
+  "last_updated": "2025-12-12"
+}

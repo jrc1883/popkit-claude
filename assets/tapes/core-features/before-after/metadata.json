@@ -1,0 +1,52 @@
+{
+  "name": "Before/After PopKit",
+  "description": "Hero demo showing workflow transformation with PopKit",
+  "category": "core-features",
+  "output_file": "before-after.gif",
+  "dimensions": {
+    "width": 900,
+    "height": 600
+  },
+  "theme": "Catppuccin Mocha",
+  "font_size": 14,
+  "padding": 20,
+  "screenshots": [
+    {
+      "filename": "01-without-popkit-start.png",
+      "description": "Manual workflow: git status, npm run typecheck, etc.",
+      "timing": "0ms",
+      "notes": "Before state - manual commands"
+    },
+    {
+      "filename": "02-without-popkit-multiple-commands.png",
+      "description": "Multiple separate commands required",
+      "timing": "2000ms",
+      "notes": "Shows the tedious manual process"
+    },
+    {
+      "filename": "03-with-popkit-single-command.png",
+      "description": "With PopKit: single /popkit:dev work #57 command",
+      "timing": "4000ms",
+      "notes": "After state - one command does it all"
+    },
+    {
+      "filename": "04-with-popkit-results.png",
+      "description": "PopKit orchestrates all steps automatically",
+      "timing": "6000ms",
+      "notes": "Shows worktree creation, health check, phase start"
+    }
+  ],
+  "key_insights": [
+    "Reduces 5+ manual commands to 1 PopKit command",
+    "Automatic orchestration of health checks, setup, and workflow",
+    "Issue-driven development with GitHub integration",
+    "Immediate feedback and Ready to Code score"
+  ],
+  "readme_sections": [
+    "Hero Section",
+    "See the Difference"
+  ],
+  "tags": ["hero", "transformation", "before-after", "workflow", "marketing"],
+  "status": "active",
+  "last_updated": "2025-12-12"
+}

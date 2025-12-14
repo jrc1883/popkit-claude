@@ -1,0 +1,754 @@
+{
+  "$schema": "./test_matrix.schema.json",
+  "version": "1.0.0",
+  "description": "PopKit Sandbox Testing Matrix - Comprehensive test definitions for skills, commands, and user scenarios",
+  "metadata": {
+    "created": "2024-12-14",
+    "issue": "#230",
+    "part_of": "Sandbox Testing & Observability Platform"
+  },
+  "defaults": {
+    "timeout_seconds": 120,
+    "runner": "local",
+    "telemetry": true,
+    "retry_on_failure": 1
+  },
+  "priority_definitions": {
+    "P0": {
+      "description": "Critical - Must pass for release. Core functionality.",
+      "run_on": ["commit", "pr", "release"],
+      "max_failures": 0
+    },
+    "P1": {
+      "description": "High - Should pass. Important features.",
+      "run_on": ["pr", "release"],
+      "max_failures": 1
+    },
+    "P2": {
+      "description": "Medium - Nice to pass. Edge cases and polish.",
+      "run_on": ["release"],
+      "max_failures": 3
+    }
+  },
+  "tests": [
+    {
+      "id": "skill-brainstorming-001",
+      "name": "Brainstorming with topic input",
+      "description": "Test that brainstorming skill generates ideas and asks clarifying questions",
+      "type": "skill",
+      "target": "pop-brainstorming",
+      "priority": "P0",
+      "timeout_seconds": 180,
+      "inputs": {
+        "topic": "Add dark mode toggle to the application"
+      },
+      "expected": {
+        "has_output": true,
+        "asks_questions": true,
+        "no_errors": true,
+        "min_tool_calls": 1,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["core", "interactive"]
+    },
+    {
+      "id": "skill-brainstorming-002",
+      "name": "Brainstorming without topic (should prompt)",
+      "description": "Test that brainstorming skill prompts for topic when not provided",
+      "type": "skill",
+      "target": "pop-brainstorming",
+      "priority": "P1",
+      "timeout_seconds": 120,
+      "inputs": {},
+      "expected": {
+        "asks_questions": true,
+        "no_errors": true,
+        "question_contains": ["topic", "idea", "brainstorm"]
+      },
+      "tags": ["edge-case", "interactive"]
+    },
+    {
+      "id": "skill-code-review-001",
+      "name": "Code review with file path",
+      "description": "Test code review skill analyzes provided file",
+      "type": "skill",
+      "target": "pop-code-review",
+      "priority": "P0",
+      "timeout_seconds": 300,
+      "inputs": {
+        "file_path": "hooks/pre-tool-use.py"
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["review", "suggestion", "quality"],
+        "min_tool_calls": 2,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["core", "analysis"]
+    },
+    {
+      "id": "skill-code-review-002",
+      "name": "Code review with severity filter",
+      "description": "Test code review respects confidence threshold",
+      "type": "skill",
+      "target": "pop-code-review",
+      "priority": "P1",
+      "timeout_seconds": 300,
+      "inputs": {
+        "file_path": "hooks/utils/skill_state.py",
+        "min_confidence": 80
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["filtering", "analysis"]
+    },
+    {
+      "id": "skill-morning-generator-001",
+      "name": "Morning routine generation",
+      "description": "Test morning routine generator creates checklist",
+      "type": "skill",
+      "target": "pop-morning-generator",
+      "priority": "P0",
+      "timeout_seconds": 180,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["health", "check", "ready"],
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["core", "routine"]
+    },
+    {
+      "id": "skill-session-capture-001",
+      "name": "Session capture to STATUS.json",
+      "description": "Test session capture skill saves state correctly",
+      "type": "skill",
+      "target": "pop-session-capture",
+      "priority": "P0",
+      "timeout_seconds": 120,
+      "inputs": {
+        "reason": "Test session capture"
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "creates_file": "STATUS.json",
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["core", "state"]
+    },
+    {
+      "id": "skill-session-resume-001",
+      "name": "Session resume from STATUS.json",
+      "description": "Test session resume skill loads previous state",
+      "type": "skill",
+      "target": "pop-session-resume",
+      "priority": "P0",
+      "timeout_seconds": 120,
+      "setup": {
+        "create_file": {
+          "path": "STATUS.json",
+          "content": "{\"session\": \"test\", \"timestamp\": \"2024-12-14T00:00:00Z\", \"context\": {\"working_on\": \"test task\"}}"
+        }
+      },
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["session", "context", "resume"],
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["core", "state"]
+    },
+    {
+      "id": "skill-plugin-test-001",
+      "name": "Plugin self-test execution",
+      "description": "Test that plugin-test skill validates plugin integrity",
+      "type": "skill",
+      "target": "pop-plugin-test",
+      "priority": "P0",
+      "timeout_seconds": 300,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["pass", "test", "valid"],
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["core", "validation"]
+    },
+    {
+      "id": "skill-next-action-001",
+      "name": "Next action recommendation",
+      "description": "Test next action skill analyzes project and suggests actions",
+      "type": "skill",
+      "target": "pop-next-action",
+      "priority": "P1",
+      "timeout_seconds": 180,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "asks_questions": true,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["analysis", "interactive"]
+    },
+    {
+      "id": "skill-project-analyze-001",
+      "name": "Project analysis",
+      "description": "Test project analyze skill examines codebase",
+      "type": "skill",
+      "target": "pop-project-analyze",
+      "priority": "P1",
+      "timeout_seconds": 300,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["structure", "files", "analysis"],
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["analysis", "project"]
+    },
+    {
+      "id": "skill-github-integration-001",
+      "name": "GitHub integration check",
+      "description": "Test GitHub integration skill verifies gh CLI",
+      "type": "skill",
+      "target": "pop-github-integration",
+      "priority": "P1",
+      "timeout_seconds": 120,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["integration", "github"]
+    },
+    {
+      "id": "skill-power-mode-coordinator-001",
+      "name": "Power mode coordinator status",
+      "description": "Test power mode coordinator reports status",
+      "type": "skill",
+      "target": "pop-power-mode-coordinator",
+      "priority": "P1",
+      "timeout_seconds": 120,
+      "inputs": {
+        "action": "status"
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["power", "mode", "status"],
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["orchestration", "power-mode"]
+    },
+    {
+      "id": "skill-writing-plans-001",
+      "name": "Plan writing with feature",
+      "description": "Test plan writing skill creates implementation plan",
+      "type": "skill",
+      "target": "pop-writing-plans",
+      "priority": "P1",
+      "timeout_seconds": 240,
+      "inputs": {
+        "feature": "Add user authentication"
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "asks_questions": true,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["planning", "interactive"]
+    },
+    {
+      "id": "skill-research-merge-001",
+      "name": "Research merge to issue",
+      "description": "Test research merge skill handles issue linking",
+      "type": "skill",
+      "target": "pop-research-merge",
+      "priority": "P1",
+      "timeout_seconds": 180,
+      "inputs": {
+        "research_id": "test-research-001"
+      },
+      "expected": {
+        "has_output": true,
+        "asks_questions": true,
+        "expected_events": ["skill_start", "skill_end"]
+      },
+      "tags": ["research", "interactive"]
+    },
+    {
+      "id": "command-dev-brainstorm-001",
+      "name": "/popkit:dev brainstorm command",
+      "description": "Test dev brainstorm subcommand invokes brainstorming skill",
+      "type": "command",
+      "target": "/popkit:dev brainstorm",
+      "priority": "P0",
+      "timeout_seconds": 180,
+      "inputs": {
+        "args": "Add notifications feature"
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "invokes_skill": "pop-brainstorming",
+        "asks_questions": true
+      },
+      "tags": ["core", "command"]
+    },
+    {
+      "id": "command-routine-morning-001",
+      "name": "/popkit:routine morning command",
+      "description": "Test morning routine command execution",
+      "type": "command",
+      "target": "/popkit:routine morning",
+      "priority": "P0",
+      "timeout_seconds": 300,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["Ready to Code", "health", "check"]
+      },
+      "tags": ["core", "routine"]
+    },
+    {
+      "id": "command-routine-nightly-001",
+      "name": "/popkit:routine nightly command",
+      "description": "Test nightly routine command execution",
+      "type": "command",
+      "target": "/popkit:routine nightly",
+      "priority": "P0",
+      "timeout_seconds": 300,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["Sleep Score", "cleanup"]
+      },
+      "tags": ["core", "routine"]
+    },
+    {
+      "id": "command-plugin-test-001",
+      "name": "/popkit:plugin test command",
+      "description": "Test plugin test command validates plugin",
+      "type": "command",
+      "target": "/popkit:plugin test",
+      "priority": "P0",
+      "timeout_seconds": 300,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "output_contains": ["pass", "test"]
+      },
+      "tags": ["core", "validation"]
+    },
+    {
+      "id": "command-git-commit-001",
+      "name": "/popkit:git commit command",
+      "description": "Test git commit command with message",
+      "type": "command",
+      "target": "/popkit:git commit",
+      "priority": "P1",
+      "timeout_seconds": 120,
+      "setup": {
+        "create_file": {
+          "path": "test-commit-file.txt",
+          "content": "Test file for commit"
+        },
+        "run_command": "git add test-commit-file.txt"
+      },
+      "inputs": {
+        "args": "-m \"test: add test file\""
+      },
+      "expected": {
+        "has_output": true,
+        "no_errors": true
+      },
+      "cleanup": {
+        "run_command": "git reset HEAD~1 && rm test-commit-file.txt"
+      },
+      "tags": ["git", "command"]
+    },
+    {
+      "id": "command-git-pr-001",
+      "name": "/popkit:git pr command (dry-run)",
+      "description": "Test git PR command shows PR preview",
+      "type": "command",
+      "target": "/popkit:git pr",
+      "priority": "P1",
+      "timeout_seconds": 180,
+      "inputs": {
+        "args": "--dry-run"
+      },
+      "expected": {
+        "has_output": true,
+        "output_contains": ["PR", "title", "body"]
+      },
+      "tags": ["git", "command"]
+    },
+    {
+      "id": "command-issue-create-001",
+      "name": "/popkit:issue create command (dry-run)",
+      "description": "Test issue create command shows preview",
+      "type": "command",
+      "target": "/popkit:issue create",
+      "priority": "P1",
+      "timeout_seconds": 120,
+      "inputs": {
+        "args": "--dry-run \"Test issue title\""
+      },
+      "expected": {
+        "has_output": true,
+        "asks_questions": true
+      },
+      "tags": ["github", "command"]
+    },
+    {
+      "id": "command-project-init-001",
+      "name": "/popkit:project init command",
+      "description": "Test project init command for new projects",
+      "type": "command",
+      "target": "/popkit:project init",
+      "priority": "P1",
+      "timeout_seconds": 240,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "asks_questions": true,
+        "creates_file": "CLAUDE.md"
+      },
+      "tags": ["project", "command"]
+    },
+    {
+      "id": "command-next-001",
+      "name": "/popkit:next command",
+      "description": "Test next action command",
+      "type": "command",
+      "target": "/popkit:next",
+      "priority": "P1",
+      "timeout_seconds": 180,
+      "inputs": {},
+      "expected": {
+        "has_output": true,
+        "no_errors": true,
+        "asks_questions": true
+      },
+      "tags": ["analysis", "command"]
+    },
+    {
+      "id": "scenario-new-project-001",
+      "name": "New project onboarding flow",
+      "description": "Full workflow: init project, analyze, set up routines",
+      "type": "scenario",
+      "priority": "P1",
+      "timeout_seconds": 600,
+      "steps": [
+        {
+          "id": "step-1",
+          "type": "command",
+          "target": "/popkit:project init",
+          "inputs": {},
+          "expected": {
+            "has_output": true,
+            "creates_file": "CLAUDE.md"
+          }
+        },
+        {
+          "id": "step-2",
+          "type": "command",
+          "target": "/popkit:project analyze",
+          "inputs": {},
+          "expected": {
+            "has_output": true,
+            "output_contains": ["structure", "analysis"]
+          }
+        },
+        {
+          "id": "step-3",
+          "type": "command",
+          "target": "/popkit:routine morning generate",
+          "inputs": {},
+          "expected": {
+            "has_output": true
+          }
+        }
+      ],
+      "expected": {
+        "all_steps_pass": true,
+        "final_state": {
+          "has_claude_md": true,
+          "has_routines": true
+        }
+      },
+      "tags": ["workflow", "onboarding"]
+    },
+    {
+      "id": "scenario-bug-fix-001",
+      "name": "Bug fix workflow",
+      "description": "Full workflow: identify bug, fix, test, commit",
+      "type": "scenario",
+      "priority": "P1",
+      "timeout_seconds": 600,
+      "setup": {
+        "create_file": {
+          "path": "src/buggy.ts",
+          "content": "export function divide(a: number, b: number): number {\n  return a / b; // Bug: no zero check\n}"
+        }
+      },
+      "steps": [
+        {
+          "id": "step-1",
+          "type": "skill",
+          "target": "pop-code-review",
+          "inputs": {
+            "file_path": "src/buggy.ts"
+          },
+          "expected": {
+            "has_output": true,
+            "output_contains": ["zero", "division", "check"]
+          }
+        },
+        {
+          "id": "step-2",
+          "type": "command",
+          "target": "/popkit:dev quick",
+          "inputs": {
+            "args": "Fix divide by zero bug in src/buggy.ts"
+          },
+          "expected": {
+            "has_output": true,
+            "modifies_file": "src/buggy.ts"
+          }
+        }
+      ],
+      "expected": {
+        "all_steps_pass": true
+      },
+      "cleanup": {
+        "delete_file": "src/buggy.ts"
+      },
+      "tags": ["workflow", "bug-fix"]
+    },
+    {
+      "id": "scenario-feature-dev-001",
+      "name": "Feature development workflow",
+      "description": "Full 7-phase feature development flow",
+      "type": "scenario",
+      "priority": "P2",
+      "timeout_seconds": 900,
+      "steps": [
+        {
+          "id": "step-1",
+          "type": "skill",
+          "target": "pop-brainstorming",
+          "inputs": {
+            "topic": "Add user preferences storage"
+          },
+          "expected": {
+            "has_output": true,
+            "asks_questions": true
+          }
+        },
+        {
+          "id": "step-2",
+          "type": "skill",
+          "target": "pop-writing-plans",
+          "inputs": {
+            "feature": "User preferences storage"
+          },
+          "expected": {
+            "has_output": true
+          }
+        },
+        {
+          "id": "step-3",
+          "type": "command",
+          "target": "/popkit:dev execute",
+          "inputs": {},
+          "expected": {
+            "has_output": true,
+            "expected_events": ["phase_change"]
+          }
+        }
+      ],
+      "expected": {
+        "all_steps_pass": true,
+        "expected_phases": ["discovery", "exploration", "architecture", "implementation"]
+      },
+      "tags": ["workflow", "feature-dev", "7-phase"]
+    },
+    {
+      "id": "scenario-day-workflow-001",
+      "name": "Full day workflow (morning to nightly)",
+      "description": "Complete day bracket: morning routine, work, nightly routine",
+      "type": "scenario",
+      "priority": "P2",
+      "timeout_seconds": 600,
+      "steps": [
+        {
+          "id": "step-1",
+          "type": "command",
+          "target": "/popkit:routine morning",
+          "inputs": {},
+          "expected": {
+            "has_output": true,
+            "output_contains": ["Ready to Code"]
+          }
+        },
+        {
+          "id": "step-2",
+          "type": "command",
+          "target": "/popkit:next",
+          "inputs": {},
+          "expected": {
+            "has_output": true
+          }
+        },
+        {
+          "id": "step-3",
+          "type": "skill",
+          "target": "pop-session-capture",
+          "inputs": {
+            "reason": "End of work session"
+          },
+          "expected": {
+            "has_output": true,
+            "creates_file": "STATUS.json"
+          }
+        },
+        {
+          "id": "step-4",
+          "type": "command",
+          "target": "/popkit:routine nightly",
+          "inputs": {},
+          "expected": {
+            "has_output": true,
+            "output_contains": ["Sleep Score"]
+          }
+        }
+      ],
+      "expected": {
+        "all_steps_pass": true,
+        "final_state": {
+          "session_captured": true
+        }
+      },
+      "tags": ["workflow", "day-bracket", "routine"]
+    },
+    {
+      "id": "scenario-power-mode-001",
+      "name": "Power mode parallel agents",
+      "description": "Test multi-agent coordination in power mode",
+      "type": "scenario",
+      "priority": "P2",
+      "timeout_seconds": 600,
+      "runner": "e2b",
+      "requires": {
+        "e2b": true,
+        "upstash": true
+      },
+      "steps": [
+        {
+          "id": "step-1",
+          "type": "command",
+          "target": "/popkit:power init",
+          "inputs": {},
+          "expected": {
+            "has_output": true
+          }
+        },
+        {
+          "id": "step-2",
+          "type": "command",
+          "target": "/popkit:power start",
+          "inputs": {
+            "args": "--agents 2"
+          },
+          "expected": {
+            "has_output": true,
+            "output_contains": ["agents", "started"]
+          }
+        },
+        {
+          "id": "step-3",
+          "type": "command",
+          "target": "/popkit:power status",
+          "inputs": {},
+          "expected": {
+            "has_output": true,
+            "output_contains": ["running", "agents"]
+          }
+        },
+        {
+          "id": "step-4",
+          "type": "command",
+          "target": "/popkit:power stop",
+          "inputs": {},
+          "expected": {
+            "has_output": true
+          }
+        }
+      ],
+      "expected": {
+        "all_steps_pass": true
+      },
+      "tags": ["workflow", "power-mode", "advanced"]
+    }
+  ],
+  "test_suites": {
+    "smoke": {
+      "description": "Quick smoke tests for CI",
+      "filter": {
+        "priority": ["P0"],
+        "tags": ["core"]
+      },
+      "max_duration_seconds": 600
+    },
+    "full": {
+      "description": "Full test suite for releases",
+      "filter": {
+        "priority": ["P0", "P1"]
+      },
+      "max_duration_seconds": 3600
+    },
+    "extended": {
+      "description": "Extended suite including scenarios",
+      "filter": {
+        "priority": ["P0", "P1", "P2"]
+      },
+      "max_duration_seconds": 7200
+    },
+    "skills-only": {
+      "description": "Test only skills",
+      "filter": {
+        "type": ["skill"]
+      }
+    },
+    "commands-only": {
+      "description": "Test only commands",
+      "filter": {
+        "type": ["command"]
+      }
+    },
+    "scenarios-only": {
+      "description": "Test only user scenarios",
+      "filter": {
+        "type": ["scenario"]
+      }
+    }
+  }
+}

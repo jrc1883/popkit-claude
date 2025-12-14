@@ -1,13 +1,115 @@
 {
-  "timestamp": "2025-12-12T14:59:23.166769",
+  "timestamp": "2025-12-13T20:31:45.920275",
   "summary": {
-    "total": 65,
-    "passed": 65,
+    "total": 161,
+    "passed": 161,
     "failed": 0,
     "skipped": 0,
-    "duration_ms": 0.816
+    "duration_ms": 9.575
   },
   "results": [
+    {
+      "name": "plugin.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "marketplace.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "agents/config.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "hooks/hooks.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": ".mcp.json exists and is valid",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "CLAUDE.md exists at repo root",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "all skills have SKILL.md",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 65 files (expected 62)"
+    },
+    {
+      "name": "all tier-1 agents have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 11 files"
+    },
+    {
+      "name": "all tier-2 agents have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 17 files"
+    },
+    {
+      "name": "all feature-workflow agents have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 2 files"
+    },
+    {
+      "name": "all hooks are Python files",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 23 files"
+    },
+    {
+      "name": "all hook utils are Python files",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 56 files (expected 52)"
+    },
+    {
+      "name": "all commands have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 24 files"
+    },
+    {
+      "name": "all output styles have definitions",
+      "passed": true,
+      "category": "structure",
+      "message": "Found 20 files"
+    },
+    {
+      "name": "power-mode config exists",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "power-mode coordinator exists",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
+    {
+      "name": "MCP server template exists",
+      "passed": true,
+      "category": "structure",
+      "message": ""
+    },
     {
       "name": "bug keywords route to bug-whisperer",
       "passed": true,
@@ -396,6 +498,480 @@
       "name": "NetworkError routes to devops-automator",
       "passed": true,
       "category": "routing",
+      "message": ""
+    },
+    {
+      "name": "/popkit:dev command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:git command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:issue command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:routine command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:power command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:project command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:plugin command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:debug command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:bug command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:worktree command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:knowledge command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:next command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:privacy command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:workflow-viz command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:stats command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "/popkit:security command structure",
+      "passed": true,
+      "category": "commands",
+      "message": ""
+    },
+    {
+      "name": "pop-analyze-project skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-auto-docs skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-brainstorming skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-bug-reporter skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-chain-management skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-checkpoint skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-code-review skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-context-restore skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-defense-in-depth skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-doc-sync skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-embed-content skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-embed-project skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-executing-plans skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-feedback-report skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-finish-branch skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-heartbeat skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-knowledge-lookup skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-mcp-generator skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-morning-generator skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-next-action skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-nightly-generator skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-plugin-test skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-power-mode skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-project-init skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-project-templates skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-root-cause-tracing skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-routing-debug skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-security-scan skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-session-capture skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-session-resume skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-simplify-cascade skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-skill-generator skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-smoke-test skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-subagent-dev skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-systematic-debugging skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-test-driven-development skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-validation-engine skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-verify-completion skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-worktrees skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "pop-writing-plans skill",
+      "passed": true,
+      "category": "skills",
+      "message": ""
+    },
+    {
+      "name": "hook pre-tool-use has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook post-tool-use has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook pre_tool_use_stateless has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook post_tool_use_stateless has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook user-prompt-submit has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook session-start has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook stop has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook notification has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook agent-context-integration has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook agent-observability has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook agent-orchestrator has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook output-validator has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook subagent-stop has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook knowledge-sync has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook chain-validator has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook chain-metrics has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook quality-gate has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook context-monitor has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook issue-workflow has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook doc-sync has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook command-learning-hook has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook bug_reporter_hook has valid shebang",
+      "passed": true,
+      "category": "hooks",
+      "message": ""
+    },
+    {
+      "name": "hook feedback_hook has valid shebang",
+      "passed": true,
+      "category": "hooks",
       "message": ""
     }
   ]

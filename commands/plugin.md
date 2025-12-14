@@ -37,6 +37,9 @@ Run comprehensive tests on plugin components to ensure everything works correctl
 /popkit:plugin test skills            # Test skills only
 /popkit:plugin test routing           # Test agent routing
 /popkit:plugin test structure         # Test file structure
+/popkit:plugin test sandbox           # Run sandbox tests (P0 smoke)
+/popkit:plugin test sandbox --full    # Full sandbox test suite (P0+P1)
+/popkit:plugin test sandbox --skill X # Test specific skill in sandbox
 ```
 
 ### Test Categories
@@ -48,6 +51,7 @@ Run comprehensive tests on plugin components to ensure everything works correctl
 | `skills` | SKILL.md format, descriptions, dependencies |
 | `routing` | Agent selection based on prompts |
 | `structure` | File existence, YAML validity, references |
+| `sandbox` | Isolated execution tests with telemetry capture |
 
 ### Process
 
@@ -95,6 +99,10 @@ Time: 12.3s
 | `--verbose` | Show detailed test output |
 | `--fail-fast` | Stop on first failure |
 | `--json` | Output results as JSON |
+| `--full` | For sandbox: run full suite (P0+P1) instead of smoke |
+| `--skill <name>` | For sandbox: test specific skill only |
+| `--command <name>` | For sandbox: test specific command only |
+| `--mode local\|e2b` | For sandbox: choose runner (default: local) |
 
 ### Test Files
 
@@ -103,6 +111,7 @@ Test definitions are stored in:
 - `tests/agents/` - Agent definition tests
 - `tests/skills/` - Skill structure tests
 - `tests/routing/` - Agent routing tests
+- `tests/sandbox/` - Sandbox test infrastructure and matrix
 
 ---
 
@@ -563,12 +572,15 @@ Following semantic versioning:
 |-----------|-------------|
 | Test Definitions | `tests/` directory |
 | Plugin Test Skill | `skills/pop-plugin-test/SKILL.md` |
+| Sandbox Test Skill | `skills/pop-sandbox-test/SKILL.md` |
 | Auto-Docs Skill | `skills/pop-auto-docs/SKILL.md` |
 | Doc-Sync Skill | `skills/pop-doc-sync/SKILL.md` |
 | Doc-Sync Utility | `hooks/utils/doc_sync.py` |
 | Validation Engine | `skills/pop-validation-engine/SKILL.md` |
 | Plugin Detector | `hooks/utils/plugin_detector.py` |
 | Conflict Report Style | `output-styles/conflict-report.md` |
+| Sandbox Test Matrix | `tests/sandbox/test_matrix.json` |
+| Sandbox Analytics | `tests/sandbox/analytics.py` |
 | Documentation | CLAUDE.md, README.md |
 
 ## Related Commands

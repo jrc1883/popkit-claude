@@ -12,6 +12,7 @@ This module tracks:
 - Which required decisions have been made
 - Whether completion decisions are pending
 - Publishes skill lifecycle events to activity ledger
+- Emits test telemetry events when in test mode (Issue #226)
 """
 
 import json
@@ -19,6 +20,16 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass, field
+
+# Import test telemetry for sandbox testing (Issue #226)
+try:
+    from test_telemetry import is_test_mode, get_test_session_id, create_event
+    from local_telemetry import log_event_if_test_mode
+    TEST_TELEMETRY_AVAILABLE = True
+except ImportError:
+    TEST_TELEMETRY_AVAILABLE = False
+    def is_test_mode(): return False
+    def get_test_session_id(): return None
 
 
 @dataclass
@@ -103,10 +114,30 @@ class SkillStateTracker:
 
         return {}
 
+    def _emit_telemetry_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        """Emit test telemetry event if in test mode (Issue #226).
+
+        Events are only captured during sandbox testing for observability.
+        Zero overhead when not in test mode.
+        """
+        if not TEST_TELEMETRY_AVAILABLE or not is_test_mode():
+            return
+
+        try:
+            event = create_event(
+                event_type=event_type,
+                data=data
+            )
+            log_event_if_test_mode(event)
+        except Exception:
+            # Don't let telemetry failures break skill tracking
+            pass
+
     def start_skill(self, skill_name: str, workflow_id: Optional[str] = None) -> None:
         """Called when a skill is invoked via Skill tool.
 
         Publishes 'start' event to activity ledger for real-time awareness.
+        Emits 'skill_start' telemetry event if in test mode (Issue #226).
         """
         self.state = SkillState(skill_name=skill_name, workflow_id=workflow_id)
 
@@ -118,10 +149,18 @@ class SkillStateTracker:
         if activity_id and self.state:
             self.state.activity_id = activity_id
 
+        # Emit test telemetry (Issue #226)
+        self._emit_telemetry_event("skill_start", {
+            "skill_name": skill_name,
+            "workflow_id": workflow_id,
+            "activity_id": activity_id
+        })
+
     def end_skill(self, status: str = "complete", output: Optional[Dict[str, Any]] = None) -> None:
         """Called when skill completes.
 
         Publishes 'complete' or 'error' event to activity ledger.
+        Emits 'skill_end' telemetry event if in test mode (Issue #226).
 
         Args:
             status: "complete" or "error"
@@ -141,6 +180,16 @@ class SkillStateTracker:
                 event_data["error"] = self.state.last_error
 
             self._publish_activity(status, event_data)
+
+            # Emit test telemetry (Issue #226)
+            self._emit_telemetry_event("skill_end", {
+                "skill_name": self.state.skill_name,
+                "workflow_id": self.state.workflow_id,
+                "status": status,
+                "tool_calls": self.state.tool_calls,
+                "decisions_made": list(self.state.decisions_made),
+                "error": self.state.last_error if self.state.error_occurred else None
+            })
 
         self.state = None
 
@@ -222,6 +271,26 @@ class SkillStateTracker:
         if self.state:
             self.state.error_occurred = True
             self.state.last_error = error_message
+
+    def record_phase_change(self, phase: str, data: Optional[Dict[str, Any]] = None) -> None:
+        """Record a phase change in a multi-phase workflow (Issue #226).
+
+        Emits 'phase_change' telemetry event for tracking workflow progress
+        during sandbox testing.
+
+        Args:
+            phase: Name of the new phase (e.g., "exploration", "architecture", "implementation")
+            data: Optional additional data about the phase
+        """
+        if self.state:
+            # Emit test telemetry (Issue #226)
+            self._emit_telemetry_event("phase_change", {
+                "skill_name": self.state.skill_name,
+                "workflow_id": self.state.workflow_id,
+                "phase": phase,
+                "tool_calls_so_far": self.state.tool_calls,
+                **(data or {})
+            })
 
     def has_error(self) -> bool:
         """Check if an error occurred during skill execution."""

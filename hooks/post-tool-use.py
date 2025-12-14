@@ -43,6 +43,23 @@ try:
 except ImportError:
     WORKFLOW_ROUTER_AVAILABLE = False
 
+# Import test telemetry for sandbox testing (Issue #226)
+try:
+    from test_telemetry import (
+        is_test_mode, get_test_session_id,
+        create_trace, create_decision, create_event
+    )
+    from local_telemetry import (
+        get_local_storage,
+        log_trace_if_test_mode, log_decision_if_test_mode, log_event_if_test_mode
+    )
+    TEST_TELEMETRY_AVAILABLE = True
+except ImportError:
+    TEST_TELEMETRY_AVAILABLE = False
+    # Define stubs when not available
+    def is_test_mode(): return False
+    def get_test_session_id(): return None
+
 class PostToolUseHook:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
@@ -59,6 +76,9 @@ class PostToolUseHook:
         # Initialize databases
         self.context_db = self.init_context_db()
         self.metrics_db = self.init_metrics_db()
+
+        # Test telemetry state (Issue #226)
+        self._trace_sequence = self._get_trace_sequence()
         
     def get_session_id(self) -> str:
         """Get current session ID from environment or context"""
@@ -715,6 +735,109 @@ class PostToolUseHook:
         except Exception as e:
             return {"routed": False, "reason": f"routing_error: {e}"}
 
+    # =========================================================================
+    # Test Telemetry (Issue #226)
+    # =========================================================================
+
+    def _get_trace_sequence(self) -> int:
+        """Get and increment the trace sequence number for test mode.
+
+        Uses an environment variable to persist sequence across hook invocations.
+        """
+        if not is_test_mode():
+            return 0
+
+        seq_env = os.environ.get("POPKIT_TEST_TRACE_SEQ", "0")
+        try:
+            seq = int(seq_env)
+        except ValueError:
+            seq = 0
+
+        # Increment for next call
+        os.environ["POPKIT_TEST_TRACE_SEQ"] = str(seq + 1)
+        return seq + 1
+
+    def capture_tool_telemetry(
+        self,
+        tool_name: str,
+        tool_input: Dict[str, Any],
+        tool_output: str,
+        execution_time_ms: int,
+        success: bool,
+        error: Optional[str] = None
+    ) -> bool:
+        """Capture tool trace telemetry when in test mode (Issue #226).
+
+        This is called for every tool execution when POPKIT_TEST_MODE=true.
+        Minimal overhead when not in test mode.
+
+        Args:
+            tool_name: Name of the tool executed
+            tool_input: Tool input parameters
+            tool_output: Tool output (may be truncated)
+            execution_time_ms: Execution time in milliseconds
+            success: Whether the tool succeeded
+            error: Error message if failed
+
+        Returns:
+            True if telemetry was captured
+        """
+        if not TEST_TELEMETRY_AVAILABLE or not is_test_mode():
+            return False
+
+        try:
+            trace = create_trace(
+                sequence=self._trace_sequence,
+                tool_name=tool_name,
+                tool_input=tool_input,
+                tool_output=str(tool_output),
+                duration_ms=execution_time_ms,
+                success=success,
+                error=error
+            )
+
+            return log_trace_if_test_mode(trace)
+        except Exception:
+            # Never block tool execution for telemetry failures
+            return False
+
+    def capture_decision_telemetry(
+        self,
+        question: str,
+        header: str,
+        options: List[Dict[str, str]],
+        selected: str,
+        context: str = ""
+    ) -> bool:
+        """Capture AskUserQuestion decision point when in test mode (Issue #226).
+
+        Args:
+            question: The question that was asked
+            header: Short header/label
+            options: Available options
+            selected: Which option was selected
+            context: Context that led to this decision
+
+        Returns:
+            True if telemetry was captured
+        """
+        if not TEST_TELEMETRY_AVAILABLE or not is_test_mode():
+            return False
+
+        try:
+            decision = create_decision(
+                question=question,
+                header=header,
+                options=options,
+                selected=selected,
+                context=context
+            )
+
+            return log_decision_if_test_mode(decision)
+        except Exception:
+            return False
+
+
 def check_stop_reason(input_data: Dict[str, Any]) -> Dict[str, Any]:
     """Check and handle Claude API stop reasons.
 
@@ -778,6 +901,40 @@ def main():
 
         hook = PostToolUseHook()
         result = hook.process_tool_completion(tool_name, tool_args, tool_result, execution_time)
+
+        # Capture telemetry for sandbox testing (Issue #226)
+        # This runs ONLY when POPKIT_TEST_MODE=true, minimal overhead otherwise
+        if is_test_mode():
+            success = result.get("analysis", {}).get("success", True)
+            error = result.get("analysis", {}).get("issues", [])
+            error_msg = error[0] if error else None
+
+            hook.capture_tool_telemetry(
+                tool_name=tool_name,
+                tool_input=tool_args,
+                tool_output=str(tool_result)[:10000],  # Truncate for storage
+                execution_time_ms=int(execution_time * 1000),
+                success=success,
+                error=error_msg
+            )
+
+            # Capture decision points from AskUserQuestion
+            if tool_name == "AskUserQuestion" and isinstance(tool_result, dict):
+                # Extract decision info from tool args and result
+                question = tool_args.get("questions", [{}])[0].get("question", "")
+                header = tool_args.get("questions", [{}])[0].get("header", "")
+                options = tool_args.get("questions", [{}])[0].get("options", [])
+                # The selected answer comes from the tool result
+                answers = tool_result.get("answers", {})
+                selected = next(iter(answers.values()), "") if answers else ""
+
+                hook.capture_decision_telemetry(
+                    question=question,
+                    header=header,
+                    options=options,
+                    selected=selected,
+                    context=f"Tool execution at sequence {hook._trace_sequence}"
+                )
 
         # Check for pending skill decisions (Issue #159, #183)
         # Pass tool_result to detect errors that should trigger required decisions

@@ -164,10 +164,12 @@ ALLOWED_EXCEPTIONS: Dict[str, List[str]] = {
     "cloud-setup.md": ["api_key_value", "upstash_token"],
     # Power mode README has example env vars
     "README.md": ["upstash_token"],
+    # Sandbox setup docs have example env vars
+    "SETUP.md": ["upstash_token"],
     # Privacy module has test patterns
     "privacy.py": ["api_key_value", "stripe_secret"],
     # Plan documents can reference cloud structure
-    "2025-12-08-monorepo-conversion.md": ["cloud_code", "cloud_billing", "cloud_team", "cloud_scripts"],
+    "2025-12-08-monorepo-conversion.md": ["cloud_code", "cloud_billing", "cloud_team", "cloud_scripts", "private_repo_ref"],
     # Test files can contain patterns
     "test_ip_protection.py": list(FORBIDDEN_PATTERNS.keys()),
     # Output styles mention terms in templates
@@ -182,6 +184,8 @@ ALLOWED_EXCEPTIONS: Dict[str, List[str]] = {
     "premium_client.py": ["premium_logic"],
     # Skills that mention premium as examples
     "SKILL.md": ["premium_logic"],
+    # Security assessment skill has standard bad examples
+    "secret-patterns.md": ["api_key_value", "bearer_token"],
     # Plugin metadata references the private repo legitimately
     "plugin.json": ["private_repo_ref"],
     ".mcp.json": ["private_repo_ref"],

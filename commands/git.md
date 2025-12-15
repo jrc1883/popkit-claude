@@ -629,8 +629,22 @@ This command uses `git subtree split` to extract `packages/plugin/` and push to 
 2. **Run IP Leak Scan** (NEW - Issue #193)
    ```bash
    # Scan for intellectual property that shouldn't be public
-   python hooks/utils/ip_protection.py packages/plugin/ --pre-publish
-   # Blocks publish if critical/high issues found
+   # CRITICAL: Must check exit code before continuing
+   if [[ "$SKIP_IP_SCAN" != "true" ]]; then
+       python hooks/utils/ip_protection.py packages/plugin/ --pre-publish
+       if [[ $? -ne 0 ]]; then
+           echo ""
+           echo "❌ PUBLISH BLOCKED by IP leak scanner"
+           echo ""
+           echo "Review the findings above. If these are false positives:"
+           echo "  /popkit:git publish --skip-ip-scan"
+           echo ""
+           echo "If these are real leaks, fix them first, then re-run publish."
+           exit 1
+       fi
+   else
+       echo "⚠️  Skipping IP leak scan (--skip-ip-scan flag provided)"
+   fi
    ```
 
 3. **Run Subtree Split**
@@ -732,6 +746,39 @@ This is useful for:
 - Users pinning to specific versions
 - Changelog generation between versions
 
+### publish --skip-ip-scan
+
+Skip the IP leak scan and publish anyway:
+
+```
+/popkit:git publish --skip-ip-scan
+```
+
+**Use this flag when:**
+- Scanner reports false positives (e.g., docs examples showing "bad" patterns)
+- Security audit tools reference standard exploit patterns as examples
+- Test fixtures contain intentional "bad" patterns for testing
+
+**Don't use this flag if:**
+- Scanner found real API keys, tokens, or secrets
+- Cloud implementation code leaked into plugin
+- Proprietary business logic exposed
+
+**Example workflow:**
+```bash
+# First publish attempt - scanner blocks
+/popkit:git publish
+# Scanner output:
+# ❌ PUBLISH BLOCKED by IP leak scanner
+# Found 9 critical/high severity issues.
+# - packages/plugin/skills/pop-assessment-security/SKILL.md:45 - AKIAIOSFODNN7EXAMPLE
+# ...
+
+# Review findings - they're example patterns from security docs
+# Override with skip flag
+/popkit:git publish --skip-ip-scan
+```
+
 ### Workflow Integration
 
 **Typical release workflow:**
@@ -760,18 +807,24 @@ This is automatically set up when running `/popkit:git publish` for the first ti
 
 ### Safety
 
-- **IP leak scan** - Scans for secrets, cloud code, and proprietary content before publish
+- **IP leak scan enforced** - Returns exit code 1 and blocks publish on critical/high findings
+- **Exit code checking** - Workflow stops immediately when scanner detects issues
 - **Never publishes cloud/** or other private packages
 - **Requires clean working tree** in plugin directory
 - **Preserves commit history** from monorepo
 - **Force push is explicit** - won't accidentally overwrite
-- **Blocks on critical/high findings** - Won't publish if IP leaks detected
+- **Override available** - Use `--skip-ip-scan` flag to bypass (review findings first!)
 
 ### Troubleshooting
 
 **"Remote not found"**: Run the remote setup command above.
 
 **"Dirty working tree"**: Commit or stash changes in `packages/plugin/` first.
+
+**"PUBLISH BLOCKED by IP leak scanner"**: The scanner found critical or high-severity issues.
+1. Review the findings displayed above the error
+2. If false positives (e.g., docs examples, test fixtures): Run `/popkit:git publish --skip-ip-scan`
+3. If real leaks: Fix them first, commit, then re-run `/popkit:git publish`
 
 **"History diverged"**: Use `--force` if public repo has changes not in monorepo (rare).
 

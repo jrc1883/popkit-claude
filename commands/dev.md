@@ -611,8 +611,12 @@ Minimal ceremony implementation for small tasks and quick fixes.
 1. **Understand** - Quick context gathering (no full exploration)
 2. **Find** - Locate relevant code (or identify what to create)
 3. **Fix** - Make the change
-4. **Verify** - Run tests if applicable
-5. **Commit** - Offer to commit
+4. **Verify** - Run tests AND quality checks
+   - Execute test suite if available
+   - Validate code quality (linting, type checking)
+   - Check implementation correctness (e.g., physics validation for animations)
+   - If quality checks fail, iterate back to Step 3
+5. **Commit** - Offer to commit only if all verifications pass
 
 ### Example: Bug Fix
 
@@ -666,13 +670,48 @@ Writing balls.js:
 - Animation loop with requestAnimationFrame
 
 Step 4: Verify
+Running quality checks...
 ✓ JavaScript syntax valid
 ✓ 5 balls created with random colors/sizes
-✓ Physics simulation working
-✓ Smooth 60fps animation
+✓ requestAnimationFrame used
+✓ Collision detection implemented
+✗ Physics quality: Excessive damping applied every frame
+
+Issue detected: DAMPING (0.98) applied unconditionally causes balls to freeze
+
+Step 3 (Iteration): Fix
+Updating physics implementation:
+- Remove per-frame damping
+- Apply damping only on wall collisions
+- Preserve energy for continuous bouncing
+
+Step 4: Verify (Round 2)
+✓ JavaScript syntax valid
+✓ All unit tests pass
+✓ Physics quality: Energy conserved, no excessive damping
+✓ Implementation score: 10/10
 
 Commit? [Yes/No]
 ```
+
+### Quality Checks by Task Type
+
+Quick Mode should run appropriate quality checks based on task type:
+
+| Task Type | Quality Checks |
+|-----------|----------------|
+| **Animations/Physics** | Energy conservation, no excessive damping, proper collision detection |
+| **UI Components** | Accessibility (ARIA labels), responsive design, no layout shifts |
+| **API Endpoints** | Input validation, error handling, security (no SQL injection) |
+| **Data Processing** | Edge cases (empty, null, invalid), performance (O(n) complexity) |
+| **Bug Fixes** | Regression tests, root cause addressed (not just symptoms) |
+
+**General checks for all tasks:**
+- Syntax validation (linting)
+- Type checking (if TypeScript)
+- Unit tests pass
+- No console.log/debugger statements
+- No security vulnerabilities (hardcoded secrets, XSS, etc.)
 
 ### When to Use
 
@@ -688,16 +727,6 @@ Commit? [Yes/No]
 - Architecture decisions → use full mode
 - Unclear requirements → use brainstorm mode
 - Large codebases to explore → use full mode
-- Single-file changes
-- Quick additions
-- Typo corrections
-
-### When NOT to Use
-
-- New features
-- Multi-file changes
-- Anything requiring design decisions
-- Complex logic changes
 
 ---
 

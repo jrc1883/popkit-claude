@@ -13,7 +13,7 @@
     {
       "name": "popkit",
       "description": "AI-powered development workflows with skills, agents, and automation for Claude Code",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "source": "./",
       "author": {
         "name": "Joseph Cannon",

@@ -1,54 +1,111 @@
 ---
-description: "full | work #N | brainstorm | plan | execute | quick | prd | suite [-T, --power]"
-argument-hint: "<mode> [topic|#issue] [flags]"
+description: "work #N | brainstorm | plan | execute | prd | suite | \"description\" [--mode quick|full] [-T, --power]"
+argument-hint: "[subcommand|description] [flags]"
 ---
 
 # /popkit:dev - Development Workflows
 
 Unified entry point for all development workflows, from idea refinement to implementation.
 
+**Intelligent routing:** Orchestrator analyzes your task and automatically chooses quick (5-step) or full (7-phase) workflow based on complexity.
+
 ## Usage
 
-```
-/popkit:dev [mode] [topic] [flags]
+```bash
+# Free-form description (orchestrator routes automatically)
+/popkit:dev "add dark mode toggle"           # Orchestrator analyzes → routes to quick or full
+
+# Issue-driven development
+/popkit:dev work #123                        # Fetch issue → orchestrator routes
+
+# Explicit subcommands
+/popkit:dev brainstorm                       # Interactive idea refinement
+/popkit:dev plan "feature description"       # Write implementation plan
+/popkit:dev execute                          # Execute existing plan
+
+# Override orchestrator
+/popkit:dev "complex task" --mode quick      # Force quick even if complex
+/popkit:dev "simple task" --mode full        # Force full even if simple
 ```
 
-## Modes
+## Subcommands
 
-| Mode | Description | Source |
-|------|-------------|--------|
-| `full` | 7-phase guided workflow (default) | feature-dev |
-| `work #N` | Issue-driven development | issue work |
-| `brainstorm` | Idea refinement through dialogue | design brainstorm |
-| `plan` | Create implementation plan | plan write |
-| `execute` | Execute an existing plan | plan execute |
-| `quick` | Minimal ceremony implementation | NEW |
-| `prd` | Generate PRD document | design prd |
-| `suite` | Generate full documentation suite | design suite |
+| Subcommand | Description | Use Case |
+|------------|-------------|----------|
+| `work #N` | Issue-driven development | Working from GitHub issue |
+| `brainstorm` | Socratic questioning | Unclear requirements |
+| `plan` | Write implementation plan | Planning without implementing |
+| `execute` | Execute existing plan | Run plan.md in directory |
+| `prd` | Generate PRD document | Product requirements |
+| `suite` | Full documentation suite | Design docs + PRD + plan |
+
+## Modes (Auto-Selected by Orchestrator)
+
+| Mode | When Used | Process |
+|------|-----------|---------|
+| `quick` | Simple tasks, clear scope | 5 steps: Understand → Find → Fix → Verify → Commit |
+| `full` | Complex features, architecture needed | 7 phases: Discovery → Exploration → Questions → Architecture → Implementation → Review → Summary |
+
+**Override with:** `--mode quick` or `--mode full`
 
 ## Flags
 
-| Flag | Description |
-|------|-------------|
-| `-T`, `--thinking` | Enable extended thinking mode |
-| `--no-thinking` | Disable extended thinking |
-| `--think-budget N` | Set thinking token budget (default: 10000) |
-| `--from FILE` | Generate from existing design/plan document |
-| `--issue N` | Reference GitHub issue for context |
-| `-p`, `--power` | Force Power Mode (for work mode) |
-| `-s`, `--solo` | Force sequential mode (for work mode) |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--mode` | | Override orchestrator: `quick` or `full` |
+| `--thinking` | `-T` | Enable extended thinking mode |
+| `--no-thinking` | | Disable extended thinking |
+| `--think-budget N` | | Set thinking token budget (default: 10000) |
+| `--from FILE` | | Generate from existing design/plan document |
+| `--issue N` | | Reference GitHub issue for context |
+| `--power` | `-p` | Force Power Mode (for work mode) |
+| `--solo` | `-s` | Force sequential mode (for work mode) |
 
 ---
 
-## Mode: full (default)
+## How Orchestrator Routing Works
 
-Complete 7-phase guided workflow for feature development.
+When you provide a free-form description, the orchestrator analyzes:
 
+1. **Complexity** - Word count, technical keywords, scope indicators
+2. **Intent** - build, fix, optimize, analyze, deploy, document, test
+3. **Domains** - frontend, backend, database, devops, security, performance
+4. **Context** - Existing codebase, related issues, project patterns
+
+**Routes to quick mode when:**
+- Simple task (< 50 words, clear requirements)
+- Greenfield implementation (no existing code)
+- Single file or few file changes
+- Intent is "build" with clear scope
+
+**Routes to full mode when:**
+- Complex feature (architecture decisions needed)
+- Requires codebase exploration
+- Multiple concerns or domains
+- Unclear requirements or scope
+
+**Example routing:**
+```bash
+# → QUICK mode
+/popkit:dev "add loading spinner to button"
+/popkit:dev "fix timezone bug in date display"
+/popkit:dev "create bouncing balls animation"
+
+# → FULL mode
+/popkit:dev "implement OAuth authentication system"
+/popkit:dev "refactor payments module for scalability"
+/popkit:dev "add real-time notifications with WebSockets"
 ```
-/popkit:dev "user authentication"
-/popkit:dev full "payment integration"
-/popkit:dev "dark mode" -T
-```
+
+---
+
+## Mode: full
+
+Complete 7-phase guided workflow for complex feature development.
+
+**Invoked by orchestrator when:** Complex features, architecture needed, codebase exploration required
+
+**Explicitly invoke:** `/popkit:dev "task" --mode full`
 
 ### The 7 Phases
 
@@ -535,42 +592,102 @@ If blocked mid-batch:
 
 Minimal ceremony implementation for small tasks and quick fixes.
 
-```
-/popkit:dev quick "fix the timezone bug"
-/popkit:dev quick "add loading spinner to button"
+**Invoked by orchestrator when:** Simple tasks, clear requirements, greenfield implementation, few files
+
+**Explicitly invoke:** `/popkit:dev "task" --mode quick`
+
+```bash
+# Orchestrator routes to quick mode automatically
+/popkit:dev "fix the timezone bug"
+/popkit:dev "add loading spinner to button"
+/popkit:dev "create bouncing balls animation"
+
+# Explicitly force quick mode
+/popkit:dev "user authentication" --mode quick  # Override orchestrator
 ```
 
-### Process
+### The 5-Step Process
 
 1. **Understand** - Quick context gathering (no full exploration)
-2. **Find** - Locate relevant code
+2. **Find** - Locate relevant code (or identify what to create)
 3. **Fix** - Make the change
 4. **Verify** - Run tests if applicable
 5. **Commit** - Offer to commit
 
-### Example
+### Example: Bug Fix
 
 ```
-/popkit:dev quick "fix the timezone bug in user profiles"
+/popkit:dev "fix the timezone bug in user profiles"
 
-Quick mode - minimal ceremony.
+[QUICK MODE] Fixing timezone bug
 
-Let me find the relevant code...
+Step 1: Understand
+- Issue: Dates showing in UTC instead of user timezone
+- Impact: User profile, post timestamps
+
+Step 2: Find
 Found: src/utils/formatDate.ts:45
+- formatDate(date) - missing timezone parameter
 
-The bug: Not accounting for user's timezone when displaying dates.
+Step 3: Fix
+Updated formatDate to use user.timezone:
+- formatDate(date, user.timezone)
+- Update all call sites (3 files)
 
-Fix: Use user.timezone in formatDate() call.
+Step 4: Verify
+✓ Displays correct timezone
+✓ Existing tests pass
 
-[Makes the fix]
-[Runs tests]
+Commit? [Yes/No]
+```
 
-Done. Commit this fix?
+### Example: Greenfield Feature
+
+```
+/popkit:dev "create bouncing balls animation"
+
+[QUICK MODE] Creating bouncing balls animation
+
+Step 1: Understand
+- Task: Canvas animation with 5 balls, physics, collisions
+- Files: balls.js (implement), index.html (starter)
+- Scope: Single feature, greenfield
+
+Step 2: Find
+- balls.js: Empty starter (// TODO comment)
+- index.html: Canvas element ready
+
+Step 3: Fix
+Writing balls.js:
+- Ball class with position, velocity, mass
+- Gravity and damping physics
+- Wall collision detection
+- Ball-to-ball collision
+- Animation loop with requestAnimationFrame
+
+Step 4: Verify
+✓ JavaScript syntax valid
+✓ 5 balls created with random colors/sizes
+✓ Physics simulation working
+✓ Smooth 60fps animation
+
+Commit? [Yes/No]
 ```
 
 ### When to Use
 
 - Small bug fixes
+- Simple features (< 50 LOC)
+- Greenfield implementations
+- Clear, well-defined requirements
+- Single file or few file changes
+
+### When NOT to Use
+
+- Complex refactoring → use full mode
+- Architecture decisions → use full mode
+- Unclear requirements → use brainstorm mode
+- Large codebases to explore → use full mode
 - Single-file changes
 - Quick additions
 - Typo corrections

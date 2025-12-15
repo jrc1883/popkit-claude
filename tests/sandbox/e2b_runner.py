@@ -456,8 +456,9 @@ class E2BTestRunner:
                 env_vars["UPSTASH_REDIS_REST_TOKEN"] = os.environ["UPSTASH_REDIS_REST_TOKEN"]
 
         # Create sandbox with template and environment
-        sandbox = Sandbox(
-            template=config.template,
+        # E2B SDK v2.x uses Sandbox.create() instead of Sandbox()
+        sandbox = Sandbox.create(
+            template=config.template if config.template != "base" else None,
             envs=env_vars,
             timeout=timeout,
             api_key=self.api_key
@@ -483,7 +484,8 @@ class E2BTestRunner:
             if local_path.exists():
                 content = local_path.read_text(encoding="utf-8")
                 remote_path = f"/home/user/popkit/{rel_path}"
-                sandbox.filesystem.write(remote_path, content)
+                # E2B SDK v2.x uses .files instead of .filesystem
+                sandbox.files.write(remote_path, content)
 
     def _upload_file(self, sandbox: "Sandbox", file_path: str):
         """Upload a single file to sandbox.
@@ -496,7 +498,8 @@ class E2BTestRunner:
         if local_path.exists():
             content = local_path.read_bytes()
             remote_path = f"/home/user/upload/{local_path.name}"
-            sandbox.filesystem.write_bytes(remote_path, content)
+            # E2B SDK v2.x uses .files instead of .filesystem
+            sandbox.files.write(remote_path, content)
 
     def _run_skill_in_sandbox(
         self,
@@ -552,8 +555,8 @@ except ImportError as e:
     print(f"Skill test: {skill_name}")
 '''
 
-        # Write and execute test script
-        sandbox.filesystem.write("/home/user/test_skill.py", test_script)
+        # Write and execute test script (E2B SDK v2.x uses .files)
+        sandbox.files.write("/home/user/test_skill.py", test_script)
         result = sandbox.commands.run(
             "python /home/user/test_skill.py",
             timeout=config.timeout
@@ -616,7 +619,7 @@ except ImportError as e:
     print(f"Command test: {command}")
 '''
 
-        sandbox.filesystem.write("/home/user/test_command.py", test_script)
+        sandbox.files.write("/home/user/test_command.py", test_script)
         result = sandbox.commands.run(
             "python /home/user/test_command.py",
             timeout=config.timeout

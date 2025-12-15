@@ -95,8 +95,40 @@ class TelemetryAnalyzer:
         if not self.data_dir.exists():
             return sessions
 
-        for session_dir in sorted(self.data_dir.iterdir(), reverse=True):
-            if session_dir.is_dir() and session_dir.name.startswith("test-"):
+        # Check both direct subdirectories and sessions/ subdirectory
+        search_dirs = []
+
+        # Look for sessions/ subdirectory (local_telemetry format)
+        sessions_subdir = self.data_dir / "sessions"
+        if sessions_subdir.exists():
+            search_dirs.extend(sessions_subdir.iterdir())
+
+        # Also look for test-* directories (legacy format)
+        for d in self.data_dir.iterdir():
+            if d.is_dir() and d.name.startswith("test-"):
+                search_dirs.append(d)
+
+        for session_dir in sorted(search_dirs, key=lambda d: d.stat().st_mtime, reverse=True):
+            if not session_dir.is_dir():
+                continue
+
+            # Try meta.json first (local_telemetry format), then meta.jsonl
+            meta_file = session_dir / "meta.json"
+            if meta_file.exists():
+                try:
+                    with open(meta_file, "r", encoding="utf-8") as f:
+                        meta = json.load(f)
+                        sessions.append({
+                            "session_id": session_dir.name,
+                            "test_type": meta.get("test_type", "unknown"),
+                            "test_name": meta.get("test_name", "unknown"),
+                            "mode": meta.get("mode", "local"),
+                            "timestamp": meta.get("started_at")
+                        })
+                except (json.JSONDecodeError, OSError):
+                    pass
+            else:
+                # Try meta.jsonl (event stream format)
                 meta_file = session_dir / "meta.jsonl"
                 if meta_file.exists():
                     try:
@@ -125,7 +157,11 @@ class TelemetryAnalyzer:
         if session_id in self._sessions_cache:
             return self._sessions_cache[session_id]
 
-        session_dir = self.data_dir / session_id
+        # Try sessions/ subdirectory first (local_telemetry format)
+        session_dir = self.data_dir / "sessions" / session_id
+        if not session_dir.exists():
+            # Fall back to direct subdirectory (legacy format)
+            session_dir = self.data_dir / session_id
         if not session_dir.exists():
             return None
 
@@ -133,13 +169,17 @@ class TelemetryAnalyzer:
             session_id=session_id,
             test_type="unknown",
             test_name="unknown",
-            mode="local"
+            mode="local",
+            status="unknown"
         )
 
-        # Load metadata
-        meta_file = session_dir / "meta.jsonl"
-        if meta_file.exists():
-            self._parse_meta(meta_file, summary)
+        # Load metadata - try meta.json first (local_telemetry), then meta.jsonl
+        meta_json = session_dir / "meta.json"
+        meta_jsonl = session_dir / "meta.jsonl"
+        if meta_json.exists():
+            self._parse_meta_json(meta_json, summary)
+        elif meta_jsonl.exists():
+            self._parse_meta(meta_jsonl, summary)
 
         # Load traces
         traces_file = session_dir / "traces.jsonl"
@@ -161,6 +201,41 @@ class TelemetryAnalyzer:
 
         self._sessions_cache[session_id] = summary
         return summary
+
+    def _parse_meta_json(self, meta_file: Path, summary: SessionSummary) -> None:
+        """Parse meta.json file (local_telemetry format)."""
+        try:
+            with open(meta_file, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+
+            summary.test_type = meta.get("test_type", "unknown")
+            summary.test_name = meta.get("test_name", "unknown")
+            summary.mode = meta.get("mode", "local")
+            summary.status = "completed" if meta.get("ended_at") else "running"
+            summary.outcome = meta.get("outcome", "unknown")
+
+            if meta.get("started_at"):
+                try:
+                    summary.start_time = datetime.fromisoformat(
+                        meta["started_at"].replace("Z", "+00:00")
+                    )
+                except (ValueError, TypeError):
+                    pass
+
+            if meta.get("ended_at"):
+                try:
+                    summary.end_time = datetime.fromisoformat(
+                        meta["ended_at"].replace("Z", "+00:00")
+                    )
+                except (ValueError, TypeError):
+                    pass
+
+            # Get metrics if available
+            metrics = meta.get("metrics", {})
+            summary.tool_calls = metrics.get("tool_calls", 0)
+            summary.duration_ms = metrics.get("total_duration_ms", 0)
+        except (json.JSONDecodeError, OSError):
+            pass
 
     def _parse_meta(self, meta_file: Path, summary: SessionSummary) -> None:
         """Parse metadata file."""

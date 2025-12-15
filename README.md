@@ -308,7 +308,7 @@ Parallel agent orchestration.
 | `/popkit:dashboard` | [add|remove|refresh|switch|discover] - Multi-project management |
 | `/popkit:debug` | code | routing [--trace, --verbose] |
 | `/popkit:deploy` | init | setup | validate | execute | rollback [--target, --all, --dry-run] |
-| `/popkit:dev` | full | work #N | brainstorm | plan | execute | quick | prd | suite [-T, --power] |
+| `/popkit:dev` | work #N | brainstorm | plan | execute | prd | suite | "description" [--mode quic |
 | `/popkit:git` | commit | push | pr | review | ci | release | publish | prune | finish [--draft,  |
 | `/popkit:issue` | create | list | view | close | comment | edit | link [--state, --label] |
 | `/popkit:knowledge` | list | add | remove | sync | search <query> |

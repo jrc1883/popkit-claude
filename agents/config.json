@@ -154,13 +154,29 @@
       "assessment": ["anthropic-engineer-assessor", "documentation-auditor-assessor"],
       "audit": ["security-auditor-assessor", "documentation-auditor-assessor"],
       "compliance": ["anthropic-engineer-assessor"],
-      "self-assessment": ["anthropic-engineer-assessor"]
+      "self-assessment": ["anthropic-engineer-assessor"],
+      "ui": ["rapid-prototyper", "accessibility-guardian"],
+      "design": ["rapid-prototyper", "ux-reviewer-assessor"],
+      "interface": ["rapid-prototyper", "accessibility-guardian"],
+      "frontend": ["rapid-prototyper", "accessibility-guardian"],
+      "component": ["rapid-prototyper", "accessibility-guardian"],
+      "styling": ["rapid-prototyper", "accessibility-guardian"],
+      "layout": ["rapid-prototyper", "accessibility-guardian"],
+      "responsive": ["rapid-prototyper", "accessibility-guardian"],
+      "css": ["rapid-prototyper", "accessibility-guardian"],
+      "html": ["rapid-prototyper", "accessibility-guardian"],
+      "tailwind": ["rapid-prototyper", "accessibility-guardian"],
+      "react-component": ["rapid-prototyper", "accessibility-guardian"],
+      "ux": ["ux-reviewer-assessor", "accessibility-guardian"],
+      "user-experience": ["ux-reviewer-assessor", "accessibility-guardian"],
+      "usability": ["ux-reviewer-assessor", "accessibility-guardian"]
     },
 
     "filePatterns": {
       "*.test.ts": ["test-writer-fixer"],
       "*.spec.ts": ["test-writer-fixer"],
-      "*.tsx": ["code-reviewer", "accessibility-guardian"],
+      "*.tsx": ["rapid-prototyper", "accessibility-guardian"],
+      "*.jsx": ["rapid-prototyper", "accessibility-guardian"],
       "*.sql": ["query-optimizer"],
       "*.md": ["documentation-maintainer"],
       "package.json": ["bundle-analyzer"],
@@ -171,7 +187,16 @@
       ".prettierrc*": ["code-reviewer"],
       "*.config.js": ["code-reviewer"],
       "*.config.ts": ["code-reviewer"],
-      "tsconfig*.json": ["code-reviewer"]
+      "tsconfig*.json": ["code-reviewer"],
+      "*.css": ["rapid-prototyper", "accessibility-guardian"],
+      "*.scss": ["rapid-prototyper", "accessibility-guardian"],
+      "*.sass": ["rapid-prototyper", "accessibility-guardian"],
+      "*.less": ["rapid-prototyper", "accessibility-guardian"],
+      "*.html": ["rapid-prototyper", "accessibility-guardian"],
+      "*/components/*": ["rapid-prototyper", "accessibility-guardian"],
+      "*/ui/*": ["rapid-prototyper", "accessibility-guardian"],
+      "*/styles/*": ["rapid-prototyper", "accessibility-guardian"],
+      "tailwind.config.*": ["rapid-prototyper", "accessibility-guardian"]
     },
 
     "errorPatterns": {

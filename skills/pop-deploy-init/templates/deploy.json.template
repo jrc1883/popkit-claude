@@ -1,0 +1,34 @@
+{
+  "version": "{{VERSION}}",
+  "project_type": "{{PROJECT_TYPE}}",
+  "language": "{{LANGUAGE}}",
+  "framework": "{{FRAMEWORK}}",
+  "targets": {{TARGETS}},
+  "state": "{{STATE}}",
+  "initialized_at": "{{TIMESTAMP}}",
+  "initialized_by": "{{POPKIT_VERSION}}",
+  "github": {
+    "initialized": {{GITHUB_INITIALIZED}},
+    "repo": {{GITHUB_REPO}},
+    "default_branch": {{GITHUB_BRANCH}},
+    "has_actions": {{GITHUB_ACTIONS}}
+  },
+  "cicd": {
+    "detected": {{CICD_DETECTED}},
+    "platform": {{CICD_PLATFORM}},
+    "workflow_count": {{CICD_WORKFLOW_COUNT}}
+  },
+  "gaps": {
+    "needs_github": {{NEEDS_GITHUB}},
+    "needs_cicd": {{NEEDS_CICD}},
+    "needs_target_configs": {{NEEDS_TARGET_CONFIGS}}
+  },
+  "history": [
+    {
+      "action": "init",
+      "timestamp": "{{TIMESTAMP}}",
+      "user": "{{GIT_USER}}",
+      "version": "{{POPKIT_VERSION}}"
+    }
+  ]
+}

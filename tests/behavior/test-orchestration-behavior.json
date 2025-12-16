@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "orchestration-behavior",
+  "description": "Tests for PopKit orchestration behavior - validates routing, agent invocation, and workflow execution",
+  "version": "1.0.0",
+  "issue": "#258",
+
+  "routing_behavior_tests": [
+    {
+      "name": "bug keyword triggers bug-whisperer agent",
+      "scenario": "User mentions 'bug' in prompt",
+      "prompt": "There's a bug in the authentication code",
+      "expected_behavior": {
+        "agent_invoked": "bug-whisperer",
+        "tier": "tier-1-always-active",
+        "confidence_min": 0.4
+      }
+    },
+    {
+      "name": "security keyword triggers security-auditor",
+      "scenario": "User mentions 'security' in prompt",
+      "prompt": "Audit this code for security vulnerabilities",
+      "expected_behavior": {
+        "agent_invoked": "security-auditor",
+        "tier": "tier-1-always-active",
+        "confidence_min": 0.4
+      }
+    },
+    {
+      "name": "ui keyword triggers ui/design agents",
+      "scenario": "User mentions 'ui' in prompt",
+      "prompt": "Design a better UI for this dashboard",
+      "expected_behavior": {
+        "agents_invoked": ["rapid-prototyper", "accessibility-guardian"],
+        "tier": "mixed",
+        "confidence_min": 0.3
+      }
+    }
+  ],
+
+  "agent_invocation_tests": [
+    {
+      "name": "agent receives correct context",
+      "scenario": "Bug-whisperer agent is invoked",
+      "setup": {
+        "prompt": "Fix TypeError in auth.ts line 45",
+        "files": ["src/auth.ts"]
+      },
+      "expected_behavior": {
+        "agent": "bug-whisperer",
+        "context_includes": ["auth.ts", "TypeError", "line 45"],
+        "tools_available": ["Read", "Edit", "Bash", "Skill"],
+        "skill_suggestions": ["pop-systematic-debugging", "pop-root-cause-tracing"]
+      }
+    },
+    {
+      "name": "agent uses appropriate model",
+      "scenario": "Different agents use different Claude models",
+      "tests": [
+        {
+          "agent": "bug-whisperer",
+          "expected_model": "opus",
+          "reason": "Deep debugging requires reasoning"
+        },
+        {
+          "agent": "documentation-maintainer",
+          "expected_model": "haiku",
+          "reason": "Writing-focused task"
+        },
+        {
+          "agent": "code-reviewer",
+          "expected_model": "sonnet",
+          "reason": "Balanced analysis and implementation"
+        }
+      ]
+    }
+  ],
+
+  "workflow_execution_tests": [
+    {
+      "name": "feature-dev workflow executes in correct order",
+      "scenario": "/popkit:feature-dev is invoked",
+      "workflow": "feature-dev",
+      "expected_phases": [
+        {"phase": "Discovery", "agents": [], "user_interaction": true},
+        {"phase": "Exploration", "agents": ["code-explorer"], "user_interaction": false},
+        {"phase": "Questions", "agents": [], "user_interaction": true},
+        {"phase": "Architecture", "agents": ["code-architect"], "user_interaction": false},
+        {"phase": "Implementation", "agents": [], "user_interaction": false},
+        {"phase": "Review", "agents": ["code-reviewer"], "user_interaction": false},
+        {"phase": "Summary", "agents": [], "user_interaction": true}
+      ]
+    },
+    {
+      "name": "debug workflow executes sequentially",
+      "scenario": "Debug workflow is triggered",
+      "workflow": "debug",
+      "expected_behavior": {
+        "sequential": true,
+        "agents": ["bug-whisperer", "log-analyzer"],
+        "agent_order": ["bug-whisperer", "log-analyzer"]
+      }
+    }
+  ],
+
+  "skill_enforcement_tests": [
+    {
+      "name": "skill reminder shown when appropriate",
+      "scenario": "Bug-whisperer should suggest systematic debugging",
+      "agent": "bug-whisperer",
+      "task": "Fix authentication bug",
+      "expected_behavior": {
+        "skill_suggested": "pop-systematic-debugging",
+        "enforcement_level": "suggest",
+        "reminder_format": "HTML comment"
+      }
+    },
+    {
+      "name": "AskUserQuestion enforced for completion decisions",
+      "scenario": "pop-finish-branch requires user decision",
+      "skill": "pop-finish-branch",
+      "expected_behavior": {
+        "completion_decision_required": true,
+        "decision_id": "integration_method",
+        "options_count_min": 3,
+        "uses_AskUserQuestion": true
+      }
+    }
+  ],
+
+  "power_mode_tests": [
+    {
+      "name": "power mode coordinates multiple agents",
+      "scenario": "/popkit:power is invoked",
+      "mode": "file-based",
+      "expected_behavior": {
+        "coordinator_agent": "power-coordinator",
+        "max_concurrent_agents": 3,
+        "communication_method": "file-based",
+        "status_line_updates": true
+      }
+    },
+    {
+      "name": "redis mode enables full parallelization",
+      "scenario": "/popkit:power with Redis configured",
+      "mode": "redis",
+      "expected_behavior": {
+        "coordinator_agent": "power-coordinator",
+        "max_concurrent_agents": 6,
+        "communication_method": "redis-streams",
+        "status_line_updates": true,
+        "cloud_integration": false
+      }
+    }
+  ],
+
+  "context_preservation_tests": [
+    {
+      "name": "session state is captured",
+      "scenario": "pop-session-capture skill is invoked",
+      "skill": "pop-session-capture",
+      "expected_behavior": {
+        "output_file": "STATUS.json",
+        "includes": ["current_task", "decisions_made", "files_modified", "next_steps"],
+        "format": "JSON"
+      }
+    },
+    {
+      "name": "session state is restored",
+      "scenario": "pop-session-resume skill is invoked",
+      "skill": "pop-session-resume",
+      "expected_behavior": {
+        "reads_file": "STATUS.json",
+        "restores": ["current_task", "context", "pending_decisions"],
+        "continues_workflow": true
+      }
+    }
+  ],
+
+  "error_handling_tests": [
+    {
+      "name": "agent handles missing files gracefully",
+      "scenario": "Agent tries to read non-existent file",
+      "expected_behavior": {
+        "error_caught": true,
+        "recovery_action": "ask_user_for_path",
+        "does_not_crash": true
+      }
+    },
+    {
+      "name": "workflow continues after agent error",
+      "scenario": "One agent in workflow fails",
+      "workflow": "feature-dev",
+      "error_phase": "Exploration",
+      "expected_behavior": {
+        "workflow_continues": true,
+        "user_notified": true,
+        "phase_marked_as": "partial_completion"
+      }
+    }
+  ],
+
+  "validation_approach": {
+    "description": "How to validate these behaviors",
+    "methods": [
+      {
+        "name": "record-behavior flag",
+        "description": "Run commands with --record-behavior to capture actual agent invocations",
+        "implementation": "Hook intercepts tool calls and logs: agent_invoked, tools_used, models_used, duration"
+      },
+      {
+        "name": "behavior snapshots",
+        "description": "Save behavior traces to compare against expected",
+        "storage": "packages/plugin/tests/behavior/snapshots/",
+        "format": "JSON with timestamp, prompt, agents_invoked, tools_used, outcome"
+      },
+      {
+        "name": "assertion framework",
+        "description": "Assert that recorded behavior matches expectations",
+        "assertions": [
+          "assert_agent_invoked(expected_agent)",
+          "assert_tools_used(expected_tools)",
+          "assert_workflow_phase(expected_phase)",
+          "assert_skill_suggested(expected_skill)"
+        ]
+      }
+    ]
+  },
+
+  "recording_config": {
+    "description": "Configuration for behavior recording",
+    "enabled_by_flag": "--record-behavior",
+    "output_dir": "tests/behavior/recordings/",
+    "filename_pattern": "{timestamp}-{test_name}.json",
+    "include": [
+      "agent_invocations",
+      "tool_calls",
+      "skill_invocations",
+      "user_interactions",
+      "workflow_transitions",
+      "errors_and_recoveries"
+    ],
+    "exclude": [
+      "sensitive_data",
+      "api_keys",
+      "user_content"
+    ]
+  },
+
+  "integration": {
+    "description": "How this integrates with existing test infrastructure",
+    "run_via": "python packages/plugin/tests/run_tests.py --category behavior",
+    "requires": [
+      "Claude Code CLI available",
+      "PopKit plugin installed",
+      "Test scenarios in tests/behavior/scenarios/"
+    ],
+    "output": {
+      "format": "TAP (Test Anything Protocol) compatible",
+      "summary": "Same format as existing test categories",
+      "detailed_report": "JSON with full behavior trace"
+    }
+  },
+
+  "metadata": {
+    "created": "2025-12-15",
+    "issue": "#258",
+    "purpose": "Validate PopKit's orchestration behavior, not just output quality",
+    "author": "popkit-power-coordinator"
+  }
+}

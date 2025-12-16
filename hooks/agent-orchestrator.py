@@ -14,6 +14,19 @@ import sqlite3
 from datetime import datetime
 import hashlib
 
+# Add utils directory to path for telemetry imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'utils'))
+
+# Import test telemetry for behavioral validation (Issue #258)
+try:
+    from test_telemetry import is_test_mode, emit_routing_decision, emit_agent_invocation
+    TELEMETRY_AVAILABLE = True
+except ImportError:
+    TELEMETRY_AVAILABLE = False
+    def is_test_mode(): return False
+    def emit_routing_decision(*args, **kwargs): pass
+    def emit_agent_invocation(*args, **kwargs): pass
+
 class AgentOrchestrator:
     def __init__(self):
         self.claude_dir = Path.home() / '.claude'
@@ -239,6 +252,36 @@ class AgentOrchestrator:
         """Create complete orchestration plan"""
         analysis = self.analyze_prompt(prompt)
         selected_agents = self.select_agents(analysis)
+
+        # Emit routing decision telemetry (Issue #258)
+        if TELEMETRY_AVAILABLE and is_test_mode():
+            # Build trigger information
+            trigger = {
+                'type': 'intent_analysis',
+                'value': analysis['intent'],
+                'confidence': int(analysis['confidence'] * 100)
+            }
+
+            # Build candidate list from suggested_agents
+            candidates = [
+                {
+                    'agent': agent['name'],
+                    'score': agent['score'],
+                    'matched': [analysis['intent']] + analysis.get('domains', [])
+                }
+                for agent in analysis.get('suggested_agents', [])[:5]  # Top 5
+            ]
+
+            # Build selected list
+            selected = [agent['name'] for agent in selected_agents]
+
+            emit_routing_decision(
+                trigger=trigger,
+                candidates=candidates,
+                selected=selected,
+                confidence=int(analysis['confidence'] * 100),
+                reasoning=f"Intent: {analysis['intent']}, Complexity: {analysis['complexity']}"
+            )
         
         # Group agents by execution order
         parallel_groups = []

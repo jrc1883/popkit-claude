@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "claude-code-compliance",
+  "version": "1.0.0",
+  "description": "Machine-readable checklist for Claude Code plugin compliance",
+  "categories": [
+    {
+      "id": "plugin-structure",
+      "name": "Plugin Structure",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "PS-001",
+          "name": "plugin.json exists",
+          "description": "Plugin manifest file must exist",
+          "file": ".claude-plugin/plugin.json",
+          "type": "file_exists",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "PS-002",
+          "name": "plugin.json has name",
+          "description": "Plugin must have a name field",
+          "file": ".claude-plugin/plugin.json",
+          "type": "json_field_exists",
+          "field": "name",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "PS-003",
+          "name": "plugin.json has version",
+          "description": "Plugin must have a version field",
+          "file": ".claude-plugin/plugin.json",
+          "type": "json_field_exists",
+          "field": "version",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "PS-004",
+          "name": "plugin.json has description",
+          "description": "Plugin should have a description field",
+          "file": ".claude-plugin/plugin.json",
+          "type": "json_field_exists",
+          "field": "description",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "PS-005",
+          "name": "plugin.json has author",
+          "description": "Plugin should have an author field",
+          "file": ".claude-plugin/plugin.json",
+          "type": "json_field_exists",
+          "field": "author",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "PS-006",
+          "name": "hooks.json valid events",
+          "description": "hooks.json must use valid event types",
+          "file": "hooks/hooks.json",
+          "type": "json_array_values",
+          "path": "hooks[*].event",
+          "allowed_values": ["PreToolUse", "PostToolUse", "SessionStart", "Stop", "SubagentStop", "Notification", "UserPromptSubmit"],
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "PS-007",
+          "name": "Referenced scripts exist",
+          "description": "All scripts in hooks.json must exist",
+          "file": "hooks/hooks.json",
+          "type": "referenced_files_exist",
+          "path": "hooks[*].command",
+          "base_dir": "hooks/",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "PS-008",
+          "name": "hooks.json has schema",
+          "description": "hooks.json should include $schema reference",
+          "file": "hooks/hooks.json",
+          "type": "json_field_exists",
+          "field": "$schema",
+          "severity": "low",
+          "deduction": 2
+        },
+        {
+          "id": "PS-009",
+          "name": ".mcp.json has schema",
+          "description": ".mcp.json should include $schema reference",
+          "file": ".mcp.json",
+          "type": "json_field_exists",
+          "field": "$schema",
+          "severity": "low",
+          "deduction": 2
+        }
+      ]
+    },
+    {
+      "id": "agent-definitions",
+      "name": "Agent Definitions",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "AD-001",
+          "name": "Agents have AGENT.md",
+          "description": "All agent directories must have AGENT.md",
+          "type": "directory_has_file",
+          "directories": "agents/tier-*/*/",
+          "required_file": "AGENT.md",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "AD-002",
+          "name": "AGENT.md has frontmatter",
+          "description": "Agent files must have YAML frontmatter",
+          "type": "file_starts_with",
+          "pattern": "agents/tier-*/*/AGENT.md",
+          "starts_with": "---",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "AD-003",
+          "name": "AGENT.md has name field",
+          "description": "Agent frontmatter must have name",
+          "type": "frontmatter_field_exists",
+          "pattern": "agents/tier-*/*/AGENT.md",
+          "field": "name",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "AD-004",
+          "name": "AGENT.md has description",
+          "description": "Agent frontmatter must have description",
+          "type": "frontmatter_field_exists",
+          "pattern": "agents/tier-*/*/AGENT.md",
+          "field": "description",
+          "severity": "medium",
+          "deduction": 5
+        }
+      ]
+    },
+    {
+      "id": "skill-definitions",
+      "name": "Skill Definitions",
+      "weight": 15,
+      "checks": [
+        {
+          "id": "SD-001",
+          "name": "Skills have SKILL.md",
+          "description": "All skill directories must have SKILL.md",
+          "type": "directory_has_file",
+          "directories": "skills/*/",
+          "required_file": "SKILL.md",
+          "severity": "critical",
+          "deduction": 20
+        },
+        {
+          "id": "SD-002",
+          "name": "SKILL.md has frontmatter",
+          "description": "Skill files must have YAML frontmatter at line 1",
+          "type": "file_starts_with",
+          "pattern": "skills/*/SKILL.md",
+          "starts_with": "---",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "SD-003",
+          "name": "SKILL.md has name field",
+          "description": "Skill frontmatter must have name",
+          "type": "frontmatter_field_exists",
+          "pattern": "skills/*/SKILL.md",
+          "field": "name",
+          "severity": "high",
+          "deduction": 10
+        }
+      ]
+    },
+    {
+      "id": "command-definitions",
+      "name": "Command Definitions",
+      "weight": 10,
+      "checks": [
+        {
+          "id": "CD-001",
+          "name": "Commands have frontmatter",
+          "description": "Command files must have YAML frontmatter",
+          "type": "file_starts_with",
+          "pattern": "commands/*.md",
+          "starts_with": "---",
+          "severity": "high",
+          "deduction": 10
+        },
+        {
+          "id": "CD-002",
+          "name": "Commands have description",
+          "description": "Command frontmatter must have description",
+          "type": "frontmatter_field_exists",
+          "pattern": "commands/*.md",
+          "field": "description",
+          "severity": "medium",
+          "deduction": 5
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "starting_score": 100,
+    "minimum_score": 0,
+    "severity_weights": {
+      "critical": 20,
+      "high": 10,
+      "medium": 5,
+      "low": 2,
+      "warning": 1
+    }
+  }
+}

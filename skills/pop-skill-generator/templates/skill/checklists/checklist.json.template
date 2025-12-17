@@ -1,0 +1,88 @@
+{
+  "name": "{{SKILL_NAME}} Checklist",
+  "version": "1.0.0",
+  "description": "Verification checklist for {{SKILL_NAME}}",
+  "categories": [
+    {
+      "name": "Pre-Execution",
+      "checks": [
+        {
+          "id": "prereq_1",
+          "name": "Prerequisite 1",
+          "description": "Description of what needs to be true before execution",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "prereq_2",
+          "name": "Prerequisite 2",
+          "description": "Another prerequisite check",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Execution",
+      "checks": [
+        {
+          "id": "step_1",
+          "name": "Step 1 Complete",
+          "description": "First step completed successfully",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "step_2",
+          "name": "Step 2 Complete",
+          "description": "Second step completed successfully",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "checks": [
+        {
+          "id": "verify_1",
+          "name": "Output Verified",
+          "description": "Output matches expected format",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "verify_2",
+          "name": "No Errors",
+          "description": "No errors in execution log",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Post-Execution",
+      "checks": [
+        {
+          "id": "cleanup",
+          "name": "Cleanup Complete",
+          "description": "Temporary files removed",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "documented",
+          "name": "Results Documented",
+          "description": "Results recorded for future reference",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "validate": "python scripts/main.py --validate-only",
+    "run": "python scripts/main.py",
+    "dry_run": "python scripts/main.py --dry-run"
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Pop Power Mode configuration - Multi-agent orchestration (Native Async + Redis + File modes)",
+  "version": "2.0.0",
+
+  "native": {
+    "enabled": true,
+    "min_claude_code_version": "2.0.64",
+    "max_parallel_agents": 5,
+    "poll_interval_ms": 500,
+    "sync_timeout_seconds": 120,
+    "use_insights_file": true,
+    "insights_file_path": ".claude/popkit/insights.json",
+    "state_file_path": ".claude/popkit/power-state.json",
+    "plan_mode": {
+      "enabled": true,
+      "min_claude_code_version": "2.0.70",
+      "timeout_seconds": 300,
+      "auto_approve_on_timeout": false,
+      "notes": "Agents with plan_mode_required=true will present plans for approval before implementing"
+    }
+  },
+
+  "mode_priority": ["native", "redis", "file"],
+
+  "tier_limits": {
+    "free": {
+      "mode": "file",
+      "max_agents": 2,
+      "features": ["basic_coordination", "insights_sharing"]
+    },
+    "premium": {
+      "mode": "native",
+      "max_agents": 5,
+      "features": ["parallel_agents", "sync_barriers", "phase_orchestration"]
+    },
+    "pro": {
+      "mode": "native",
+      "max_agents": 10,
+      "redis_fallback": true,
+      "features": ["unlimited_mesh", "team_coordination", "advanced_metrics"]
+    }
+  },
+
+  "redis": {
+    "host": "localhost",
+    "port": 16379,
+    "db": 0,
+    "password": null,
+    "socket_timeout": 5,
+    "retry_on_timeout": true,
+    "health_check_interval": 30
+  },
+
+  "channels": {
+    "prefix": "pop",
+    "broadcast": "pop:broadcast",
+    "heartbeat": "pop:heartbeat",
+    "results": "pop:results",
+    "insights": "pop:insights",
+    "coordinator": "pop:coordinator",
+    "human": "pop:human"
+  },
+
+  "intervals": {
+    "checkin_every_n_tools": 5,
+    "heartbeat_seconds": 15,
+    "sync_timeout_seconds": 120,
+    "agent_timeout_seconds": 60,
+    "insight_ttl_seconds": 600,
+    "message_ttl_seconds": 300
+  },
+
+  "limits": {
+    "max_parallel_agents": 6,
+    "max_tool_calls_per_agent": 100,
+    "max_insights_per_pull": 3,
+    "max_runtime_minutes": 30,
+    "max_retries_on_failure": 3,
+    "max_orphaned_task_age_seconds": 300
+  },
+
+  "guardrails": {
+    "human_required_actions": [
+      "delete_production_data",
+      "modify_security_config",
+      "push_to_main",
+      "deploy_to_production",
+      "modify_payment_code",
+      "access_credentials",
+      "modify_auth_system",
+      "bulk_delete_files",
+      "external_api_with_cost"
+    ],
+    "protected_paths": [
+      ".env*",
+      "**/secrets/**",
+      "**/credentials/**",
+      "**/.git/**",
+      "**/node_modules/**",
+      "**/prod.config.*",
+      "**/*.pem",
+      "**/*.key"
+    ],
+    "unconventional_patterns": [
+      {
+        "description": "Deleting tests to make them pass",
+        "keywords": ["delete", "test", "pass"]
+      },
+      {
+        "description": "Disabling linting rules",
+        "keywords": ["eslint", "disable"]
+      },
+      {
+        "description": "Hardcoding sensitive values",
+        "keywords": ["hardcode", "password"]
+      },
+      {
+        "description": "Skipping validation",
+        "keywords": ["skip", "validation"]
+      },
+      {
+        "description": "Bypassing authentication",
+        "keywords": ["bypass", "auth"]
+      }
+    ],
+    "drift_detection": {
+      "enabled": true,
+      "file_scope_enforcement": "warn",
+      "silent_agent_threshold_seconds": 60,
+      "tool_call_overdue_threshold": 10
+    }
+  },
+
+  "failover": {
+    "enabled": true,
+    "heartbeat_miss_threshold": 3,
+    "auto_reassign_orphaned": true,
+    "preserve_context_on_reassign": true,
+    "max_reassign_attempts": 2
+  },
+
+  "insights": {
+    "auto_share_discoveries": true,
+    "relevance_matching": {
+      "enabled": true,
+      "min_tag_overlap": 1,
+      "boost_same_phase": true
+    },
+    "deduplication": {
+      "enabled": true,
+      "similarity_threshold": 0.8
+    }
+  },
+
+  "phases": {
+    "default_phases": [
+      "explore",
+      "design",
+      "implement",
+      "test",
+      "documentation",
+      "review"
+    ],
+    "sync_between_phases": true,
+    "allow_phase_skip": false,
+    "phase_timeout_multiplier": 1.5,
+    "documentation_barrier": {
+      "enabled": true,
+      "required_agent": "documentation-maintainer",
+      "timeout_seconds": 300,
+      "checks": [
+        "claude_md_updated",
+        "readme_version_match",
+        "no_autogen_drift"
+      ]
+    }
+  },
+
+  "output": {
+    "checkin_style": "power-mode-checkin",
+    "result_style": "power-mode-result",
+    "verbose_logging": false,
+    "store_session_transcript": true
+  },
+
+  "coordinator": {
+    "mode": "active",
+    "auto_breakdown_tasks": true,
+    "smart_agent_selection": true,
+    "aggregate_results": true,
+    "conflict_resolution": "first_wins",
+    "human_escalation_enabled": true
+  },
+
+  "learning": {
+    "enabled": true,
+    "store_patterns": true,
+    "pattern_retention_hours": 24,
+    "share_patterns_across_sessions": false,
+    "success_pattern_threshold": 0.8
+  },
+
+  "cloud": {
+    "use_workflows": true,
+    "api_url": "https://popkit-cloud-api.joseph-cannon.workers.dev/v1",
+    "fallback_to_local": true,
+    "sync_on_result": true,
+    "sync_on_phase_change": true
+  },
+
+  "consensus": {
+    "threshold": 0.7,
+    "require_unanimous_for": [
+      "delete_files",
+      "modify_security",
+      "push_changes"
+    ]
+  }
+}

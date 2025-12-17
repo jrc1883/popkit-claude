@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Analysis Report",
+  "description": "Schema for validating codebase analysis findings",
+  "strict": true,
+  "type": "object",
+  "required": [
+    "projectName",
+    "scope",
+    "date",
+    "healthScore"
+  ],
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "Name of the project or feature being analyzed"
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["Full codebase", "Module", "Feature"],
+      "description": "Scope of the analysis"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the analysis (YYYY-MM-DD)"
+    },
+    "analyst": {
+      "type": "string",
+      "description": "Agent that performed the analysis"
+    },
+    "healthScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Overall health score (0-100)"
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "codeQuality": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "testCoverage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "documentation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "security": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        }
+      }
+    },
+    "keyFinding": {
+      "type": "string",
+      "description": "One sentence summary of most important discovery"
+    },
+    "techStack": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "layer": { "type": "string" },
+          "technology": { "type": "string" },
+          "version": { "type": "string" }
+        }
+      }
+    },
+    "patternsIdentified": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pattern": { "type": "string" },
+          "location": { "type": "string" },
+          "usage": { "type": "string" }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "object",
+      "properties": {
+        "critical": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "what": { "type": "string" },
+              "why": { "type": "string" },
+              "effort": { "type": "string" }
+            }
+          }
+        },
+        "highPriority": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "mediumPriority": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "niceToHave": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "agentOpportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent": { "type": "string" },
+          "reason": { "type": "string" },
+          "priority": {
+            "type": "string",
+            "enum": ["High", "Medium", "Low"]
+          }
+        }
+      }
+    },
+    "nextSteps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "analysisConfidence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "recommendedFollowUp": {
+      "type": "string",
+      "description": "Agent name or action for follow-up"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "projectName": "Reseller Central",
+      "scope": "Full codebase",
+      "date": "2025-01-28",
+      "analyst": "researcher",
+      "healthScore": 72,
+      "metrics": {
+        "architecture": 8,
+        "codeQuality": 7,
+        "testCoverage": 6,
+        "documentation": 7,
+        "security": 8
+      },
+      "keyFinding": "Strong architecture but test coverage is below target",
+      "analysisConfidence": 85,
+      "recommendedFollowUp": "test-writer-fixer"
+    }
+  ]
+}

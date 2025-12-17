@@ -1,0 +1,139 @@
+---
+name: {{SKILL_NAME}}
+version: 1.0.0
+description: {{DESCRIPTION}}
+category: {{CATEGORY}}
+triggers:
+  keywords:
+    {{#KEYWORDS}}
+    - "{{.}}"
+    {{/KEYWORDS}}
+  {{#FILE_PATTERNS}}
+  file_patterns:
+    {{#PATTERNS}}
+    - "{{.}}"
+    {{/PATTERNS}}
+  {{/FILE_PATTERNS}}
+resources:
+  {{#HAS_WORKFLOW}}
+  workflow: workflows/{{SKILL_NAME}}-workflow.json
+  {{/HAS_WORKFLOW}}
+  {{#HAS_SCRIPTS}}
+  scripts:
+    - scripts/main.py
+  {{/HAS_SCRIPTS}}
+  {{#HAS_CHECKLISTS}}
+  checklists:
+    - checklists/checklist.json
+  {{/HAS_CHECKLISTS}}
+  {{#HAS_TEMPLATES}}
+  templates:
+    - templates/
+  {{/HAS_TEMPLATES}}
+---
+
+# {{SKILL_NAME}}
+
+{{DESCRIPTION}}
+
+## When to Use
+
+Use this skill when:
+- {{USE_CASE_1}}
+- {{USE_CASE_2}}
+- {{USE_CASE_3}}
+
+## How It Works
+
+{{#HAS_WORKFLOW}}
+### Workflow Phases
+
+This skill follows a structured workflow:
+
+1. **Phase 1: {{PHASE_1_NAME}}** - {{PHASE_1_DESCRIPTION}}
+2. **Phase 2: {{PHASE_2_NAME}}** - {{PHASE_2_DESCRIPTION}}
+3. **Phase 3: {{PHASE_3_NAME}}** - {{PHASE_3_DESCRIPTION}}
+{{/HAS_WORKFLOW}}
+
+### Process
+
+1. [Step 1 description]
+2. [Step 2 description]
+3. [Step 3 description]
+
+## Usage
+
+### Basic Usage
+
+```
+Invoke the skill by [describe how to trigger]
+```
+
+### With Options
+
+```
+[Show example with options if applicable]
+```
+
+## Configuration
+
+{{#HAS_CONFIGURATION}}
+### Required Configuration
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `setting_1` | Description of setting | `default_value` |
+
+### Optional Configuration
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `optional_1` | Description | `default_value` |
+{{/HAS_CONFIGURATION}}
+
+## Examples
+
+### Example 1: Basic Usage
+
+```
+[Show complete example]
+```
+
+### Example 2: Advanced Usage
+
+```
+[Show advanced example]
+```
+
+## Related
+
+- **Skills:** [Related skill 1], [Related skill 2]
+- **Commands:** [Related command]
+- **Agents:** [Related agent]
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: [Problem description]**
+- Solution: [How to fix]
+
+**Issue: [Another problem]**
+- Solution: [How to fix]
+
+## Changelog
+
+### 1.0.0
+- Initial release
+
+---
+
+## Template Variables
+
+When using this template, replace:
+- `{{SKILL_NAME}}` - Name in kebab-case (e.g., pop-deploy-docker)
+- `{{DESCRIPTION}}` - One-line description
+- `{{CATEGORY}}` - Category from workflow options
+- `{{KEYWORDS}}` - Trigger keywords
+- `{{USE_CASE_N}}` - Specific use cases
+- `{{PHASE_N_NAME/DESCRIPTION}}` - Workflow phase details

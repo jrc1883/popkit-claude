@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema.json",
+  "id": "fullstack",
+  "name": "Full-Stack Web App",
+  "description": "Complete web application with frontend, backend, database, and hosting",
+  "version": "1.0.0",
+  "updated": "2024-12-03",
+
+  "questions": [
+    {
+      "id": "framework",
+      "header": "Framework",
+      "question": "Which full-stack framework should we use?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "nextjs",
+          "label": "Next.js (React)",
+          "description": "Most popular React framework, Vercel deployment, App Router",
+          "pros": ["Largest ecosystem", "Vercel deployment", "Server Components", "API routes built-in"],
+          "cons": ["Vercel lock-in concerns", "App Router learning curve", "Can be complex"],
+          "when": "Default choice, React team, need SSR/SSG, Vercel deployment",
+          "hosting": ["Vercel", "Netlify", "AWS Amplify", "Self-hosted"],
+          "popularity": {
+            "npm_weekly": 6500000,
+            "github_stars": 125000
+          }
+        },
+        {
+          "value": "remix",
+          "label": "Remix (React)",
+          "description": "Full-stack React framework, web standards focused",
+          "pros": ["Web standards", "Progressive enhancement", "Nested routing", "Error boundaries"],
+          "cons": ["Smaller ecosystem", "Different mental model", "Less SSG support"],
+          "when": "Progressive enhancement, web standards, complex forms/data",
+          "hosting": ["Fly.io", "Vercel", "Cloudflare", "Any Node host"],
+          "popularity": {
+            "npm_weekly": 500000,
+            "github_stars": 29000
+          }
+        },
+        {
+          "value": "nuxt",
+          "label": "Nuxt (Vue)",
+          "description": "Vue.js full-stack framework, great DX",
+          "pros": ["Vue ecosystem", "Auto-imports", "Great DX", "Nitro server"],
+          "cons": ["Smaller than Next.js", "Vue market share", "Less hiring pool"],
+          "when": "Vue team, prefer Vue DX, Nitro/Cloudflare deployment",
+          "hosting": ["Vercel", "Netlify", "Cloudflare", "Any Node host"],
+          "popularity": {
+            "npm_weekly": 500000,
+            "github_stars": 54000
+          }
+        },
+        {
+          "value": "sveltekit",
+          "label": "SvelteKit (Svelte)",
+          "description": "Svelte full-stack framework, excellent performance",
+          "pros": ["Best performance", "Small bundles", "Simple reactivity", "Adapters for any host"],
+          "cons": ["Smaller ecosystem", "Less mature", "Fewer UI libraries"],
+          "when": "Performance priority, prefer Svelte syntax, lighter framework",
+          "hosting": ["Vercel", "Netlify", "Cloudflare", "Node adapter"],
+          "popularity": {
+            "npm_weekly": 400000,
+            "github_stars": 18000
+          }
+        },
+        {
+          "value": "astro",
+          "label": "Astro (Multi-framework)",
+          "description": "Content-focused, ships zero JS by default, islands architecture",
+          "pros": ["Zero JS by default", "Use any UI framework", "Content collections", "Fast builds"],
+          "cons": ["Less suited for SPAs", "Islands can be complex", "Newer patterns"],
+          "when": "Content-heavy sites, marketing sites, want minimal JS",
+          "hosting": ["Vercel", "Netlify", "Cloudflare", "Static hosting"],
+          "popularity": {
+            "npm_weekly": 400000,
+            "github_stars": 46000
+          }
+        },
+        {
+          "value": "separate",
+          "label": "Separate Frontend + Backend",
+          "description": "Traditional SPA frontend with separate API backend",
+          "pros": ["Clear separation", "Team scalability", "Independent deployment"],
+          "cons": ["More repos/infra", "CORS handling", "More complexity"],
+          "when": "Large teams, different frontend/backend tech, microservices"
+        }
+      ],
+      "default": "nextjs",
+      "research_sources": [
+        "State of JS 2023 Survey",
+        "npm download trends",
+        "GitHub star trends"
+      ]
+    },
+    {
+      "id": "database",
+      "header": "Database",
+      "question": "Which database solution should we use?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "supabase",
+          "label": "Supabase (PostgreSQL)",
+          "description": "Open-source Firebase alternative, PostgreSQL + Auth + Storage + Realtime",
+          "pros": ["All-in-one BaaS", "PostgreSQL", "Auth included", "Row Level Security", "Self-hostable"],
+          "cons": ["Vendor coupling", "Pricing at scale", "Some limitations vs raw Postgres"],
+          "when": "Rapid development, want integrated auth/storage, like Firebase DX",
+          "includes": ["PostgreSQL", "Auth", "Storage", "Realtime", "Edge Functions"],
+          "pricing": "Free tier generous, then $25/month+"
+        },
+        {
+          "value": "planetscale",
+          "label": "PlanetScale (MySQL)",
+          "description": "Serverless MySQL with branching, horizontal scaling",
+          "pros": ["Database branching", "Horizontal scaling", "No connection limits", "Vitess under hood"],
+          "cons": ["No foreign keys (by design)", "MySQL not Postgres", "Pricing changes"],
+          "when": "Need scaling, like branching workflow, MySQL preference",
+          "includes": ["MySQL", "Branching", "Insights"],
+          "pricing": "Hobby free, Scaler $29/month"
+        },
+        {
+          "value": "neon",
+          "label": "Neon (PostgreSQL)",
+          "description": "Serverless PostgreSQL with branching, scale to zero",
+          "pros": ["PostgreSQL", "Branching", "Scale to zero", "Generous free tier"],
+          "cons": ["Cold starts", "Newer service", "Less features than Supabase"],
+          "when": "Want PostgreSQL + branching, cost-sensitive (scale to zero)",
+          "includes": ["PostgreSQL", "Branching"],
+          "pricing": "Free tier, Pro $19/month"
+        },
+        {
+          "value": "turso",
+          "label": "Turso (SQLite/libSQL)",
+          "description": "Edge-replicated SQLite, low latency globally",
+          "pros": ["Global edge replicas", "SQLite simplicity", "Embedded option", "Low latency"],
+          "cons": ["SQLite limitations", "Write limitations", "Newer platform"],
+          "when": "Edge deployment, read-heavy, global low latency needs",
+          "includes": ["libSQL", "Edge replicas"],
+          "pricing": "Free tier, Scaler $29/month"
+        },
+        {
+          "value": "mongodb-atlas",
+          "label": "MongoDB Atlas",
+          "description": "Managed MongoDB, document database, global clusters",
+          "pros": ["Flexible schema", "Global clusters", "Atlas Search", "Managed service"],
+          "cons": ["Not relational", "Aggregation complexity", "Costs at scale"],
+          "when": "Document-oriented data, flexible schema needs, MongoDB experience",
+          "includes": ["MongoDB", "Atlas Search", "Triggers"],
+          "pricing": "Free tier, then usage-based"
+        }
+      ],
+      "default": "supabase"
+    },
+    {
+      "id": "styling",
+      "header": "Styling",
+      "question": "How should we handle styling and UI components?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "tailwind-shadcn",
+          "label": "Tailwind + shadcn/ui",
+          "description": "Utility CSS + copy-paste component library",
+          "pros": ["Full control", "Copy-paste components", "Radix primitives", "Customizable"],
+          "cons": ["Initial setup", "Learning Tailwind", "Verbose classes"],
+          "when": "Default modern choice, want customizable components, React projects"
+        },
+        {
+          "value": "tailwind-daisyui",
+          "label": "Tailwind + DaisyUI",
+          "description": "Tailwind with pre-built component classes",
+          "pros": ["Pre-built themes", "Semantic classes", "Quick prototyping"],
+          "cons": ["Less customizable", "Heavier classes", "Opinionated"],
+          "when": "Rapid prototyping, prefer semantic classes, quick MVPs"
+        },
+        {
+          "value": "chakra",
+          "label": "Chakra UI",
+          "description": "Component library with good defaults and accessibility",
+          "pros": ["Great DX", "Accessible", "Themeable", "Comprehensive"],
+          "cons": ["Runtime CSS-in-JS", "Bundle size", "Less modern than Tailwind"],
+          "when": "Prefer component libraries, accessibility priority, React"
+        },
+        {
+          "value": "mantine",
+          "label": "Mantine",
+          "description": "Feature-rich React component library",
+          "pros": ["Feature rich", "Hooks library", "Form library", "Good docs"],
+          "cons": ["Bundle size", "React only", "Opinionated styles"],
+          "when": "Want batteries-included, complex forms, dashboards"
+        },
+        {
+          "value": "vanilla",
+          "label": "CSS Modules / Vanilla",
+          "description": "Standard CSS with scoping via modules",
+          "pros": ["No dependencies", "Standard CSS", "Full control"],
+          "cons": ["More manual work", "No component library", "Slower development"],
+          "when": "Minimal dependencies, CSS expertise, unique design system"
+        }
+      ],
+      "default": "tailwind-shadcn"
+    },
+    {
+      "id": "hosting",
+      "header": "Hosting",
+      "question": "Where should we deploy the application?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "vercel",
+          "label": "Vercel",
+          "description": "Best Next.js hosting, great DX, edge functions",
+          "pros": ["Best Next.js support", "Great DX", "Preview deployments", "Edge functions"],
+          "cons": ["Can be expensive", "Vendor lock-in", "Egress costs"],
+          "when": "Next.js projects, want best DX, budget allows",
+          "pricing": "Free hobby, Pro $20/user/month"
+        },
+        {
+          "value": "netlify",
+          "label": "Netlify",
+          "description": "Jamstack pioneer, good all-around platform",
+          "pros": ["Great DX", "Forms/Identity built-in", "Good free tier"],
+          "cons": ["Less optimized for Next.js", "Functions limitations"],
+          "when": "Static sites, Jamstack, want integrated services",
+          "pricing": "Free tier generous, Pro $19/user/month"
+        },
+        {
+          "value": "cloudflare",
+          "label": "Cloudflare Pages/Workers",
+          "description": "Edge-first platform, very generous free tier",
+          "pros": ["Extremely generous free tier", "Global edge", "Workers ecosystem"],
+          "cons": ["Workers runtime limits", "Different APIs", "Less mature"],
+          "when": "Cost sensitive, edge-first, Cloudflare ecosystem",
+          "pricing": "Very generous free tier"
+        },
+        {
+          "value": "railway",
+          "label": "Railway",
+          "description": "Simple deployment platform, good for full-stack",
+          "pros": ["Simple DX", "Database included", "Good pricing", "Templates"],
+          "cons": ["Less edge presence", "Smaller platform"],
+          "when": "Want simple all-in-one, database + app together",
+          "pricing": "Usage-based, $5 credit/month free"
+        },
+        {
+          "value": "fly",
+          "label": "Fly.io",
+          "description": "Global app platform, great for multi-region",
+          "pros": ["Global deployment", "Multi-region databases", "GPU machines"],
+          "cons": ["More ops required", "Learning curve"],
+          "when": "Need global presence, multi-region DBs, Docker comfort",
+          "pricing": "Generous free tier, usage-based"
+        }
+      ],
+      "default": "vercel"
+    }
+  ],
+
+  "agents": {
+    "primary": ["code-architect"],
+    "supporting": ["code-reviewer", "test-writer-fixer", "accessibility-guardian"]
+  },
+
+  "quality_gates": [
+    "typescript",
+    "lint",
+    "test",
+    "build",
+    "lighthouse"
+  ],
+
+  "scaffolding": {
+    "directories": [
+      "src",
+      "src/app",
+      "src/components",
+      "src/lib",
+      "public",
+      "tests"
+    ],
+    "files": [
+      "package.json",
+      "tsconfig.json",
+      ".env.example",
+      ".gitignore",
+      "README.md"
+    ]
+  }
+}

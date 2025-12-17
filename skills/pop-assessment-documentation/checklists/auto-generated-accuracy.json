@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "auto-generated-accuracy",
+  "version": "1.0.0",
+  "description": "Checklist for validating auto-generated documentation accuracy",
+  "auto_gen_sections": [
+    {
+      "id": "AGA-001",
+      "name": "TIER-COUNTS",
+      "description": "Agent tier count accuracy",
+      "file": "CLAUDE.md",
+      "validation": {
+        "tier_1_count": {
+          "source": "agents/tier-1-always-active/*/",
+          "match_type": "directory_count"
+        },
+        "tier_2_count": {
+          "source": "agents/tier-2-on-demand/*/",
+          "match_type": "directory_count"
+        },
+        "feature_workflow_count": {
+          "source": "agents/feature-workflow/*/",
+          "match_type": "directory_count"
+        },
+        "skills_count": {
+          "source": "skills/pop-*/",
+          "match_type": "directory_count"
+        },
+        "commands_count": {
+          "source": "commands/*.md",
+          "match_type": "file_count"
+        }
+      }
+    },
+    {
+      "id": "AGA-002",
+      "name": "REPO-STRUCTURE",
+      "description": "Repository structure accuracy",
+      "file": "CLAUDE.md",
+      "validation": {
+        "directories_exist": true,
+        "key_files_exist": true,
+        "depths_accurate": true
+      }
+    },
+    {
+      "id": "AGA-003",
+      "name": "KEY-FILES",
+      "description": "Key files table accuracy",
+      "file": "CLAUDE.md",
+      "validation": {
+        "files_exist": true,
+        "purposes_current": "manual_check",
+        "paths_correct": true
+      }
+    }
+  ],
+  "verification_steps": [
+    {
+      "step": 1,
+      "action": "Identify AUTO-GEN markers",
+      "command": "grep -n 'AUTO-GEN:' CLAUDE.md"
+    },
+    {
+      "step": 2,
+      "action": "Count actual items",
+      "commands": [
+        "ls -d agents/tier-1-always-active/*/ | wc -l",
+        "ls -d agents/tier-2-on-demand/*/ | wc -l",
+        "ls -d skills/pop-*/ | wc -l",
+        "ls commands/*.md | wc -l"
+      ]
+    },
+    {
+      "step": 3,
+      "action": "Compare documented vs actual",
+      "output": "List of mismatches"
+    },
+    {
+      "step": 4,
+      "action": "Regenerate if needed",
+      "command": "python scripts/sync-readme.py"
+    }
+  ],
+  "tolerance": {
+    "count_variance": 0,
+    "structure_changes": "require_update"
+  },
+  "scoring": {
+    "perfect_match": 100,
+    "minor_variance": 90,
+    "significant_mismatch": 50,
+    "missing_section": 0
+  }
+}

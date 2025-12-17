@@ -1,0 +1,8 @@
+# PopKit Plugin - Python Dependencies
+# Required for hooks to function properly
+
+# HTTP client library (used in 11+ hooks for API calls)
+requests>=2.31.0,<3.0.0
+
+# Note: sqlite3 is built-in to Python standard library (no installation needed)
+# Note: All other dependencies (os, sys, json, pathlib, etc.) are also built-in

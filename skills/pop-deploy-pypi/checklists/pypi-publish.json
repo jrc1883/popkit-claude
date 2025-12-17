@@ -1,0 +1,171 @@
+{
+  "name": "PyPI Publish Checklist",
+  "version": "1.0.0",
+  "description": "Pre and post publish checks for PyPI packages",
+  "categories": [
+    {
+      "name": "Pre-Publish",
+      "checks": [
+        {
+          "id": "twine_installed",
+          "name": "twine installed",
+          "description": "pip install twine build",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "pypi_configured",
+          "name": "PyPI credentials configured",
+          "description": ".pypirc or API token set",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "version_bumped",
+          "name": "Version bumped",
+          "description": "Version in pyproject.toml updated",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "version_not_published",
+          "name": "Version not already published",
+          "description": "This version doesn't exist on PyPI",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tests_passing",
+          "name": "All tests pass",
+          "description": "pytest exits with code 0",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Package Quality",
+      "checks": [
+        {
+          "id": "pyproject_valid",
+          "name": "pyproject.toml valid",
+          "description": "Valid TOML syntax and required fields",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "readme_exists",
+          "name": "README exists",
+          "description": "README.md or README.rst present",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "license_specified",
+          "name": "License specified",
+          "description": "License field in pyproject.toml",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "classifiers_set",
+          "name": "Classifiers configured",
+          "description": "PyPI classifiers in pyproject.toml",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "python_requires_set",
+          "name": "Python version specified",
+          "description": "requires-python field set",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Build",
+      "checks": [
+        {
+          "id": "build_succeeds",
+          "name": "Build succeeds",
+          "description": "python -m build completes",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "sdist_created",
+          "name": "Source distribution created",
+          "description": ".tar.gz file in dist/",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "wheel_created",
+          "name": "Wheel created",
+          "description": ".whl file in dist/",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "twine_check_passes",
+          "name": "twine check passes",
+          "description": "twine check dist/* succeeds",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "checks": [
+        {
+          "id": "no_secrets_in_package",
+          "name": "No secrets in package",
+          "description": "API keys/tokens not in source",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "manifest_reviewed",
+          "name": "MANIFEST.in reviewed",
+          "description": "Only intended files included",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Post-Publish",
+      "checks": [
+        {
+          "id": "version_on_pypi",
+          "name": "Version on PyPI",
+          "description": "Package visible on pypi.org",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "pip_install_works",
+          "name": "pip install works",
+          "description": "Can pip install the new version",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "git_tag_created",
+          "name": "Git tag created",
+          "description": "Version tag pushed to repository",
+          "required": true,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "validate": "python scripts/pypi_publish.py --validate-only",
+    "build": "python -m build",
+    "publish": "python scripts/pypi_publish.py --build",
+    "publish_test": "python scripts/pypi_publish.py --test --build"
+  }
+}

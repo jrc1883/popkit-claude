@@ -1,0 +1,87 @@
+{
+  "name": "{{SKILL_NAME}} Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for {{DESCRIPTION}}",
+  "phases": [
+    {
+      "id": "phase_1",
+      "name": "{{PHASE_1_NAME}}",
+      "description": "{{PHASE_1_DESCRIPTION}}",
+      "steps": [
+        {
+          "id": "step_1_1",
+          "name": "Step 1.1",
+          "prompt": "First step prompt",
+          "type": "automated",
+          "script": "scripts/main.py --step=1"
+        },
+        {
+          "id": "step_1_2",
+          "name": "Step 1.2",
+          "prompt": "What option would you like?",
+          "type": "selection",
+          "options": [
+            {"label": "Option A", "value": "a", "description": "Description of option A"},
+            {"label": "Option B", "value": "b", "description": "Description of option B"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase_2",
+      "name": "{{PHASE_2_NAME}}",
+      "description": "{{PHASE_2_DESCRIPTION}}",
+      "steps": [
+        {
+          "id": "step_2_1",
+          "name": "Step 2.1",
+          "prompt": "Second phase first step",
+          "type": "automated",
+          "action": "execute_main_operation"
+        },
+        {
+          "id": "step_2_2",
+          "name": "Step 2.2",
+          "prompt": "Confirm results look correct",
+          "type": "confirmation",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "phase_3",
+      "name": "{{PHASE_3_NAME}}",
+      "description": "{{PHASE_3_DESCRIPTION}}",
+      "steps": [
+        {
+          "id": "step_3_1",
+          "name": "Verify Results",
+          "prompt": "Verifying results...",
+          "type": "automated",
+          "checks": [
+            "Output exists",
+            "No errors in log",
+            "Expected format"
+          ]
+        },
+        {
+          "id": "step_3_2",
+          "name": "Next Steps",
+          "prompt": "What would you like to do next?",
+          "type": "selection",
+          "options": [
+            {"label": "Done", "value": "done", "description": "Complete the workflow"},
+            {"label": "Run Again", "value": "again", "description": "Run with different options"},
+            {"label": "Review", "value": "review", "description": "Review the results in detail"}
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [],
+    "manual": [
+      "Invoke {{SKILL_NAME}} skill"
+    ]
+  }
+}

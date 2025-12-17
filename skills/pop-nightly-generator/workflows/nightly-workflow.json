@@ -1,0 +1,142 @@
+{
+  "name": "Nightly Routine Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for nightly cleanup and sleep score calculation",
+  "phases": [
+    {
+      "id": "audit",
+      "name": "Audit Day",
+      "description": "Review what was accomplished and remaining state",
+      "steps": [
+        {
+          "id": "check_uncommitted",
+          "name": "Check Uncommitted Changes",
+          "type": "automated",
+          "script": "scripts/calculate_sleep_score.py --section=git"
+        },
+        {
+          "id": "review_tasks",
+          "name": "Review Task Status",
+          "type": "automated",
+          "action": "Check in-progress and completed tasks"
+        },
+        {
+          "id": "check_branches",
+          "name": "Check Stale Branches",
+          "type": "automated",
+          "script": "scripts/calculate_sleep_score.py --section=branches"
+        }
+      ]
+    },
+    {
+      "id": "cleanup",
+      "name": "Cleanup",
+      "description": "Clean up caches, artifacts, and temporary files",
+      "steps": [
+        {
+          "id": "calculate_sizes",
+          "name": "Calculate Cleanup Targets",
+          "type": "automated",
+          "script": "scripts/calculate_sleep_score.py --section=cleanup"
+        },
+        {
+          "id": "offer_cleanup",
+          "name": "Offer Cleanup Options",
+          "type": "interactive",
+          "prompt": "Would you like to clean up these targets?",
+          "options": [
+            {"label": "Clean all", "value": "all"},
+            {"label": "Clean caches only", "value": "caches"},
+            {"label": "Skip cleanup", "value": "skip"}
+          ]
+        },
+        {
+          "id": "execute_cleanup",
+          "name": "Execute Cleanup",
+          "type": "conditional",
+          "condition": "cleanup != skip"
+        },
+        {
+          "id": "git_maintenance",
+          "name": "Git Maintenance",
+          "type": "automated",
+          "commands": ["git gc --auto", "git fetch --prune"]
+        }
+      ]
+    },
+    {
+      "id": "score",
+      "name": "Calculate Score",
+      "description": "Calculate Sleep Score and save state",
+      "steps": [
+        {
+          "id": "calculate_score",
+          "name": "Calculate Sleep Score",
+          "type": "automated",
+          "script": "scripts/calculate_sleep_score.py --mode=score"
+        },
+        {
+          "id": "capture_session",
+          "name": "Capture Session State",
+          "type": "automated",
+          "action": "Invoke pop-session-capture skill"
+        },
+        {
+          "id": "display_summary",
+          "name": "Display Nightly Summary",
+          "type": "automated",
+          "action": "Show sleep score and summary"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "max_score": 100,
+    "categories": [
+      {
+        "name": "No Uncommitted Changes",
+        "weight": 30,
+        "checks": ["clean_working_directory"]
+      },
+      {
+        "name": "Session State Saved",
+        "weight": 20,
+        "checks": ["status_json_updated"]
+      },
+      {
+        "name": "Git Maintenance Done",
+        "weight": 15,
+        "checks": ["gc_run", "branches_pruned"]
+      },
+      {
+        "name": "Security Audit Clean",
+        "weight": 15,
+        "checks": ["npm_audit_clean"]
+      },
+      {
+        "name": "Caches Under Limit",
+        "weight": 10,
+        "checks": ["cache_size_ok"]
+      },
+      {
+        "name": "Logs Rotated",
+        "weight": 10,
+        "checks": ["old_logs_cleaned"]
+      }
+    ]
+  },
+  "triggers": {
+    "automatic": [
+      "End of day (after 5pm)",
+      "Before long break"
+    ],
+    "manual": [
+      "/popkit:routine nightly",
+      "Invoke pop-nightly-generator skill"
+    ]
+  },
+  "output": {
+    "format": "nightly_report",
+    "sections": ["audit", "cleanup", "sleep_score", "tomorrow_hints"]
+  }
+}

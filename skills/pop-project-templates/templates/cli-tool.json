@@ -1,0 +1,285 @@
+{
+  "$schema": "../schema.json",
+  "id": "cli-tool",
+  "name": "CLI Tool",
+  "description": "Command-line application with argument parsing, configuration, and distribution",
+  "version": "1.0.0",
+  "updated": "2024-12-03",
+
+  "questions": [
+    {
+      "id": "language",
+      "header": "Language",
+      "question": "Which language should we use for the CLI?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "typescript",
+          "label": "TypeScript (Node.js)",
+          "description": "Familiar ecosystem, npm distribution, great DX with modern tooling",
+          "pros": ["npm ecosystem", "Easy distribution", "TypeScript safety", "Fast development"],
+          "cons": ["Requires Node.js runtime", "Startup time", "Binary size with bundler"],
+          "when": "JavaScript/TypeScript team, npm distribution, rapid development priority",
+          "cli_frameworks": ["Commander.js", "yargs", "oclif", "citty"],
+          "distribution": ["npm publish", "npx", "pkg (binary)"]
+        },
+        {
+          "value": "rust",
+          "label": "Rust",
+          "description": "Blazing fast, single binary, excellent CLI ecosystem with clap",
+          "pros": ["Single binary", "Fastest performance", "Memory safe", "clap is excellent"],
+          "cons": ["Rust learning curve", "Slower compilation", "Stricter type system"],
+          "when": "Performance critical, want single binary, systems-level tool",
+          "cli_frameworks": ["clap", "argh", "structopt"],
+          "distribution": ["cargo install", "homebrew", "release binaries"]
+        },
+        {
+          "value": "go",
+          "label": "Go",
+          "description": "Simple, fast compilation, single binary, cobra ecosystem",
+          "pros": ["Fast compilation", "Single binary", "Cobra ecosystem", "Cross-compilation easy"],
+          "cons": ["Verbose error handling", "Less expressive", "Generics newer"],
+          "when": "DevOps tooling, cross-platform need, Go team",
+          "cli_frameworks": ["Cobra", "urfave/cli", "Kong"],
+          "distribution": ["go install", "homebrew", "release binaries"]
+        },
+        {
+          "value": "python",
+          "label": "Python",
+          "description": "Rapid development, rich ecosystem, click/typer for modern CLIs",
+          "pros": ["Rapid development", "Rich ecosystem", "Typer modern DX", "Easy scripting"],
+          "cons": ["Requires Python runtime", "Distribution complexity", "Performance"],
+          "when": "Python team, scripting-heavy tool, ML/data tooling",
+          "cli_frameworks": ["Typer", "Click", "argparse", "Fire"],
+          "distribution": ["pip install", "pipx", "PyInstaller (binary)"]
+        },
+        {
+          "value": "deno",
+          "label": "Deno / TypeScript",
+          "description": "Modern TypeScript runtime, single binary compilation, secure by default",
+          "pros": ["Single binary with deno compile", "Secure by default", "Modern APIs", "No package.json"],
+          "cons": ["Smaller ecosystem", "Some npm compat issues", "Newer tooling"],
+          "when": "Want single binary + TypeScript, security important, modern tooling",
+          "cli_frameworks": ["Cliffy", "std/flags", "yargs (via npm compat)"],
+          "distribution": ["deno compile", "deno.land/x"]
+        }
+      ],
+      "default": "rust",
+      "research_sources": [
+        "CLI tool ecosystem analysis",
+        "GitHub trending CLI tools",
+        "r/commandline recommendations"
+      ]
+    },
+    {
+      "id": "cli_framework",
+      "header": "Framework",
+      "question": "Which CLI framework should we use?",
+      "multiSelect": false,
+      "depends_on": "language",
+      "options": {
+        "typescript": [
+          {
+            "value": "commander",
+            "label": "Commander.js",
+            "description": "Most popular, simple API, well documented",
+            "pros": ["Simple API", "Well documented", "Large community"],
+            "cons": ["Less features than oclif", "Manual help formatting"],
+            "when": "Simple to medium CLIs, familiar ecosystem"
+          },
+          {
+            "value": "oclif",
+            "label": "oclif (Salesforce)",
+            "description": "Full-featured CLI framework with plugins, hooks, testing",
+            "pros": ["Plugins system", "Auto-generated docs", "Testing utilities", "TypeScript-first"],
+            "cons": ["More complex", "Heavier", "Learning curve"],
+            "when": "Complex CLIs with plugins, enterprise tools, need testing framework"
+          },
+          {
+            "value": "citty",
+            "label": "citty (unjs)",
+            "description": "Modern, lightweight, from UnJS ecosystem",
+            "pros": ["Modern API", "Lightweight", "UnJS ecosystem", "Tree-shakeable"],
+            "cons": ["Smaller community", "Less documentation"],
+            "when": "Modern tooling, lightweight need, UnJS ecosystem"
+          }
+        ],
+        "rust": [
+          {
+            "value": "clap",
+            "label": "clap",
+            "description": "Most popular Rust CLI framework, derive macros",
+            "pros": ["Best in class", "Derive macros", "Shell completions", "Great error messages"],
+            "cons": ["Compilation time", "Learning curve"],
+            "when": "Default choice for Rust CLIs, need full features"
+          },
+          {
+            "value": "argh",
+            "label": "argh (Google)",
+            "description": "Simple, derive-based argument parser from Google",
+            "pros": ["Simple API", "Fast compilation", "Minimal deps"],
+            "cons": ["Less features", "No shell completions"],
+            "when": "Simple CLIs, want fast compilation"
+          }
+        ],
+        "go": [
+          {
+            "value": "cobra",
+            "label": "Cobra",
+            "description": "Most popular Go CLI framework, used by Docker, K8s",
+            "pros": ["Industry standard", "Subcommands", "Shell completions", "viper integration"],
+            "cons": ["Verbose setup", "More boilerplate"],
+            "when": "Default choice, subcommand-heavy CLIs, enterprise tools"
+          },
+          {
+            "value": "kong",
+            "label": "Kong",
+            "description": "Struct-based argument parsing, less boilerplate",
+            "pros": ["Struct tags", "Less boilerplate", "Clean API"],
+            "cons": ["Smaller community", "Less examples"],
+            "when": "Want less boilerplate, struct-based config"
+          }
+        ],
+        "python": [
+          {
+            "value": "typer",
+            "label": "Typer",
+            "description": "Modern CLI framework using Python type hints",
+            "pros": ["Type hint based", "Auto-completion", "Modern DX", "Built on Click"],
+            "cons": ["Requires Python 3.6+", "Fewer low-level controls"],
+            "when": "Default choice for modern Python CLIs, type safety"
+          },
+          {
+            "value": "click",
+            "label": "Click",
+            "description": "Mature, composable CLI framework",
+            "pros": ["Mature", "Composable", "Well documented", "Typer built on it"],
+            "cons": ["More verbose than Typer", "Decorator-heavy"],
+            "when": "Need more control than Typer, complex compositions"
+          }
+        ]
+      },
+      "default": "clap"
+    },
+    {
+      "id": "config_format",
+      "header": "Config",
+      "question": "How should the CLI handle configuration files?",
+      "multiSelect": false,
+      "options": [
+        {
+          "value": "toml",
+          "label": "TOML",
+          "description": "Human-friendly config format, popular for CLI tools",
+          "pros": ["Human readable", "Comments supported", "Good for settings", "Rust ecosystem standard"],
+          "cons": ["Less widespread", "Nested structures verbose"],
+          "when": "User-facing config, Rust tools, want comments"
+        },
+        {
+          "value": "yaml",
+          "label": "YAML",
+          "description": "Widely used, good for hierarchical config",
+          "pros": ["Widespread adoption", "Good for nested data", "Multi-document support"],
+          "cons": ["Whitespace significant", "Type coercion issues", "Complex spec"],
+          "when": "DevOps tooling, complex nested config, wide compatibility"
+        },
+        {
+          "value": "json",
+          "label": "JSON",
+          "description": "Universal format, programmatic generation",
+          "pros": ["Universal support", "Strict format", "Easy programmatic generation"],
+          "cons": ["No comments", "Verbose", "No trailing commas"],
+          "when": "Programmatic config, API integration, strict parsing needed"
+        },
+        {
+          "value": "env",
+          "label": "Environment Variables",
+          "description": "12-factor app style, container-friendly",
+          "pros": ["Container friendly", "Secret management", "No file needed"],
+          "cons": ["Limited types", "Flat structure", "Harder to version"],
+          "when": "Container deployment, CI/CD integration, secrets handling"
+        },
+        {
+          "value": "none",
+          "label": "CLI Flags Only",
+          "description": "All configuration via command-line arguments",
+          "pros": ["Simple", "No file management", "Self-documenting"],
+          "cons": ["Complex invocations", "No persistence"],
+          "when": "Simple tools, scriptable CLIs, no persistent state"
+        }
+      ],
+      "default": "toml"
+    },
+    {
+      "id": "distribution",
+      "header": "Distribution",
+      "question": "How should users install the CLI?",
+      "multiSelect": true,
+      "options": [
+        {
+          "value": "homebrew",
+          "label": "Homebrew (macOS/Linux)",
+          "description": "Popular package manager for developers",
+          "setup": "Create homebrew tap repository"
+        },
+        {
+          "value": "npm",
+          "label": "npm / npx",
+          "description": "Node.js package manager (TypeScript/Deno)",
+          "setup": "npm publish"
+        },
+        {
+          "value": "cargo",
+          "label": "cargo install (Rust)",
+          "description": "Rust package manager",
+          "setup": "cargo publish"
+        },
+        {
+          "value": "pip",
+          "label": "pip / pipx (Python)",
+          "description": "Python package manager",
+          "setup": "pypi publish"
+        },
+        {
+          "value": "releases",
+          "label": "GitHub Releases (binaries)",
+          "description": "Pre-built binaries for each platform",
+          "setup": "CI/CD workflow to build and upload"
+        },
+        {
+          "value": "docker",
+          "label": "Docker Image",
+          "description": "Containerized distribution",
+          "setup": "Dockerfile + registry publish"
+        }
+      ],
+      "default": ["homebrew", "releases"]
+    }
+  ],
+
+  "agents": {
+    "primary": ["code-architect"],
+    "supporting": ["devops-automator", "test-writer-fixer"]
+  },
+
+  "quality_gates": [
+    "type-check",
+    "lint",
+    "test",
+    "build-check"
+  ],
+
+  "scaffolding": {
+    "directories": [
+      "src",
+      "src/commands",
+      "src/config",
+      "src/utils",
+      "tests"
+    ],
+    "files": [
+      "README.md",
+      "LICENSE"
+    ]
+  }
+}

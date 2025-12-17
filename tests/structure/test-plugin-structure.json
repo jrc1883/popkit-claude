@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "plugin-structure",
+  "description": "Tests for plugin file structure and integrity",
+  "version": "2.0.0",
+  "tests": [
+    {
+      "name": "plugin.json exists and is valid",
+      "type": "file_exists",
+      "path": ".claude-plugin/plugin.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "marketplace.json exists and is valid",
+      "type": "file_exists",
+      "path": ".claude-plugin/marketplace.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "agents/config.json exists and is valid",
+      "type": "file_exists",
+      "path": "agents/config.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "hooks/hooks.json exists and is valid",
+      "type": "file_exists",
+      "path": "hooks/hooks.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": ".mcp.json exists and is valid",
+      "type": "file_exists",
+      "path": ".mcp.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "CLAUDE.md exists at repo root",
+      "type": "file_exists",
+      "path": "../../CLAUDE.md",
+      "note": "CLAUDE.md is at monorepo root, not plugin root"
+    },
+    {
+      "name": "all skills have SKILL.md",
+      "type": "directory_pattern",
+      "path": "skills/*/SKILL.md",
+      "min_count": 60,
+      "expected_count": 62
+    },
+    {
+      "name": "all tier-1 agents have definitions",
+      "type": "directory_pattern",
+      "path": "agents/tier-1-always-active/*/AGENT.md",
+      "min_count": 11,
+      "expected_count": 11
+    },
+    {
+      "name": "all tier-2 agents have definitions",
+      "type": "directory_pattern",
+      "path": "agents/tier-2-on-demand/*/AGENT.md",
+      "min_count": 17,
+      "expected_count": 17
+    },
+    {
+      "name": "all feature-workflow agents have definitions",
+      "type": "directory_pattern",
+      "path": "agents/feature-workflow/*/AGENT.md",
+      "min_count": 2,
+      "expected_count": 2,
+      "note": "code-explorer, code-architect (code-reviewer is in tier-1)"
+    },
+    {
+      "name": "all hooks are Python files",
+      "type": "directory_pattern",
+      "path": "hooks/*.py",
+      "min_count": 23,
+      "expected_count": 23
+    },
+    {
+      "name": "all hook utils are Python files",
+      "type": "directory_pattern",
+      "path": "hooks/utils/*.py",
+      "min_count": 50,
+      "expected_count": 52
+    },
+    {
+      "name": "all commands have definitions",
+      "type": "directory_pattern",
+      "path": "commands/*.md",
+      "min_count": 22,
+      "expected_count": 24
+    },
+    {
+      "name": "all output styles have definitions",
+      "type": "directory_pattern",
+      "path": "output-styles/*.md",
+      "min_count": 15
+    },
+    {
+      "name": "power-mode config exists",
+      "type": "file_exists",
+      "path": "power-mode/config.json",
+      "must_be_valid_json": true
+    },
+    {
+      "name": "power-mode coordinator exists",
+      "type": "file_exists",
+      "path": "power-mode/coordinator.py"
+    },
+    {
+      "name": "MCP server template exists",
+      "type": "file_exists",
+      "path": "templates/mcp-server/package.json",
+      "must_be_valid_json": true
+    }
+  ],
+  "component_counts": {
+    "agents": {
+      "tier-1-always-active": 11,
+      "tier-2-on-demand": 17,
+      "feature-workflow": 3,
+      "total": 31
+    },
+    "skills": 62,
+    "commands": 24,
+    "hooks": 23,
+    "hook_utils": 52,
+    "output_styles": 15
+  },
+  "metadata": {
+    "created": "2025-12-09",
+    "updated": "2025-12-12",
+    "issue": "#105, #204",
+    "author": "popkit"
+  }
+}

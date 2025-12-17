@@ -1,0 +1,491 @@
+---
+name: pop-security-scan
+description: Scan for security vulnerabilities and automatically create GitHub issues for tracking
+inputs:
+  - from: any
+    field: severity_threshold
+    required: false
+  - from: any
+    field: fix_mode
+    required: false
+outputs:
+  - field: vulnerabilities_found
+    type: number
+  - field: issues_created
+    type: array
+  - field: report_path
+    type: file_path
+next_skills:
+  - pop-writing-plans
+workflow:
+  id: security-scan
+  name: Security Scan Workflow
+  version: 1
+  description: Automated security vulnerability detection with GitHub integration
+  steps:
+    - id: run_audit
+      description: Run npm audit and analyze results
+      type: agent
+      agent: security-auditor
+      next: severity_decision
+    - id: severity_decision
+      description: Choose minimum severity threshold
+      type: user_decision
+      question: "What severity level should we flag?"
+      header: "Severity"
+      options:
+        - id: critical_only
+          label: "Critical only"
+          description: "Only report critical vulnerabilities"
+          next: check_existing
+        - id: high_plus
+          label: "High+"
+          description: "High and critical (Recommended)"
+          next: check_existing
+        - id: all
+          label: "All"
+          description: "Report all vulnerabilities"
+          next: check_existing
+      next_map:
+        critical_only: check_existing
+        high_plus: check_existing
+        all: check_existing
+    - id: check_existing
+      description: Check for existing GitHub issues
+      type: skill
+      skill: pop-knowledge-lookup
+      next: duplicates_found
+    - id: duplicates_found
+      description: Handle duplicate detection results
+      type: user_decision
+      question: "Found existing issues. How should we proceed?"
+      header: "Duplicates"
+      options:
+        - id: skip_all
+          label: "Skip tracked"
+          description: "Don't create issues for tracked vulns"
+          next: action_decision
+        - id: update_existing
+          label: "Update existing"
+          description: "Add comments to existing issues"
+          next: action_decision
+        - id: create_all
+          label: "Create anyway"
+          description: "Create new issues regardless"
+          next: action_decision
+      next_map:
+        skip_all: action_decision
+        update_existing: action_decision
+        create_all: action_decision
+    - id: action_decision
+      description: Choose what action to take
+      type: user_decision
+      question: "What should we do with the vulnerabilities?"
+      header: "Action"
+      options:
+        - id: report_only
+          label: "Report only"
+          description: "Generate report without changes"
+          next: generate_report
+        - id: create_issues
+          label: "Create issues"
+          description: "Create GitHub issues for tracking"
+          next: create_issues
+        - id: auto_fix
+          label: "Auto-fix"
+          description: "Attempt automatic remediation"
+          next: fix_decision
+      next_map:
+        report_only: generate_report
+        create_issues: create_issues
+        auto_fix: fix_decision
+    - id: create_issues
+      description: Create GitHub issues for vulnerabilities
+      type: skill
+      skill: pop-research-capture
+      next: generate_report
+    - id: fix_decision
+      description: Choose fix approach
+      type: user_decision
+      question: "How should we apply fixes?"
+      header: "Fix Mode"
+      options:
+        - id: safe
+          label: "Safe only"
+          description: "npm audit fix (no breaking changes)"
+          next: apply_fixes
+        - id: force
+          label: "Force"
+          description: "Include breaking change fixes"
+          next: apply_fixes
+        - id: pr
+          label: "Create PR"
+          description: "Apply fixes in a pull request"
+          next: apply_fixes
+      next_map:
+        safe: apply_fixes
+        force: apply_fixes
+        pr: apply_fixes
+    - id: apply_fixes
+      description: Apply security fixes
+      type: agent
+      agent: security-auditor
+      next: verify_fixes
+    - id: verify_fixes
+      description: Verify fixes resolved vulnerabilities
+      type: user_decision
+      question: "Did the fixes resolve all vulnerabilities?"
+      header: "Verified?"
+      options:
+        - id: all_fixed
+          label: "All fixed"
+          description: "No remaining vulnerabilities"
+          next: generate_report
+        - id: some_remain
+          label: "Some remain"
+          description: "Manual remediation needed"
+          next: manual_remediation
+        - id: failed
+          label: "Failed"
+          description: "Fixes caused issues"
+          next: rollback_decision
+      next_map:
+        all_fixed: generate_report
+        some_remain: manual_remediation
+        failed: rollback_decision
+    - id: manual_remediation
+      description: Plan manual fixes for remaining vulnerabilities
+      type: skill
+      skill: pop-writing-plans
+      next: generate_report
+    - id: rollback_decision
+      description: Decide how to handle failed fixes
+      type: user_decision
+      question: "Fixes caused issues. What should we do?"
+      header: "Rollback"
+      options:
+        - id: rollback
+          label: "Rollback"
+          description: "Revert all changes"
+          next: rollback_fixes
+        - id: partial
+          label: "Keep working"
+          description: "Keep what worked, debug rest"
+          next: manual_remediation
+      next_map:
+        rollback: rollback_fixes
+        partial: manual_remediation
+    - id: rollback_fixes
+      description: Rollback failed fixes
+      type: agent
+      agent: security-auditor
+      next: generate_report
+    - id: generate_report
+      description: Generate security scan report
+      type: skill
+      skill: pop-auto-docs
+      next: complete
+    - id: complete
+      description: Security scan workflow complete
+      type: terminal
+---
+
+# Security Scan
+
+Automated security vulnerability detection with GitHub issue creation and routine integration.
+
+## When to Use
+
+- During `/popkit:routine nightly security` for automated scans
+- On-demand via `/popkit:security-scan` command
+- After dependency updates to check for new vulnerabilities
+- Before deployments as a security gate
+
+## Input
+
+User provides:
+- Optional flags: `--fix`, `--dry-run`, `--no-issues`, `--severity <level>`
+- Or subcommands: `scan`, `list`, `fix`, `report`
+
+## Process
+
+### 1. Run Security Audit
+
+Execute `npm audit` and parse results:
+
+```bash
+npm audit --json 2>/dev/null
+```
+
+Parse the JSON output to extract:
+- Total vulnerabilities by severity (critical, high, moderate, low)
+- Affected packages with version ranges
+- CVE identifiers when available
+- Fix availability (fixAvailable flag)
+- Advisory URLs
+
+### 2. Check for Existing Issues
+
+Before creating new issues, check for duplicates:
+
+```bash
+gh issue list --label "security,automated" --json number,title,state
+```
+
+Search for:
+- CVE ID in title
+- Package name + "vulnerability" combination
+- Open issues only (closed = resolved)
+
+### 3. Create GitHub Issues
+
+For HIGH and CRITICAL vulnerabilities without existing issues:
+
+```markdown
+## Security Vulnerability: [Package] [CVE-ID]
+
+**Severity:** HIGH
+**Package:** nodemailer
+**Vulnerable Versions:** <=7.0.10
+**Patched Version:** 7.0.11
+
+### Description
+[Advisory description from npm audit]
+
+### Impact
+[Potential impact - DoS, RCE, data leak, etc.]
+
+### Remediation
+```bash
+npm update nodemailer
+# or
+npm install nodemailer@7.0.11
+```
+
+### References
+- [Advisory URL]
+- [CVE Database Link]
+
+---
+*Auto-generated by PopKit Security Scan*
+*Run `/popkit:security-scan --fix` to attempt automatic remediation*
+```
+
+Labels: `security`, `automated`, `priority:high` (or `priority:critical`)
+
+### 4. Generate Report
+
+Output a summary:
+
+```
+Security Scan Report
+====================
+Project: popkit
+Date: 2024-12-09
+
+Vulnerabilities Found:
+  Critical: 0
+  High: 2
+  Moderate: 5
+  Low: 3
+
+Issues Created: 2
+  #42 - CVE-2024-XXXX: nodemailer DoS vulnerability
+  #43 - GHSA-XXXX: mdast-util-to-hast unsanitized attribute
+
+Existing Issues: 1
+  #38 - lodash prototype pollution (open)
+
+Fix Available: 7 of 10 vulnerabilities
+
+Recommendations:
+  - Run `npm audit fix` to resolve 7 auto-fixable vulnerabilities
+  - Review issues #42, #43 for manual remediation
+  - Consider upgrading lodash manually (breaking changes possible)
+
+Sleep Score Impact: -15 points (2 high severity issues)
+```
+
+### 5. Update Scores
+
+Impact on routine scores:
+
+| Severity | Points Deducted |
+|----------|-----------------|
+| Critical | -20 per issue |
+| High | -10 per issue |
+| Moderate | -5 per issue |
+| Low | -2 per issue |
+
+Maximum deduction: 30 points (caps at 70 minimum score)
+
+## Subcommand Handlers
+
+### scan (default)
+
+Full scan with issue creation:
+
+```
+/popkit:security-scan
+/popkit:security-scan --severity high  # Only high+ severity
+/popkit:security-scan --dry-run        # Preview without creating issues
+```
+
+### list
+
+List known vulnerabilities and tracking issues:
+
+```
+/popkit:security-scan list
+/popkit:security-scan list --open      # Only open issues
+/popkit:security-scan list --resolved  # Show fixed vulnerabilities
+```
+
+### fix
+
+Attempt automatic remediation:
+
+```
+/popkit:security-scan fix              # Run npm audit fix
+/popkit:security-scan fix --force      # Include breaking changes
+/popkit:security-scan fix --pr         # Create PR with fixes
+```
+
+### report
+
+Generate detailed report without creating issues:
+
+```
+/popkit:security-scan report
+/popkit:security-scan report --json    # Machine-readable output
+/popkit:security-scan report --md      # Markdown format
+```
+
+## Integration with Routines
+
+### Nightly Routine
+
+Called during `/popkit:routine nightly`:
+
+```
+Security Audit:
+  Scanning dependencies...
+
+  Vulnerabilities: 2 high, 5 moderate
+  Issues Created: 1 new (CVE-2024-XXXX)
+  Existing Tracking: 1 open issue
+
+  Sleep Score Impact: -10 points
+```
+
+### Morning Routine
+
+Summary in Ready to Code checklist:
+
+```
+Security Status:
+  Open Issues: 2 (1 critical, 1 high)
+  Action Required: Yes - review before deploying
+
+  Ready to Code Impact: -5 points
+```
+
+## Duplicate Detection
+
+Prevent creating duplicate issues by checking:
+
+1. **CVE ID**: Search issue titles for `CVE-XXXX-XXXXX`
+2. **GHSA ID**: Search for `GHSA-XXXX-XXXX-XXXX`
+3. **Package + Severity**: `"nodemailer" AND "high" AND "security"`
+
+Only create if no matching open issue found.
+
+## Example Flows
+
+### Full Scan
+
+```
+User: /popkit:security-scan
+
+Scanning npm dependencies...
+Found: package.json, package-lock.json
+
+Running npm audit...
+Analyzing 847 packages
+
+Vulnerabilities Found:
+  Critical: 0
+  High: 2
+  Moderate: 3
+  Low: 1
+
+Checking for existing GitHub issues...
+Found 1 existing tracking issue
+
+Creating issues for new vulnerabilities...
+  Created #42: CVE-2024-1234 nodemailer DoS (HIGH)
+  Skipped: GHSA-5678 already tracked in #38
+
+Summary:
+  New Issues: 1
+  Existing: 1
+  Auto-fixable: 4
+
+Run `/popkit:security-scan fix` to apply automatic fixes.
+```
+
+### Dry Run
+
+```
+User: /popkit:security-scan --dry-run
+
+[DRY RUN - No issues will be created]
+
+Would create:
+  - CVE-2024-1234: nodemailer DoS vulnerability (HIGH)
+  - CVE-2024-5678: express-session fixation (MODERATE)
+
+Would skip:
+  - GHSA-9012: Already tracked in #38
+```
+
+### Auto Fix
+
+```
+User: /popkit:security-scan fix
+
+Running npm audit fix...
+
+Fixed 4 vulnerabilities:
+  - lodash: 4.17.19 -> 4.17.21
+  - minimist: 1.2.5 -> 1.2.8
+  - json5: 2.2.0 -> 2.2.3
+  - semver: 6.3.0 -> 6.3.1
+
+Remaining (require manual review):
+  - nodemailer: Breaking changes in fix
+  - mdast-util-to-hast: Peer dependency conflict
+
+Run `/popkit:security-scan fix --force` to attempt breaking change fixes.
+```
+
+## Architecture Integration
+
+| Component | Purpose |
+|-----------|---------|
+| `npm audit --json` | Vulnerability data source |
+| `gh issue create` | GitHub issue creation |
+| `gh issue list` | Duplicate detection |
+| `/popkit:routine nightly` | Automated scanning |
+| `/popkit:routine morning` | Status reporting |
+| Sleep Score | Nightly impact calculation |
+| Ready to Code Score | Morning impact calculation |
+
+## Output Style
+
+Use structured, actionable format:
+- Show severity with visual indicators
+- Group by severity level
+- Provide clear remediation steps
+- Link to existing tracking issues
+- Show score impact prominently

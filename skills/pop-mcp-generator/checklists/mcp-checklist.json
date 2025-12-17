@@ -1,0 +1,149 @@
+{
+  "name": "MCP Server Generation Checklist",
+  "version": "1.0.0",
+  "description": "Verification checklist for generated MCP servers",
+  "categories": [
+    {
+      "name": "Structure",
+      "checks": [
+        {
+          "id": "directory_exists",
+          "name": "MCP server directory created",
+          "description": "mcp-server/ directory exists",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "package_json",
+          "name": "package.json created",
+          "description": "Valid package.json with MCP dependencies",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tsconfig_exists",
+          "name": "TypeScript configured",
+          "description": "tsconfig.json with proper settings",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "index_exists",
+          "name": "Entry point exists",
+          "description": "src/index.ts with server setup",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Tools",
+      "checks": [
+        {
+          "id": "tools_implemented",
+          "name": "All tools implemented",
+          "description": "Each selected tool has implementation",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tool_descriptions",
+          "name": "Tool descriptions provided",
+          "description": "All tools have clear descriptions for Claude",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "input_schemas",
+          "name": "Input schemas defined",
+          "description": "Zod schemas for tool inputs",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "error_handling",
+          "name": "Error handling implemented",
+          "description": "Tools handle errors gracefully",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Build",
+      "checks": [
+        {
+          "id": "deps_installed",
+          "name": "Dependencies installed",
+          "description": "npm install completed successfully",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "build_succeeds",
+          "name": "Build succeeds",
+          "description": "npm run build produces dist/",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_type_errors",
+          "name": "No TypeScript errors",
+          "description": "tsc --noEmit passes",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Integration",
+      "checks": [
+        {
+          "id": "mcp_json_updated",
+          "name": ".mcp.json updated",
+          "description": "Server added to project .mcp.json",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "server_starts",
+          "name": "Server starts",
+          "description": "MCP server runs without errors",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tools_discoverable",
+          "name": "Tools discoverable",
+          "description": "Claude Code can see the tools",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "checks": [
+        {
+          "id": "readme_exists",
+          "name": "README.md created",
+          "description": "Documentation for the MCP server",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "tool_docs",
+          "name": "Tool documentation",
+          "description": "Each tool documented with examples",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "analyze": "python scripts/analyze_project.py --suggest",
+    "build": "cd mcp-server && npm run build",
+    "test": "cd mcp-server && npm test"
+  }
+}

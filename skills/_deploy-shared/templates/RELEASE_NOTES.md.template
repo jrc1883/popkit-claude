@@ -1,0 +1,101 @@
+# Release Notes: v{{VERSION}}
+
+**Release Date:** {{DATE}}
+**Release Type:** {{RELEASE_TYPE}}
+
+---
+
+## Highlights
+
+{{HIGHLIGHTS}}
+
+---
+
+## What's New
+
+### Features
+{{#FEATURES}}
+- **{{TITLE}}**: {{DESCRIPTION}}
+{{/FEATURES}}
+
+### Improvements
+{{#IMPROVEMENTS}}
+- {{DESCRIPTION}}
+{{/IMPROVEMENTS}}
+
+---
+
+## Bug Fixes
+{{#FIXES}}
+- {{DESCRIPTION}} (#{{ISSUE}})
+{{/FIXES}}
+
+---
+
+## Breaking Changes
+
+{{#BREAKING}}
+⚠️ **{{TITLE}}**
+
+{{DESCRIPTION}}
+
+**Migration:**
+```
+{{MIGRATION}}
+```
+{{/BREAKING}}
+
+---
+
+## Upgrade Guide
+
+### From v{{PREVIOUS_VERSION}}
+
+1. {{UPGRADE_STEP_1}}
+2. {{UPGRADE_STEP_2}}
+3. {{UPGRADE_STEP_3}}
+
+### Dependencies
+
+| Package | Old Version | New Version |
+|---------|-------------|-------------|
+{{#DEPENDENCIES}}
+| {{NAME}} | {{OLD}} | {{NEW}} |
+{{/DEPENDENCIES}}
+
+---
+
+## Known Issues
+
+{{#KNOWN_ISSUES}}
+- {{DESCRIPTION}} (Tracking: #{{ISSUE}})
+{{/KNOWN_ISSUES}}
+
+---
+
+## Contributors
+
+Thanks to all contributors who made this release possible:
+
+{{#CONTRIBUTORS}}
+- @{{USERNAME}}
+{{/CONTRIBUTORS}}
+
+---
+
+## Full Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete list of changes.
+
+**Compare:** [v{{PREVIOUS_VERSION}}...v{{VERSION}}]({{COMPARE_URL}})
+
+---
+
+<!-- Template Variables:
+{{VERSION}} - Current version
+{{DATE}} - Release date
+{{RELEASE_TYPE}} - major/minor/patch
+{{HIGHLIGHTS}} - 2-3 sentence summary
+{{PREVIOUS_VERSION}} - Last released version
+{{COMPARE_URL}} - GitHub compare URL
+-->

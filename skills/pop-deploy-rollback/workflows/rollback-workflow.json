@@ -1,0 +1,243 @@
+{
+  "name": "Deployment Rollback Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for safe deployment rollbacks",
+  "phases": [
+    {
+      "id": "assess",
+      "name": "Assess Situation",
+      "description": "Determine if rollback is needed and identify severity",
+      "steps": [
+        {
+          "id": "identify_issue",
+          "name": "Identify the Issue",
+          "prompt": "What is the issue requiring potential rollback?",
+          "type": "assessment",
+          "options": [
+            "Health checks failing",
+            "Error rate elevated",
+            "Performance degradation",
+            "Security vulnerability",
+            "Critical functionality broken",
+            "Data corruption detected"
+          ]
+        },
+        {
+          "id": "determine_severity",
+          "name": "Determine Severity",
+          "prompt": "How severe is the impact?",
+          "type": "assessment",
+          "options": [
+            {"label": "Critical", "description": "All users affected, service down", "auto_rollback": true},
+            {"label": "High", "description": "Major functionality broken", "auto_rollback": true},
+            {"label": "Medium", "description": "Partial functionality affected", "auto_rollback": false},
+            {"label": "Low", "description": "Minor issues, workaround available", "auto_rollback": false}
+          ]
+        },
+        {
+          "id": "confirm_rollback",
+          "name": "Confirm Rollback Decision",
+          "prompt": "Based on the assessment, should we proceed with rollback?",
+          "type": "decision",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "prepare",
+      "name": "Prepare Rollback",
+      "description": "Gather information needed for safe rollback",
+      "steps": [
+        {
+          "id": "identify_target",
+          "name": "Identify Rollback Target",
+          "prompt": "Which version should we rollback to?",
+          "type": "selection",
+          "data_source": "deployment_history"
+        },
+        {
+          "id": "check_compatibility",
+          "name": "Check Compatibility",
+          "prompt": "Verify rollback target is compatible with current state",
+          "type": "checklist",
+          "items": [
+            "Database schema compatible",
+            "API contracts compatible",
+            "No data format changes",
+            "Dependencies available",
+            "Config format unchanged"
+          ]
+        },
+        {
+          "id": "notify_team",
+          "name": "Notify Team",
+          "prompt": "Alert team members about upcoming rollback",
+          "type": "action",
+          "channels": ["slack", "email", "pagerduty"]
+        }
+      ]
+    },
+    {
+      "id": "execute",
+      "name": "Execute Rollback",
+      "description": "Perform the rollback operation",
+      "steps": [
+        {
+          "id": "take_snapshot",
+          "name": "Take Current State Snapshot",
+          "prompt": "Capture current state for forensics",
+          "type": "action",
+          "automated": true
+        },
+        {
+          "id": "execute_rollback",
+          "name": "Execute Platform Rollback",
+          "prompt": "Run rollback command for target platform",
+          "type": "platform_action",
+          "platforms": {
+            "docker": "docker tag registry/app:previous registry/app:latest && docker push",
+            "kubernetes": "kubectl rollout undo deployment/app",
+            "vercel": "vercel rollback",
+            "netlify": "netlify rollback",
+            "npm": "npm deprecate package@bad-version 'Critical bug'",
+            "pypi": "pip index remove-version package bad-version"
+          }
+        },
+        {
+          "id": "monitor_rollback",
+          "name": "Monitor Rollback Progress",
+          "prompt": "Watch rollback execution",
+          "type": "monitoring",
+          "metrics": ["deployment_status", "pod_status", "health_checks"]
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "Verify Rollback",
+      "description": "Confirm rollback was successful",
+      "steps": [
+        {
+          "id": "health_check",
+          "name": "Run Health Checks",
+          "prompt": "Verify service health after rollback",
+          "type": "automated_check",
+          "checks": [
+            "HTTP 200 on /health",
+            "Database connectivity",
+            "External service connectivity"
+          ]
+        },
+        {
+          "id": "verify_version",
+          "name": "Verify Correct Version",
+          "prompt": "Confirm rolled-back version is deployed",
+          "type": "automated_check"
+        },
+        {
+          "id": "test_critical_paths",
+          "name": "Test Critical Paths",
+          "prompt": "Manually verify critical functionality",
+          "type": "manual_check",
+          "paths": [
+            "User login",
+            "Core transaction flow",
+            "API endpoints"
+          ]
+        },
+        {
+          "id": "check_error_rates",
+          "name": "Check Error Rates",
+          "prompt": "Verify error rates have normalized",
+          "type": "metrics_check",
+          "threshold": "baseline + 10%"
+        }
+      ]
+    },
+    {
+      "id": "communicate",
+      "name": "Communicate Outcome",
+      "description": "Update stakeholders on rollback status",
+      "steps": [
+        {
+          "id": "update_status_page",
+          "name": "Update Status Page",
+          "prompt": "Update public status page if applicable",
+          "type": "action",
+          "conditional": "has_status_page"
+        },
+        {
+          "id": "notify_stakeholders",
+          "name": "Notify Stakeholders",
+          "prompt": "Send rollback completion notification",
+          "type": "notification",
+          "template": "rollback_complete"
+        },
+        {
+          "id": "document_incident",
+          "name": "Document Incident",
+          "prompt": "Create incident record",
+          "type": "documentation",
+          "fields": [
+            "timeline",
+            "root_cause",
+            "impact",
+            "resolution",
+            "follow_up_actions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "follow_up",
+      "name": "Follow-Up Actions",
+      "description": "Post-rollback tasks",
+      "steps": [
+        {
+          "id": "schedule_postmortem",
+          "name": "Schedule Post-Mortem",
+          "prompt": "Schedule incident review meeting",
+          "type": "action"
+        },
+        {
+          "id": "create_fix_task",
+          "name": "Create Fix Task",
+          "prompt": "Create task to fix the issue properly",
+          "type": "action",
+          "output": "github_issue"
+        },
+        {
+          "id": "update_runbook",
+          "name": "Update Runbook",
+          "prompt": "Update rollback runbook if needed",
+          "type": "action",
+          "conditional": "process_improvement_needed"
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [
+      {
+        "condition": "health_check_failing > 2 minutes",
+        "severity": "critical",
+        "action": "start_workflow"
+      },
+      {
+        "condition": "error_rate > 10% for 5 minutes",
+        "severity": "high",
+        "action": "start_workflow"
+      }
+    ],
+    "manual": [
+      "/popkit:deploy rollback",
+      "Deployment issue detected"
+    ]
+  },
+  "time_targets": {
+    "decision_time": "5 minutes",
+    "execution_time": "10 minutes",
+    "verification_time": "5 minutes",
+    "total_recovery": "20 minutes"
+  }
+}

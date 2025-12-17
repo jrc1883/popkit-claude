@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "command-naming",
+  "version": "1.0.0",
+  "description": "Checklist for command naming conventions",
+  "categories": [
+    {
+      "id": "clarity",
+      "name": "Naming Clarity",
+      "weight": 40,
+      "checks": [
+        {
+          "id": "CN-001",
+          "name": "Descriptive Names",
+          "description": "Command names clearly describe their function",
+          "examples": {
+            "good": ["create-user", "run-tests", "analyze-code"],
+            "bad": ["cu", "rt", "ac"]
+          }
+        },
+        {
+          "id": "CN-002",
+          "name": "Verb-First Pattern",
+          "description": "Commands start with action verbs",
+          "pattern": "verb-noun or verb-noun-modifier",
+          "examples": {
+            "good": ["create-project", "run-build", "check-status"],
+            "bad": ["project-create", "build-runner", "status"]
+          }
+        },
+        {
+          "id": "CN-003",
+          "name": "Avoid Abbreviations",
+          "description": "Spell out words unless universally understood",
+          "exceptions": ["init", "config", "git", "npm"],
+          "examples": {
+            "good": ["initialize", "configuration"],
+            "bad": ["cfg", "mgr", "impl"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "consistency",
+      "name": "Naming Consistency",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "CN-004",
+          "name": "Consistent Separators",
+          "description": "Use same separator throughout (prefer hyphen)",
+          "examples": {
+            "good": ["create-user", "delete-user", "list-users"],
+            "bad": ["create_user", "deleteUser", "list-users"]
+          }
+        },
+        {
+          "id": "CN-005",
+          "name": "Consistent Verbs",
+          "description": "Use same verb for similar operations",
+          "verb_groups": {
+            "create": ["create", "add", "new"],
+            "delete": ["delete", "remove", "rm"],
+            "read": ["get", "show", "list", "view"],
+            "update": ["update", "edit", "modify", "set"]
+          }
+        },
+        {
+          "id": "CN-006",
+          "name": "Namespace Prefix",
+          "description": "Use consistent namespace prefix for plugin commands",
+          "pattern": "/namespace:command",
+          "examples": {
+            "good": ["/popkit:project", "/popkit:git"],
+            "bad": ["/pk-project", "/popkit_git"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "usability",
+      "name": "Usability",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "CN-007",
+          "name": "Reasonable Length",
+          "description": "Command names are concise but clear",
+          "target": "5-20 characters",
+          "warning": "20-30 characters",
+          "critical": ">30 characters"
+        },
+        {
+          "id": "CN-008",
+          "name": "Predictable Subcommands",
+          "description": "Common subcommands used consistently",
+          "common_subcommands": {
+            "list": "Show all items",
+            "create": "Create new item",
+            "delete": "Remove item",
+            "show": "Show details",
+            "edit": "Modify item"
+          }
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70
+  }
+}

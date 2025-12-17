@@ -1,0 +1,126 @@
+{
+  "name": "Context Restore Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for full context restoration from previous session",
+  "phases": [
+    {
+      "id": "find",
+      "name": "Find Context",
+      "description": "Locate and load context sources",
+      "steps": [
+        {
+          "id": "load_status",
+          "name": "Load STATUS.json",
+          "type": "automated",
+          "script": "scripts/find_context.py --source=status"
+        },
+        {
+          "id": "find_recent_files",
+          "name": "Find Recently Modified Files",
+          "type": "automated",
+          "script": "scripts/find_context.py --source=recent-files"
+        },
+        {
+          "id": "check_git_history",
+          "name": "Check Git History",
+          "type": "automated",
+          "script": "scripts/find_context.py --source=git"
+        }
+      ]
+    },
+    {
+      "id": "load",
+      "name": "Load Context",
+      "description": "Read and process context information",
+      "steps": [
+        {
+          "id": "read_key_files",
+          "name": "Read Key Files",
+          "type": "automated",
+          "action": "Read files based on focus area and recent modifications"
+        },
+        {
+          "id": "extract_decisions",
+          "name": "Extract Key Decisions",
+          "type": "automated",
+          "action": "Pull decisions from STATUS.json and recent commits"
+        },
+        {
+          "id": "gather_project_state",
+          "name": "Gather Project State",
+          "type": "automated",
+          "script": "scripts/find_context.py --source=project-state"
+        }
+      ]
+    },
+    {
+      "id": "present",
+      "name": "Present Context",
+      "description": "Display restored context to user",
+      "steps": [
+        {
+          "id": "build_mental_model",
+          "name": "Build Mental Model",
+          "type": "automated",
+          "action": "Construct understanding from gathered context"
+        },
+        {
+          "id": "display_context",
+          "name": "Display Context",
+          "type": "automated",
+          "action": "Present context in structured format"
+        },
+        {
+          "id": "offer_options",
+          "name": "Offer Continuation Options",
+          "type": "interactive",
+          "prompt": "How would you like to proceed?",
+          "options": [
+            {"label": "Proceed with next action", "value": "proceed"},
+            {"label": "Review specific file first", "value": "review"},
+            {"label": "Run full test suite", "value": "test"},
+            {"label": "See detailed task breakdown", "value": "tasks"}
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [
+      "After session-resume for Fresh Start sessions"
+    ],
+    "manual": [
+      "Manual deep restore request",
+      "Invoke pop-context-restore skill"
+    ]
+  },
+  "context_sources": [
+    {
+      "source": "STATUS.json",
+      "provides": ["focus_area", "tasks", "key_decisions", "next_action"]
+    },
+    {
+      "source": "git",
+      "provides": ["recent_commits", "uncommitted_changes", "branch_context"]
+    },
+    {
+      "source": "files",
+      "provides": ["code_state", "test_coverage", "implementation_status"]
+    },
+    {
+      "source": "project",
+      "provides": ["test_status", "build_status", "lint_errors"]
+    }
+  ],
+  "output": {
+    "format": "mental_model",
+    "sections": [
+      "What We're Building",
+      "Where We Are",
+      "Key Files",
+      "Decisions Made",
+      "What's Next",
+      "Potential Issues"
+    ]
+  }
+}

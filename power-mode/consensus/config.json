@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Consensus Mode configuration - Multi-agent consensus protocol",
+  "version": "1.0.0",
+
+  "redis": {
+    "host": "localhost",
+    "port": 16379,
+    "db": 0,
+    "password": null,
+    "socket_timeout": 5,
+    "retry_on_timeout": true
+  },
+
+  "channels": {
+    "prefix": "pop:consensus",
+    "session": "pop:consensus:session",
+    "triggers": "pop:consensus:triggers",
+    "votes": "pop:consensus:votes",
+    "broadcast": "pop:consensus:broadcast"
+  },
+
+  "rules": {
+    "default": {
+      "min_participants": 2,
+      "quorum_percentage": 0.67,
+      "approval_threshold": 0.60,
+      "token_timeout_seconds": 120,
+      "max_consecutive_skips": 2,
+      "max_rounds": 5,
+      "rounds_before_forcing_vote": 3,
+      "min_contributions_per_round": 1,
+      "vote_timeout_seconds": 60,
+      "allow_vote_change": false,
+      "anonymous_voting": false,
+      "early_consensus_threshold": 0.90,
+      "stagnation_threshold": 2,
+      "session_timeout_minutes": 30,
+      "max_contribution_length": 2000
+    },
+    "quick": {
+      "quorum_percentage": 0.50,
+      "approval_threshold": 0.50,
+      "max_rounds": 3,
+      "token_timeout_seconds": 60,
+      "session_timeout_minutes": 15
+    },
+    "strict": {
+      "quorum_percentage": 0.80,
+      "approval_threshold": 0.75,
+      "max_rounds": 7,
+      "early_consensus_threshold": 0.95,
+      "session_timeout_minutes": 45
+    },
+    "critical": {
+      "quorum_percentage": 1.0,
+      "approval_threshold": 1.0,
+      "max_rounds": 10,
+      "allow_vote_change": true,
+      "session_timeout_minutes": 60
+    }
+  },
+
+  "triggers": {
+    "user_requested": {
+      "enabled": true,
+      "priority": "high",
+      "cooldown_seconds": 0,
+      "auto_start": true
+    },
+    "agent_requested": {
+      "enabled": true,
+      "priority": "normal",
+      "cooldown_seconds": 300,
+      "required_confidence": 0.6
+    },
+    "conflict_detected": {
+      "enabled": true,
+      "priority": "high",
+      "cooldown_seconds": 180,
+      "min_agents_involved": 2
+    },
+    "threshold_exceeded": {
+      "enabled": true,
+      "priority": "high",
+      "cooldown_seconds": 300,
+      "default_threshold": 0.6
+    },
+    "checkpoint_reached": {
+      "enabled": true,
+      "priority": "normal",
+      "cooldown_seconds": 600,
+      "mandatory_checkpoints": [
+        "architecture_decision",
+        "security_change",
+        "breaking_change",
+        "api_design",
+        "deployment_approval"
+      ]
+    },
+    "phase_transition": {
+      "enabled": true,
+      "priority": "normal",
+      "cooldown_seconds": 0,
+      "consensus_phases": ["design", "architecture", "planning"]
+    },
+    "scheduled": {
+      "enabled": false,
+      "priority": "low",
+      "interval_minutes": 30,
+      "require_pending_decisions": true
+    },
+    "monitor_detected": {
+      "enabled": true,
+      "priority": "high",
+      "cooldown_seconds": 120
+    }
+  },
+
+  "monitor": {
+    "enabled": true,
+    "check_interval_seconds": 5,
+    "patterns": {
+      "conflicting_edits": {
+        "enabled": true,
+        "threshold": 2,
+        "window_seconds": 300
+      },
+      "opinion_divergence": {
+        "enabled": true,
+        "threshold": 0.6,
+        "window_seconds": 600
+      },
+      "repeated_corrections": {
+        "enabled": true,
+        "threshold": 3,
+        "window_seconds": 300
+      },
+      "stalled_progress": {
+        "enabled": true,
+        "threshold_minutes": 5,
+        "window_seconds": 300
+      },
+      "insight_contradictions": {
+        "enabled": true,
+        "threshold": 2,
+        "window_seconds": 300
+      },
+      "human_escalation_cluster": {
+        "enabled": true,
+        "threshold": 3,
+        "window_seconds": 180
+      }
+    },
+    "global_cooldown_seconds": 60,
+    "max_message_history": 200
+  },
+
+  "token_ring": {
+    "default_timeout_seconds": 120,
+    "max_consecutive_timeouts": 3,
+    "rotate_on_timeout": true,
+    "preserve_turn_order": true,
+    "allow_late_join": true,
+    "late_join_position": "end"
+  },
+
+  "voting": {
+    "require_rationale": false,
+    "show_vote_tally_during": false,
+    "show_voter_identity": true,
+    "supermajority_threshold": 0.75,
+    "tie_breaking": "proposer_wins",
+    "veto_enabled": false,
+    "veto_threshold": 0.34
+  },
+
+  "output": {
+    "contribution_style": "consensus-contribution",
+    "summary_style": "consensus-summary",
+    "verbose_logging": false,
+    "store_session_transcript": true,
+    "archive_completed_sessions": true,
+    "max_archived_sessions": 100
+  },
+
+  "integration": {
+    "power_mode": {
+      "trigger_on_phase_transition": true,
+      "sync_with_barriers": true,
+      "share_insights": true
+    },
+    "hook": {
+      "check_interval_tool_calls": 1,
+      "prompt_on_token": true,
+      "auto_skip_timeout": true
+    }
+  },
+
+  "limits": {
+    "max_concurrent_sessions": 3,
+    "max_participants_per_session": 10,
+    "max_proposals_per_session": 5,
+    "max_rounds_without_progress": 3,
+    "max_token_grants_per_agent": 20
+  }
+}

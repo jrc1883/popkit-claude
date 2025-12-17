@@ -1,0 +1,682 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Agent configuration for popkit plugin",
+  "version": "1.1.0",
+
+  "structure": {
+    "description": "Agent file structure configuration",
+    "format": "directory",
+    "template_path": "_templates/AGENT.template.md",
+    "migration_guide": "_templates/README.md",
+    "legacy_support": false,
+    "migrated_agents": [
+      "code-reviewer",
+      "power-coordinator",
+      "code-explorer",
+      "code-architect",
+      "accessibility-guardian",
+      "data-integrity",
+      "meta-agent",
+      "rapid-prototyper",
+      "researcher",
+      "bug-whisperer",
+      "migration-specialist",
+      "query-optimizer",
+      "documentation-maintainer",
+      "bundle-analyzer",
+      "log-analyzer",
+      "rollback-specialist",
+      "deployment-validator",
+      "devops-automator",
+      "metrics-collector",
+      "ai-engineer",
+      "backup-coordinator",
+      "feedback-synthesizer",
+      "performance-optimizer",
+      "dead-code-eliminator",
+      "user-story-writer",
+      "feature-prioritizer",
+      "api-designer",
+      "security-auditor",
+      "test-writer-fixer",
+      "refactoring-expert"
+    ],
+    "required_sections": 12,
+    "power_mode_required": true,
+    "notes": {
+      "format": "directory = agents use subdirectories with AGENT.md; flat = single .md files",
+      "legacy_support": "When true, both flat files and directories are supported",
+      "migrated_agents": "List of agents that have been migrated to directory structure"
+    }
+  },
+
+  "tiers": {
+    "tier-1-always-active": {
+      "description": "Core agents always available for routing",
+      "agents": [
+        "code-reviewer",
+        "bug-whisperer",
+        "security-auditor",
+        "test-writer-fixer",
+        "api-designer",
+        "performance-optimizer",
+        "refactoring-expert",
+        "documentation-maintainer",
+        "query-optimizer",
+        "migration-specialist",
+        "accessibility-guardian"
+      ]
+    },
+    "tier-2-on-demand": {
+      "description": "Specialized agents activated on specific triggers",
+      "agents": [
+        "ai-engineer",
+        "deployment-validator",
+        "feature-prioritizer",
+        "rapid-prototyper",
+        "backup-coordinator",
+        "meta-agent",
+        "researcher",
+        "user-story-writer",
+        "devops-automator",
+        "bundle-analyzer",
+        "log-analyzer",
+        "metrics-collector",
+        "feedback-synthesizer",
+        "rollback-specialist",
+        "data-integrity",
+        "dead-code-eliminator",
+        "power-coordinator"
+      ]
+    },
+    "feature-workflow": {
+      "description": "Agents for 7-phase feature development",
+      "agents": [
+        "code-explorer",
+        "code-architect",
+        "code-reviewer"
+      ]
+    },
+    "assessors": {
+      "description": "Self-assessment agents for multi-perspective review",
+      "agents": [
+        "anthropic-engineer-assessor",
+        "security-auditor-assessor",
+        "performance-tester-assessor",
+        "ux-reviewer-assessor",
+        "technical-architect-assessor",
+        "documentation-auditor-assessor"
+      ]
+    }
+  },
+
+  "routing": {
+    "keywords": {
+      "bug": ["bug-whisperer", "test-writer-fixer"],
+      "error": ["bug-whisperer", "log-analyzer"],
+      "security": ["security-auditor"],
+      "performance": ["performance-optimizer", "bundle-analyzer"],
+      "optimize": ["performance-optimizer", "query-optimizer"],
+      "slow": ["performance-optimizer", "query-optimizer"],
+      "test": ["test-writer-fixer"],
+      "api": ["api-designer"],
+      "refactor": ["refactoring-expert"],
+      "docs": ["documentation-maintainer"],
+      "database": ["query-optimizer"],
+      "migration": ["migration-specialist"],
+      "migrate": ["migration-specialist"],
+      "accessibility": ["accessibility-guardian"],
+      "deploy": ["deployment-validator", "devops-automator"],
+      "backup": ["backup-coordinator"],
+      "ai": ["ai-engineer"],
+      "prototype": ["rapid-prototyper"],
+      "feature": ["feature-prioritizer", "user-story-writer"],
+      "metrics": ["metrics-collector"],
+      "logs": ["log-analyzer"],
+      "rollback": ["rollback-specialist"],
+      "review": ["code-reviewer"],
+      "pr": ["code-reviewer"],
+      "pull-request": ["code-reviewer"],
+      "lint": ["code-reviewer", "refactoring-expert"],
+      "eslint": ["code-reviewer", "refactoring-expert"],
+      "linting": ["code-reviewer", "refactoring-expert"],
+      "prettier": ["code-reviewer"],
+      "format": ["code-reviewer"],
+      "style": ["code-reviewer"],
+      "cleanup": ["refactoring-expert", "dead-code-eliminator"],
+      "power": ["power-coordinator"],
+      "orchestrate": ["power-coordinator"],
+      "coordinate": ["power-coordinator"],
+      "parallel": ["power-coordinator"],
+      "mesh": ["power-coordinator"],
+      "multi-agent": ["power-coordinator"],
+      "assess": ["anthropic-engineer-assessor", "documentation-auditor-assessor"],
+      "assessment": ["anthropic-engineer-assessor", "documentation-auditor-assessor"],
+      "audit": ["security-auditor-assessor", "documentation-auditor-assessor"],
+      "compliance": ["anthropic-engineer-assessor"],
+      "self-assessment": ["anthropic-engineer-assessor"],
+      "ui": ["rapid-prototyper", "accessibility-guardian"],
+      "design": ["rapid-prototyper", "ux-reviewer-assessor"],
+      "interface": ["rapid-prototyper", "accessibility-guardian"],
+      "frontend": ["rapid-prototyper", "accessibility-guardian"],
+      "component": ["rapid-prototyper", "accessibility-guardian"],
+      "styling": ["rapid-prototyper", "accessibility-guardian"],
+      "layout": ["rapid-prototyper", "accessibility-guardian"],
+      "responsive": ["rapid-prototyper", "accessibility-guardian"],
+      "css": ["rapid-prototyper", "accessibility-guardian"],
+      "html": ["rapid-prototyper", "accessibility-guardian"],
+      "tailwind": ["rapid-prototyper", "accessibility-guardian"],
+      "react-component": ["rapid-prototyper", "accessibility-guardian"],
+      "ux": ["ux-reviewer-assessor", "accessibility-guardian"],
+      "user-experience": ["ux-reviewer-assessor", "accessibility-guardian"],
+      "usability": ["ux-reviewer-assessor", "accessibility-guardian"]
+    },
+
+    "filePatterns": {
+      "*.test.ts": ["test-writer-fixer"],
+      "*.spec.ts": ["test-writer-fixer"],
+      "*.tsx": ["rapid-prototyper", "accessibility-guardian"],
+      "*.jsx": ["rapid-prototyper", "accessibility-guardian"],
+      "*.sql": ["query-optimizer"],
+      "*.md": ["documentation-maintainer"],
+      "package.json": ["bundle-analyzer"],
+      "Dockerfile": ["devops-automator"],
+      ".env*": ["security-auditor"],
+      ".eslintrc*": ["code-reviewer"],
+      "eslint.config.*": ["code-reviewer"],
+      ".prettierrc*": ["code-reviewer"],
+      "*.config.js": ["code-reviewer"],
+      "*.config.ts": ["code-reviewer"],
+      "tsconfig*.json": ["code-reviewer"],
+      "*.css": ["rapid-prototyper", "accessibility-guardian"],
+      "*.scss": ["rapid-prototyper", "accessibility-guardian"],
+      "*.sass": ["rapid-prototyper", "accessibility-guardian"],
+      "*.less": ["rapid-prototyper", "accessibility-guardian"],
+      "*.html": ["rapid-prototyper", "accessibility-guardian"],
+      "*/components/*": ["rapid-prototyper", "accessibility-guardian"],
+      "*/ui/*": ["rapid-prototyper", "accessibility-guardian"],
+      "*/styles/*": ["rapid-prototyper", "accessibility-guardian"],
+      "tailwind.config.*": ["rapid-prototyper", "accessibility-guardian"]
+    },
+
+    "errorPatterns": {
+      "TypeError": ["bug-whisperer"],
+      "SyntaxError": ["code-reviewer"],
+      "ReferenceError": ["bug-whisperer"],
+      "RangeError": ["bug-whisperer"],
+      "SecurityError": ["security-auditor"],
+      "PermissionError": ["security-auditor"],
+      "AuthenticationError": ["security-auditor"],
+      "PerformanceWarning": ["performance-optimizer"],
+      "MemoryError": ["performance-optimizer"],
+      "TimeoutError": ["performance-optimizer"],
+      "DeprecationWarning": ["migration-specialist"],
+      "ImportError": ["migration-specialist"],
+      "ModuleNotFoundError": ["migration-specialist"],
+      "ConnectionError": ["devops-automator"],
+      "NetworkError": ["devops-automator"],
+      "DNSError": ["devops-automator"]
+    }
+  },
+
+  "workflows": {
+    "feature-dev": {
+      "phases": [
+        {"name": "Discovery", "agents": []},
+        {"name": "Exploration", "agents": ["code-explorer"]},
+        {"name": "Questions", "agents": []},
+        {"name": "Architecture", "agents": ["code-architect"]},
+        {"name": "Implementation", "agents": []},
+        {"name": "Review", "agents": ["code-reviewer"]},
+        {"name": "Summary", "agents": []}
+      ]
+    },
+    "debug": {
+      "agents": ["bug-whisperer", "log-analyzer"],
+      "sequential": true
+    },
+    "security-audit": {
+      "agents": ["security-auditor"],
+      "sequential": false
+    }
+  },
+
+  "confidence": {
+    "threshold": 80,
+    "levels": {
+      "0": "Not a real problem",
+      "25": "Possibly valid",
+      "50": "Moderately confident",
+      "75": "Highly confident",
+      "100": "Absolutely certain"
+    }
+  },
+
+  "skill_enforcement": {
+    "description": "Per-skill enforcement levels: 'suggest' (default) or 'require' (blocks until used)",
+    "default_level": "suggest",
+    "skills": {
+      "pop-systematic-debugging": "suggest",
+      "pop-test-driven-development": "suggest",
+      "pop-code-review": "suggest",
+      "pop-root-cause-tracing": "suggest",
+      "pop-verify-completion": "suggest",
+      "pop-brainstorming": "suggest"
+    },
+    "notes": {
+      "suggest": "Skill reminder shown in HTML comments, Claude can proceed without using it",
+      "require": "Execution blocked until skill is invoked (future: not yet implemented)",
+      "usage": "Override in project's .claude/config.json or set POPKIT_SKILL_ENFORCEMENT env var"
+    }
+  },
+
+  "effort": {
+    "description": "Claude API effort parameter per agent. Set based on what 80% of scenarios require.",
+    "levels": ["low", "medium", "high"],
+    "default": "medium",
+    "agents": {
+      "tier-1-always-active": {
+        "code-reviewer": "medium",
+        "bug-whisperer": "high",
+        "security-auditor": "high",
+        "test-writer-fixer": "medium",
+        "api-designer": "medium",
+        "performance-optimizer": "high",
+        "refactoring-expert": "medium",
+        "documentation-maintainer": "low",
+        "query-optimizer": "high",
+        "migration-specialist": "high",
+        "accessibility-guardian": "medium"
+      },
+      "tier-2-on-demand": {
+        "ai-engineer": "high",
+        "deployment-validator": "medium",
+        "feature-prioritizer": "low",
+        "rapid-prototyper": "low",
+        "backup-coordinator": "medium",
+        "meta-agent": "medium",
+        "researcher": "medium",
+        "user-story-writer": "low",
+        "devops-automator": "medium",
+        "bundle-analyzer": "medium",
+        "log-analyzer": "medium",
+        "metrics-collector": "medium",
+        "feedback-synthesizer": "low",
+        "rollback-specialist": "high",
+        "data-integrity": "medium",
+        "dead-code-eliminator": "medium",
+        "power-coordinator": "high"
+      },
+      "feature-workflow": {
+        "code-explorer": "medium",
+        "code-architect": "high"
+      }
+    },
+    "notes": {
+      "high": "80% of tasks require deep analysis (debugging, security, architecture)",
+      "medium": "Balanced - handles most common scenarios effectively",
+      "low": "80% of tasks are straightforward (writing, organizing, quick prototypes)"
+    }
+  },
+
+  "model": {
+    "description": "Claude model assignment per agent based on task complexity and cost requirements",
+    "models": ["haiku", "sonnet", "opus"],
+    "default": "sonnet",
+    "agents": {
+      "tier-1-always-active": {
+        "code-reviewer": "sonnet",
+        "bug-whisperer": "opus",
+        "security-auditor": "opus",
+        "test-writer-fixer": "sonnet",
+        "api-designer": "sonnet",
+        "performance-optimizer": "opus",
+        "refactoring-expert": "sonnet",
+        "documentation-maintainer": "haiku",
+        "query-optimizer": "opus",
+        "migration-specialist": "opus",
+        "accessibility-guardian": "sonnet"
+      },
+      "tier-2-on-demand": {
+        "ai-engineer": "opus",
+        "deployment-validator": "sonnet",
+        "feature-prioritizer": "haiku",
+        "rapid-prototyper": "haiku",
+        "backup-coordinator": "sonnet",
+        "meta-agent": "sonnet",
+        "researcher": "sonnet",
+        "user-story-writer": "haiku",
+        "devops-automator": "sonnet",
+        "bundle-analyzer": "sonnet",
+        "log-analyzer": "sonnet",
+        "metrics-collector": "sonnet",
+        "feedback-synthesizer": "haiku",
+        "rollback-specialist": "opus",
+        "data-integrity": "sonnet",
+        "dead-code-eliminator": "sonnet",
+        "power-coordinator": "opus"
+      },
+      "feature-workflow": {
+        "code-explorer": "sonnet",
+        "code-architect": "opus"
+      }
+    },
+    "heuristics": {
+      "haiku": "Writing-focused tasks (docs, comments, user stories), quick prototypes",
+      "sonnet": "Balanced analysis and implementation (review, testing, most development)",
+      "opus": "Deep reasoning (architecture, security audits, complex debugging, migrations)"
+    },
+    "flags": {
+      "--model": "Override model for any agent (e.g., --model opus)"
+    }
+  },
+
+  "tool_choice": {
+    "description": "Claude API tool_choice parameter for forcing specific tool execution",
+    "enforcement": "active",
+    "override_flag": "POPKIT_DISABLE_TOOL_FILTER",
+    "modes": {
+      "auto": "Let Claude choose the best tool (default)",
+      "required": "Force tool use, Claude must use a tool",
+      "specific": "Force use of a specific tool by name"
+    },
+    "workflow_steps": {
+      "git-commit": {
+        "description": "Git commit workflow",
+        "steps": [
+          { "action": "gather_status", "tool_choice": "auto" },
+          { "action": "stage_files", "tool_choice": { "type": "tool", "name": "Bash" } },
+          { "action": "create_commit", "tool_choice": { "type": "tool", "name": "Bash" } }
+        ],
+        "required_tools": ["Bash"]
+      },
+      "file-edit": {
+        "description": "Read before edit enforcement",
+        "steps": [
+          { "action": "read_file", "tool_choice": { "type": "tool", "name": "Read" } },
+          { "action": "edit_file", "tool_choice": { "type": "tool", "name": "Edit" } }
+        ],
+        "required_tools": ["Read", "Edit"]
+      },
+      "verification": {
+        "description": "Run verification commands",
+        "steps": [
+          { "action": "run_tests", "tool_choice": { "type": "tool", "name": "Bash" } },
+          { "action": "run_lint", "tool_choice": { "type": "tool", "name": "Bash" } }
+        ],
+        "required_tools": ["Bash"]
+      },
+      "full-access": {
+        "description": "All tools available",
+        "required_tools": ["*"]
+      }
+    },
+    "skill_requirements": {
+      "pop-verify-completion": {
+        "required_tools": ["Bash"],
+        "description": "Must run verification commands before claiming completion"
+      },
+      "pop-test-driven-development": {
+        "required_tools": ["Bash", "Write", "Edit"],
+        "description": "Must run tests and write code"
+      },
+      "pop-session-capture": {
+        "required_tools": ["Write"],
+        "description": "Must write STATUS.json"
+      }
+    },
+    "notes": {
+      "usage": "Hooks read this config and filter tools per workflow",
+      "override": "Set POPKIT_DISABLE_TOOL_FILTER=1 to disable filtering",
+      "enforcement": "Active as of 2025-12-17 (Phase 1 complete)"
+    }
+  },
+
+  "thinking": {
+    "description": "Extended thinking configuration per model and agent",
+    "models": {
+      "sonnet": {
+        "enabled": true,
+        "default_budget_tokens": 10000,
+        "notes": "Extended thinking ON by default for Sonnet"
+      },
+      "opus": {
+        "enabled": true,
+        "default_budget_tokens": 10000,
+        "notes": "Thinking ON by default in Claude Code 2.0.67+ (was OFF)"
+      },
+      "haiku": {
+        "enabled": true,
+        "default_budget_tokens": 5000,
+        "notes": "Haiku 4.5 now supports extended thinking"
+      }
+    },
+    "flags": {
+      "-T": "Force thinking on for any model",
+      "--thinking": "Alias for -T",
+      "--no-thinking": "Force thinking off"
+    },
+    "high_thinking_agents": [
+      "code-architect",
+      "power-coordinator"
+    ],
+    "high_thinking_skills": [
+      "pop-brainstorming",
+      "pop-writing-plans"
+    ]
+  },
+
+  "skill_decisions": {
+    "description": "Required AskUserQuestion decision points per skill (Issue #159, #183)",
+    "notes": {
+      "purpose": "Enforce consistent UX by requiring skills to prompt for user decisions",
+      "philosophy": "Per Anthropic: 'encode rules as hooks rather than prompting instructions'",
+      "triggers": "Only 'start' and 'completion' triggers are enforced; mid-flow is skill-dependent",
+      "required_flag": "When required=true, decision MUST be presented even on error/early completion (Issue #183)"
+    },
+    "enforcement": "require",
+    "skills": {
+      "pop-project-init": {
+        "description": "Project initialization requires user decisions at key points",
+        "mid_flow_decisions": [
+          {
+            "id": "plugin_conflict",
+            "trigger": "plugin_conflicts_detected",
+            "question": "Plugin conflicts detected. How would you like to proceed?",
+            "header": "Conflicts",
+            "options": [
+              {"label": "View details", "description": "Show full conflict report before continuing"},
+              {"label": "Continue anyway", "description": "Proceed with initialization (conflicts may cause issues)"},
+              {"label": "Cancel", "description": "Stop and resolve conflicts first"}
+            ]
+          },
+          {
+            "id": "power_mode_setup",
+            "trigger": "after_directory_creation",
+            "question": "Would you like to set up Power Mode for multi-agent orchestration?",
+            "header": "Power Mode",
+            "options": [
+              {"label": "File Mode (Free)", "description": "Simple coordination, 2 agents max, works offline. No setup required."},
+              {"label": "Redis Mode - Self-Hosted (Free)", "description": "Full parallel agents (6+), requires Docker/Redis. You manage infrastructure."},
+              {"label": "Redis Mode - PopKit Cloud (Pro $9/mo)", "description": "Full power, zero setup. We manage Redis. Run /popkit:upgrade first."},
+              {"label": "Skip for now", "description": "Set up later with /popkit:power init"}
+            ]
+          }
+        ],
+        "completion_decisions": [
+          {
+            "id": "next_action",
+            "question": "Project initialized. What would you like to do next?",
+            "header": "Next Step",
+            "options": [
+              {"label": "Analyze codebase", "description": "Run /popkit:project analyze for deep analysis"},
+              {"label": "Setup quality gates", "description": "Run /popkit:project setup for pre-commit hooks"},
+              {"label": "View issues", "description": "Run /popkit:issue list to see GitHub issues"},
+              {"label": "Done for now", "description": "I'll explore on my own"}
+            ]
+          }
+        ]
+      },
+      "pop-brainstorming": {
+        "description": "Brainstorming requires user to choose implementation path",
+        "completion_decisions": [
+          {
+            "id": "implementation_choice",
+            "question": "Design complete. Would you like to continue to implementation?",
+            "header": "Next Step",
+            "options": [
+              {"label": "Create plan", "description": "Use pop-writing-plans to create detailed implementation plan"},
+              {"label": "Create worktree", "description": "Set up isolated workspace first"},
+              {"label": "Done for now", "description": "I'll review the design first"}
+            ]
+          }
+        ]
+      },
+      "pop-writing-plans": {
+        "description": "Plan writing requires user to choose execution approach",
+        "completion_decisions": [
+          {
+            "id": "execution_choice",
+            "question": "Plan complete. Ready to begin implementation?",
+            "header": "Execute",
+            "options": [
+              {"label": "Execute now", "description": "Start implementing the plan immediately"},
+              {"label": "Review first", "description": "I want to review the plan before executing"},
+              {"label": "Done for now", "description": "I'll execute later"}
+            ]
+          }
+        ]
+      },
+      "pop-executing-plans": {
+        "description": "Plan execution requires user to choose what's next",
+        "completion_decisions": [
+          {
+            "id": "post_execution",
+            "question": "Implementation complete. What would you like to do next?",
+            "header": "Complete",
+            "options": [
+              {"label": "Run tests", "description": "Verify implementation with test suite"},
+              {"label": "Code review", "description": "Use code-reviewer agent for quality check"},
+              {"label": "Finish branch", "description": "Prepare for merge or PR"},
+              {"label": "Done for now", "description": "I'll continue later"}
+            ]
+          }
+        ]
+      },
+      "pop-finish-branch": {
+        "description": "Branch completion requires user to choose integration method",
+        "completion_decisions": [
+          {
+            "id": "integration_method",
+            "required": true,
+            "question": "How would you like to integrate this work?",
+            "header": "Integrate",
+            "options": [
+              {"label": "Merge locally", "description": "Merge branch into main/master locally"},
+              {"label": "Create PR", "description": "Push and create a pull request"},
+              {"label": "Keep as-is", "description": "Leave branch for now"},
+              {"label": "Discard", "description": "Delete branch and changes"}
+            ]
+          },
+          {
+            "id": "next_action",
+            "required": true,
+            "question": "What would you like to do next?",
+            "header": "Next",
+            "on_error": true,
+            "options": [
+              {"label": "Continue working", "description": "Show next priority task"},
+              {"label": "Session capture", "description": "Save state and exit"}
+            ]
+          }
+        ]
+      },
+      "pop-research-merge": {
+        "description": "Research branch processing requires user decisions at merge and completion (Issue #183)",
+        "completion_decisions": [
+          {
+            "id": "merge_action",
+            "required": true,
+            "question": "How should we process this research branch?",
+            "header": "Merge",
+            "options": [
+              {"label": "Merge + Issue", "description": "Full processing: merge, organize docs, create GitHub issue"},
+              {"label": "Merge Only", "description": "Just merge the content"},
+              {"label": "Skip", "description": "Process later"},
+              {"label": "Delete", "description": "Discard this research"}
+            ]
+          },
+          {
+            "id": "next_action",
+            "required": true,
+            "on_error": true,
+            "question": "Research processing complete. What's next?",
+            "header": "Next",
+            "options": [
+              {"label": "Continue working", "description": "Show next recommendations"},
+              {"label": "Process more", "description": "Check for additional research branches"},
+              {"label": "Session capture", "description": "Save state and exit"}
+            ]
+          }
+        ]
+      }
+    }
+  },
+
+  "plan_mode": {
+    "description": "Plan mode configuration for Claude Code 2.0.70+ (Issue #263)",
+    "enabled": true,
+    "default": false,
+    "notes": {
+      "purpose": "Controls whether agents must present implementation plans for user approval before executing changes",
+      "lookup_order": ["user_override", "agent_overrides", "tier_defaults", "default"],
+      "backward_compatible": "Default=false maintains current behavior"
+    },
+    "tier_defaults": {
+      "tier-1-always-active": false,
+      "tier-2-on-demand": true,
+      "feature-workflow": "per-agent",
+      "notes": {
+        "tier-1": "Core agents can execute directly (read-only or low-risk)",
+        "tier-2": "Specialized agents require approval (code-modifying, high-risk)",
+        "feature-workflow": "Varies by agent: code-explorer=false, code-architect=true"
+      }
+    },
+    "agent_overrides": {
+      "code-explorer": false,
+      "code-architect": true,
+      "code-reviewer": false,
+      "bug-whisperer": true,
+      "security-auditor": true,
+      "test-writer-fixer": true,
+      "api-designer": true,
+      "performance-optimizer": true,
+      "refactoring-expert": true,
+      "documentation-maintainer": false,
+      "query-optimizer": true,
+      "migration-specialist": true,
+      "accessibility-guardian": false,
+      "ai-engineer": true,
+      "deployment-validator": false,
+      "feature-prioritizer": false,
+      "rapid-prototyper": true,
+      "backup-coordinator": true,
+      "meta-agent": false,
+      "researcher": false,
+      "user-story-writer": false,
+      "devops-automator": true,
+      "bundle-analyzer": false,
+      "log-analyzer": false,
+      "metrics-collector": false,
+      "feedback-synthesizer": false,
+      "rollback-specialist": true,
+      "data-integrity": true,
+      "dead-code-eliminator": true,
+      "power-coordinator": false,
+      "notes": {
+        "false": "Read-only, analysis, documentation agents - safe to execute directly",
+        "true": "Code-modifying, deployment, security agents - require plan approval"
+      }
+    }
+  }
+}

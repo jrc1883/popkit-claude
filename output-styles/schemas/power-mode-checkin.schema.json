@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "power-mode-checkin.schema.json",
+  "title": "Power Mode Check-In",
+  "description": "Schema for multi-agent check-in messages in Pop Power Mode",
+  "strict": true,
+  "type": "object",
+  "required": ["agent_id", "agent_name", "session_id", "tool_call_count", "timestamp", "progress"],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "Unique identifier for this agent instance"
+    },
+    "agent_name": {
+      "type": "string",
+      "description": "Type/name of the agent (e.g., code-reviewer)"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Power mode session identifier"
+    },
+    "tool_call_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of tool calls made so far"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of check-in"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Task progress (0.0 to 1.0)"
+    },
+    "current_task": {
+      "type": "string",
+      "description": "Description of current task"
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "files_touched": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Files read or modified"
+        },
+        "tools_used": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" },
+          "description": "Tool usage counts"
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["decision", "reasoning", "confidence"],
+            "properties": {
+              "decision": { "type": "string" },
+              "reasoning": { "type": "string" },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "description": "Key decisions made"
+        },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Blockers encountered"
+        }
+      }
+    },
+    "pushed": {
+      "type": "object",
+      "properties": {
+        "insights": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/insight" },
+          "description": "Insights shared with other agents"
+        }
+      }
+    },
+    "pulled": {
+      "type": "object",
+      "properties": {
+        "insights": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from_agent": { "type": "string" },
+              "type": { "$ref": "#/$defs/insightType" },
+              "content": { "type": "string" }
+            }
+          },
+          "description": "Insights received from other agents"
+        }
+      }
+    },
+    "coordinator": {
+      "type": "object",
+      "properties": {
+        "current_phase": {
+          "type": "string",
+          "description": "Name of current workflow phase"
+        },
+        "phase_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Index of current phase"
+        },
+        "total_phases": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number of phases"
+        },
+        "sync_status": {
+          "type": "string",
+          "enum": ["none", "waiting", "complete", "expired"],
+          "description": "Current sync barrier status"
+        },
+        "agents_at_barrier": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of agents at sync barrier"
+        },
+        "agents_required": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of agents required for barrier"
+        },
+        "pattern_recommendations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "approach": { "type": "string" },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "reason": { "type": "string" }
+            }
+          },
+          "description": "Learned patterns to apply"
+        },
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/coordinatorMessage" },
+          "description": "Messages from coordinator"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "insightType": {
+      "type": "string",
+      "enum": ["discovery", "pattern", "blocker", "question", "warning"],
+      "description": "Type of insight"
+    },
+    "insight": {
+      "type": "object",
+      "required": ["id", "type", "content"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique insight identifier"
+        },
+        "type": { "$ref": "#/$defs/insightType" },
+        "content": {
+          "type": "string",
+          "description": "Insight content"
+        },
+        "relevance_tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tags for relevance matching"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence in insight"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "coordinatorMessage": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["SYNC", "COURSE_CORRECT", "DRIFT_ALERT", "PHASE_ADVANCE", "HUMAN_REQUIRED"],
+          "description": "Message type from coordinator"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Message-specific payload"
+        }
+      }
+    }
+  }
+}

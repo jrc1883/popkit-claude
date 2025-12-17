@@ -1,0 +1,45 @@
+{
+  "name": "skill-descriptions",
+  "description": "Tests for skill description quality and completeness",
+  "tests": [
+    {
+      "name": "all skills have SKILL.md files",
+      "type": "directory_pattern",
+      "path": "skills/*/SKILL.md",
+      "min_count": 20
+    },
+    {
+      "name": "skill descriptions are multi-sentence",
+      "type": "content_pattern",
+      "path": "skills/*/SKILL.md",
+      "pattern": "description:\\s*\"[^\"]{100,}\"",
+      "description": "Descriptions should be at least 100 characters (3-4 sentences)"
+    },
+    {
+      "name": "skill descriptions include 'Use when' guidance",
+      "type": "content_pattern",
+      "path": "skills/*/SKILL.md",
+      "pattern": "[Uu]se when",
+      "description": "Descriptions should explain when to use the skill"
+    },
+    {
+      "name": "skill descriptions include 'Do NOT use' guidance",
+      "type": "content_pattern",
+      "path": "skills/*/SKILL.md",
+      "pattern": "[Dd]o NOT use",
+      "description": "Descriptions should explain when NOT to use the skill"
+    },
+    {
+      "name": "skills have YAML frontmatter",
+      "type": "content_pattern",
+      "path": "skills/*/SKILL.md",
+      "pattern": "^---\\nname:",
+      "description": "Skills must have YAML frontmatter with name field"
+    }
+  ],
+  "notes": {
+    "pattern": "Good skill descriptions follow: What it does + When to use + When NOT to use",
+    "length": "Minimum 100 chars ensures multi-sentence descriptions",
+    "enforcement": "Run /popkit:plugin-test structure to validate"
+  }
+}

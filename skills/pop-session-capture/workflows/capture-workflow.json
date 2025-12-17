@@ -1,0 +1,115 @@
+{
+  "name": "Session Capture Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for capturing session state to STATUS.json",
+  "phases": [
+    {
+      "id": "gather",
+      "name": "Gather State",
+      "description": "Collect all relevant session information",
+      "steps": [
+        {
+          "id": "git_state",
+          "name": "Gather Git State",
+          "type": "automated",
+          "script": "scripts/capture_state.py --section=git",
+          "commands": [
+            "git branch --show-current",
+            "git log -1 --format='%h - %s'",
+            "git status --porcelain | wc -l",
+            "git diff --cached --name-only | wc -l"
+          ]
+        },
+        {
+          "id": "task_state",
+          "name": "Gather Task State",
+          "type": "automated",
+          "action": "Extract from TodoWrite: in_progress, completed, blocked"
+        },
+        {
+          "id": "service_state",
+          "name": "Check Services",
+          "type": "automated",
+          "script": "scripts/capture_state.py --section=services"
+        },
+        {
+          "id": "context_state",
+          "name": "Document Context",
+          "type": "interactive",
+          "prompt": "What is the current focus area and next action?"
+        }
+      ]
+    },
+    {
+      "id": "serialize",
+      "name": "Serialize State",
+      "description": "Convert gathered state to STATUS.json format",
+      "steps": [
+        {
+          "id": "run_checks",
+          "name": "Run Project Checks",
+          "type": "automated",
+          "script": "scripts/capture_state.py --section=checks",
+          "commands": [
+            "npm test 2>&1 | tail -1",
+            "npm run build 2>&1 | tail -1",
+            "npm run lint 2>&1 | tail -1"
+          ]
+        },
+        {
+          "id": "build_json",
+          "name": "Build STATUS.json",
+          "type": "automated",
+          "script": "scripts/capture_state.py --mode=build"
+        },
+        {
+          "id": "validate",
+          "name": "Validate Schema",
+          "type": "automated",
+          "action": "Ensure all required fields present"
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "name": "Store State",
+      "description": "Write STATUS.json to disk",
+      "steps": [
+        {
+          "id": "determine_path",
+          "name": "Determine Output Path",
+          "type": "automated",
+          "action": "Use .claude/STATUS.json or project root"
+        },
+        {
+          "id": "write_file",
+          "name": "Write STATUS.json",
+          "type": "automated",
+          "script": "scripts/capture_state.py --mode=write"
+        },
+        {
+          "id": "confirm",
+          "name": "Confirm Capture",
+          "type": "automated",
+          "action": "Display summary of captured state"
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [
+      "End of conversation (if hooks enabled)",
+      "Before Claude Code closes",
+      "After major milestone completion"
+    ],
+    "manual": [
+      "Before switching to different work",
+      "When hitting context limits",
+      "Invoke pop-session-capture skill"
+    ]
+  },
+  "output": {
+    "primary": ".claude/STATUS.json",
+    "fallback": "STATUS.json"
+  }
+}

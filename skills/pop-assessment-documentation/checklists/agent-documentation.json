@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "agent-documentation",
+  "version": "1.0.0",
+  "description": "Checklist for AGENT.md documentation requirements",
+  "requirements": [
+    {
+      "id": "AGD-001",
+      "name": "Agent Header",
+      "required": true,
+      "description": "Title and brief description",
+      "checks": [
+        "Agent name as H1 heading",
+        "One-line description",
+        "Tier identification (1, 2, or feature-workflow)"
+      ]
+    },
+    {
+      "id": "AGD-002",
+      "name": "Purpose Statement",
+      "required": true,
+      "description": "Clear statement of agent purpose",
+      "checks": [
+        "What problems it solves",
+        "When it activates",
+        "Expected benefits"
+      ]
+    },
+    {
+      "id": "AGD-003",
+      "name": "Tools Access",
+      "required": true,
+      "description": "List of tools the agent can use",
+      "checks": [
+        "Tools listed explicitly",
+        "Special tool requirements noted",
+        "Restricted tools identified"
+      ]
+    },
+    {
+      "id": "AGD-004",
+      "name": "Activation Triggers",
+      "required": true,
+      "description": "How the agent gets activated",
+      "checks": [
+        "Keyword triggers listed",
+        "File pattern triggers if applicable",
+        "Error pattern triggers if applicable"
+      ]
+    },
+    {
+      "id": "AGD-005",
+      "name": "Workflow Steps",
+      "required": false,
+      "description": "Step-by-step agent workflow",
+      "checks": [
+        "Numbered workflow steps",
+        "Decision points identified",
+        "Exit conditions specified"
+      ]
+    },
+    {
+      "id": "AGD-006",
+      "name": "Input Requirements",
+      "required": true,
+      "description": "What the agent needs to work",
+      "checks": [
+        "Required context specified",
+        "File types it works with",
+        "Prerequisites listed"
+      ]
+    },
+    {
+      "id": "AGD-007",
+      "name": "Output Description",
+      "required": true,
+      "description": "What the agent produces",
+      "checks": [
+        "Output format described",
+        "Artifacts generated listed",
+        "Report structure if applicable"
+      ]
+    },
+    {
+      "id": "AGD-008",
+      "name": "Configuration",
+      "required": false,
+      "description": "Agent configuration options",
+      "checks": [
+        "Config file location",
+        "Available options documented",
+        "Default values specified"
+      ]
+    },
+    {
+      "id": "AGD-009",
+      "name": "Examples",
+      "required": false,
+      "description": "Usage examples",
+      "checks": [
+        "At least one invocation example",
+        "Sample input and output",
+        "Edge case examples"
+      ]
+    },
+    {
+      "id": "AGD-010",
+      "name": "Limitations",
+      "required": false,
+      "description": "Known limitations and caveats",
+      "checks": [
+        "What the agent cannot do",
+        "Known issues documented",
+        "Workarounds provided"
+      ]
+    },
+    {
+      "id": "AGD-011",
+      "name": "Related Agents",
+      "required": false,
+      "description": "Cross-references to related agents",
+      "checks": [
+        "Complementary agents listed",
+        "When to use alternatives",
+        "Agent chain suggestions"
+      ]
+    },
+    {
+      "id": "AGD-012",
+      "name": "Confidence Threshold",
+      "required": false,
+      "description": "Routing confidence information",
+      "checks": [
+        "Confidence range documented",
+        "Threshold for activation",
+        "Disambiguation guidance"
+      ]
+    }
+  ],
+  "validation": {
+    "min_length": 100,
+    "required_markers": ["# ", "## "],
+    "recommended_sections": ["Purpose", "Tools", "Triggers"]
+  }
+}

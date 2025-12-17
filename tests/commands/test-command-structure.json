@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "command-structure",
+  "description": "Tests for all PopKit commands - validates structure, subcommands, and skill integration",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "/popkit:dev command structure",
+      "command": "dev",
+      "file": "commands/dev.md",
+      "subcommands": ["full", "work", "brainstorm", "plan", "execute", "quick", "prd", "suite"],
+      "skills_invoked": [
+        "popkit:pop-brainstorming",
+        "popkit:pop-writing-plans",
+        "popkit:pop-executing-plans",
+        "popkit:pop-project-templates",
+        "popkit:pop-finish-branch"
+      ],
+      "agents_used": ["code-explorer", "code-architect", "code-reviewer"],
+      "required_sections": ["Usage", "Modes", "Flags"]
+    },
+    {
+      "name": "/popkit:git command structure",
+      "command": "git",
+      "file": "commands/git.md",
+      "subcommands": ["commit", "push", "pr", "review", "ci", "release", "publish", "prune", "finish"],
+      "skills_invoked": ["popkit:pop-finish-branch"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:issue command structure",
+      "command": "issue",
+      "file": "commands/issue.md",
+      "subcommands": ["create", "list", "view", "close", "comment", "edit", "link"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:routine command structure",
+      "command": "routine",
+      "file": "commands/routine.md",
+      "subcommands": ["morning", "nightly"],
+      "sub_subcommands": ["run", "quick", "generate", "list", "set", "edit", "delete"],
+      "skills_invoked": ["popkit:pop-morning-generator", "popkit:pop-nightly-generator"],
+      "required_sections": ["Usage", "Primary Subcommands"]
+    },
+    {
+      "name": "/popkit:power command structure",
+      "command": "power",
+      "file": "commands/power.md",
+      "subcommands": ["start", "stop", "status", "init", "widgets", "consensus"],
+      "skills_invoked": ["popkit:pop-power-mode"],
+      "agents_used": ["power-coordinator"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:project command structure",
+      "command": "project",
+      "file": "commands/project.md",
+      "subcommands": ["init", "analyze", "embed", "generate", "mcp", "setup", "skills", "observe"],
+      "skills_invoked": [
+        "popkit:pop-project-init",
+        "popkit:pop-analyze-project",
+        "popkit:pop-embed-project",
+        "popkit:pop-mcp-generator"
+      ],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:plugin command structure",
+      "command": "plugin",
+      "file": "commands/plugin.md",
+      "subcommands": ["test", "docs", "sync", "detect"],
+      "skills_invoked": ["popkit:pop-plugin-test", "popkit:pop-doc-sync", "popkit:pop-auto-docs"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:debug command structure",
+      "command": "debug",
+      "file": "commands/debug.md",
+      "subcommands": ["code", "routing"],
+      "skills_invoked": ["popkit:pop-routing-debug", "popkit:pop-systematic-debugging"],
+      "agents_used": ["bug-whisperer"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:bug command structure",
+      "command": "bug",
+      "file": "commands/bug.md",
+      "subcommands": ["report", "search", "share"],
+      "skills_invoked": ["popkit:pop-bug-reporter"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:worktree command structure",
+      "command": "worktree",
+      "file": "commands/worktree.md",
+      "subcommands": ["create", "list", "analyze", "remove"],
+      "skills_invoked": ["popkit:pop-worktrees"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:knowledge command structure",
+      "command": "knowledge",
+      "file": "commands/knowledge.md",
+      "subcommands": ["list", "add", "remove", "sync", "search"],
+      "skills_invoked": ["popkit:pop-knowledge-lookup"],
+      "required_sections": ["Usage", "Subcommand: List"],
+      "note": "Uses individual Subcommand sections per action"
+    },
+    {
+      "name": "/popkit:next command structure",
+      "command": "next",
+      "file": "commands/next.md",
+      "subcommands": ["quick", "verbose"],
+      "skills_invoked": ["popkit:pop-next-action"],
+      "required_sections": ["Usage"]
+    },
+    {
+      "name": "/popkit:privacy command structure",
+      "command": "privacy",
+      "file": "commands/privacy.md",
+      "subcommands": ["status", "consent", "export", "delete", "level"],
+      "required_sections": ["Usage", "Subcommands"]
+    },
+    {
+      "name": "/popkit:workflow-viz command structure",
+      "command": "workflow-viz",
+      "file": "commands/workflow-viz.md",
+      "flags": ["--validate", "--metrics", "--ascii"],
+      "skills_invoked": ["popkit:pop-chain-management"],
+      "required_sections": ["Usage"]
+    },
+    {
+      "name": "/popkit:stats command structure",
+      "command": "stats",
+      "file": "commands/stats.md",
+      "required_sections": ["Usage"]
+    },
+    {
+      "name": "/popkit:security command structure",
+      "command": "security",
+      "file": "commands/security.md",
+      "skills_invoked": ["popkit:pop-security-scan"],
+      "agents_used": ["security-auditor"],
+      "required_sections": ["Usage"]
+    }
+  ],
+  "validation_rules": {
+    "file_must_exist": true,
+    "frontmatter_required": true,
+    "description_in_frontmatter": true,
+    "subcommands_documented": true
+  },
+  "metadata": {
+    "created": "2025-12-09",
+    "issue": "#105",
+    "author": "popkit"
+  }
+}

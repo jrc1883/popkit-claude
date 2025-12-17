@@ -1,0 +1,117 @@
+{
+  "name": "Session Resume Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for restoring session from STATUS.json",
+  "phases": [
+    {
+      "id": "load",
+      "name": "Load State",
+      "description": "Load STATUS.json from disk",
+      "steps": [
+        {
+          "id": "find_status",
+          "name": "Find STATUS.json",
+          "type": "automated",
+          "script": "scripts/restore_state.py --mode=find",
+          "locations": [
+            ".claude/STATUS.json",
+            "STATUS.json"
+          ]
+        },
+        {
+          "id": "parse_status",
+          "name": "Parse STATUS.json",
+          "type": "automated",
+          "script": "scripts/restore_state.py --mode=parse"
+        },
+        {
+          "id": "calculate_type",
+          "name": "Calculate Session Type",
+          "type": "automated",
+          "action": "Determine Continuation/Resume/Fresh Start based on time gap"
+        }
+      ]
+    },
+    {
+      "id": "validate",
+      "name": "Validate State",
+      "description": "Verify saved state is still accurate",
+      "steps": [
+        {
+          "id": "verify_git",
+          "name": "Verify Git State",
+          "type": "automated",
+          "script": "scripts/restore_state.py --mode=verify-git",
+          "commands": [
+            "git branch --show-current",
+            "git status --porcelain | wc -l"
+          ]
+        },
+        {
+          "id": "verify_services",
+          "name": "Verify Services",
+          "type": "conditional",
+          "condition": "session_type == 'Fresh Start'",
+          "action": "Check if saved services are still running"
+        },
+        {
+          "id": "report_discrepancies",
+          "name": "Report Discrepancies",
+          "type": "automated",
+          "action": "Highlight any differences from saved state"
+        }
+      ]
+    },
+    {
+      "id": "restore",
+      "name": "Restore Context",
+      "description": "Present restored context to user",
+      "steps": [
+        {
+          "id": "display_summary",
+          "name": "Display Session Summary",
+          "type": "automated",
+          "script": "scripts/restore_state.py --mode=summary"
+        },
+        {
+          "id": "offer_options",
+          "name": "Offer Continuation Options",
+          "type": "interactive",
+          "prompt": "How would you like to proceed?",
+          "options": [
+            {"label": "Continue with next action", "value": "continue"},
+            {"label": "Review full context first", "value": "review"},
+            {"label": "Start fresh", "value": "fresh"}
+          ]
+        }
+      ]
+    }
+  ],
+  "session_types": {
+    "Continuation": {
+      "time_gap": "< 30 min",
+      "behavior": "Quick restore, assume full context"
+    },
+    "Resume": {
+      "time_gap": "30 min - 4 hours",
+      "behavior": "Restore context, brief refresh"
+    },
+    "Fresh Start": {
+      "time_gap": "> 4 hours",
+      "behavior": "Full context load, verify state"
+    }
+  },
+  "triggers": {
+    "automatic": [
+      "Session start hook",
+      "Claude Code startup"
+    ],
+    "manual": [
+      "Invoke pop-session-resume skill"
+    ]
+  },
+  "output": {
+    "format": "summary_box",
+    "include": ["session_type", "time_since", "branch", "next_action"]
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "error-messages",
+  "version": "1.0.0",
+  "description": "Checklist for error message quality",
+  "categories": [
+    {
+      "id": "clarity",
+      "name": "Message Clarity",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "EM-001",
+          "name": "Clear Problem Description",
+          "description": "Error clearly states what went wrong",
+          "examples": {
+            "good": "File 'config.json' not found in project directory",
+            "bad": "File not found"
+          }
+        },
+        {
+          "id": "EM-002",
+          "name": "Avoid Technical Jargon",
+          "description": "Use plain language when possible",
+          "examples": {
+            "good": "Cannot connect to database - check your credentials",
+            "bad": "ECONNREFUSED 127.0.0.1:5432"
+          }
+        },
+        {
+          "id": "EM-003",
+          "name": "Include Context",
+          "description": "Provide relevant context (file, line, value)",
+          "examples": {
+            "good": "Invalid syntax in config.json at line 42: unexpected '}'",
+            "bad": "JSON parse error"
+          }
+        }
+      ]
+    },
+    {
+      "id": "actionability",
+      "name": "Actionability",
+      "weight": 40,
+      "checks": [
+        {
+          "id": "EM-004",
+          "name": "Suggest Solution",
+          "description": "Error includes how to fix the problem",
+          "examples": {
+            "good": "Missing API key. Set POPKIT_API_KEY environment variable.",
+            "bad": "API key missing"
+          }
+        },
+        {
+          "id": "EM-005",
+          "name": "Provide Next Steps",
+          "description": "Tell user what to do next",
+          "examples": {
+            "good": "Run 'npm install' to install missing dependencies",
+            "bad": "Dependencies not installed"
+          }
+        },
+        {
+          "id": "EM-006",
+          "name": "Include Documentation Link",
+          "description": "Link to relevant docs for complex errors",
+          "examples": {
+            "good": "Authentication failed. See https://docs.example.com/auth for setup guide",
+            "bad": "Auth error"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tone",
+      "name": "Tone and Voice",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "EM-007",
+          "name": "Professional Tone",
+          "description": "Errors are helpful, not blaming",
+          "examples": {
+            "good": "Invalid input format - expected JSON object",
+            "bad": "You provided wrong input format"
+          }
+        },
+        {
+          "id": "EM-008",
+          "name": "Consistent Format",
+          "description": "All errors follow same structure",
+          "format": "[Category] Description. Suggestion.",
+          "examples": {
+            "good": "[Config] Missing required field 'name'. Add name to package.json.",
+            "bad": "name missing!!!"
+          }
+        }
+      ]
+    }
+  ],
+  "anti_patterns": [
+    {
+      "name": "Generic Messages",
+      "examples": ["Error occurred", "Something went wrong", "Failed"],
+      "severity": "high"
+    },
+    {
+      "name": "Technical Dumps",
+      "examples": ["Stack trace without explanation", "Raw exception object"],
+      "severity": "medium"
+    },
+    {
+      "name": "Blaming Language",
+      "examples": ["You made an error", "Wrong input", "Invalid request"],
+      "severity": "medium"
+    }
+  ],
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70
+  }
+}

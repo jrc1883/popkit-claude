@@ -1,0 +1,9 @@
+# PopKit Power Mode - Python Requirements
+# Multi-agent orchestration dependencies
+
+# Redis client for pub/sub messaging
+redis>=5.0.0,<6.0.0
+
+# Optional: For future enhancements
+# dataclasses-json>=0.6.0  # Structured message serialization
+# pydantic>=2.0.0          # Schema validation

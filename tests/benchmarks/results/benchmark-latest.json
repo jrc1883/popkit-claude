@@ -1,0 +1,90 @@
+{
+  "timestamp": "2025-12-09T12:21:03.208752",
+  "results": [
+    {
+      "scenario": "agent-routing",
+      "mode": "solo",
+      "duration_ms": 17.61627197265625,
+      "tokens_used": 0,
+      "success": true,
+      "quality_score": 10.0,
+      "errors": [],
+      "metrics": {
+        "accuracy": 1.0,
+        "correct": 10,
+        "total": 10,
+        "avg_routing_time_ms": 1.761627197265625
+      },
+      "started_at": "2025-12-09T12:21:03.200349",
+      "completed_at": "2025-12-09T12:21:03.200795"
+    },
+    {
+      "scenario": "skill-invocation",
+      "mode": "solo",
+      "duration_ms": 3.404378890991211,
+      "tokens_used": 0,
+      "success": true,
+      "quality_score": 10.0,
+      "errors": [],
+      "metrics": {
+        "skills_loaded": 41,
+        "skills_total": 41,
+        "avg_load_time_ms": 0.06540810189596037,
+        "max_load_time_ms": 0.14495849609375,
+        "min_load_time_ms": 0.0514984130859375
+      },
+      "started_at": "2025-12-09T12:21:03.200832",
+      "completed_at": "2025-12-09T12:21:03.204292"
+    },
+    {
+      "scenario": "command-execution",
+      "mode": "solo",
+      "duration_ms": 1.6520023345947266,
+      "tokens_used": 0,
+      "success": true,
+      "quality_score": 10.0,
+      "errors": [],
+      "metrics": {
+        "commands_loaded": 16,
+        "commands_total": 16,
+        "total_size_bytes": 169326,
+        "avg_size_bytes": 10582.875
+      },
+      "started_at": "2025-12-09T12:21:03.204339",
+      "completed_at": "2025-12-09T12:21:03.206031"
+    },
+    {
+      "scenario": "hook-execution",
+      "mode": "solo",
+      "duration_ms": 1.573801040649414,
+      "tokens_used": 0,
+      "success": true,
+      "quality_score": 10.0,
+      "errors": [],
+      "metrics": {
+        "hooks_valid": 23,
+        "hooks_total": 23,
+        "validation_rate": 1.0
+      },
+      "started_at": "2025-12-09T12:21:03.206063",
+      "completed_at": "2025-12-09T12:21:03.207675"
+    },
+    {
+      "scenario": "config-load",
+      "mode": "solo",
+      "duration_ms": 0.8816719055175781,
+      "tokens_used": 0,
+      "success": true,
+      "quality_score": 10.0,
+      "errors": [],
+      "metrics": {
+        "configs_loaded": 6,
+        "configs_total": 6,
+        "total_size_bytes": 27915,
+        "avg_load_time_ms": 0.14694531758626303
+      },
+      "started_at": "2025-12-09T12:21:03.207712",
+      "completed_at": "2025-12-09T12:21:03.208614"
+    }
+  ]
+}

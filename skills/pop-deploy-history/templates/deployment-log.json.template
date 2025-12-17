@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "project": "{{PROJECT_NAME}}",
+  "repository": "{{REPOSITORY}}",
+  "deployments": [
+    {
+      "id": "{{DEPLOYMENT_ID}}",
+      "version": "{{VERSION}}",
+      "platform": "{{PLATFORM}}",
+      "environment": "{{ENVIRONMENT}}",
+      "status": "{{STATUS}}",
+      "url": "{{DEPLOYMENT_URL}}",
+      "timestamp": "{{TIMESTAMP}}",
+      "duration_seconds": "{{DURATION}}",
+      "deployed_by": "{{DEPLOYER}}",
+      "commit": {
+        "sha": "{{COMMIT_SHA}}",
+        "message": "{{COMMIT_MESSAGE}}",
+        "author": "{{COMMIT_AUTHOR}}"
+      },
+      "artifacts": {
+        "image": "{{DOCKER_IMAGE}}",
+        "package": "{{PACKAGE_NAME}}@{{VERSION}}",
+        "bundle_size": "{{BUNDLE_SIZE}}"
+      },
+      "checks": {
+        "tests_passed": "{{TESTS_PASSED}}",
+        "lint_passed": "{{LINT_PASSED}}",
+        "security_scan": "{{SECURITY_SCAN}}",
+        "health_check": "{{HEALTH_CHECK}}"
+      },
+      "rollback": {
+        "available": "{{ROLLBACK_AVAILABLE}}",
+        "previous_version": "{{PREVIOUS_VERSION}}",
+        "rollback_tested": "{{ROLLBACK_TESTED}}"
+      },
+      "metrics": {
+        "build_time": "{{BUILD_TIME}}",
+        "deploy_time": "{{DEPLOY_TIME}}",
+        "cold_start": "{{COLD_START}}"
+      },
+      "notes": "{{NOTES}}"
+    }
+  ],
+  "statistics": {
+    "total_deployments": "{{TOTAL_DEPLOYMENTS}}",
+    "successful_deployments": "{{SUCCESSFUL_DEPLOYMENTS}}",
+    "failed_deployments": "{{FAILED_DEPLOYMENTS}}",
+    "rollbacks": "{{ROLLBACKS}}",
+    "average_duration": "{{AVG_DURATION}}",
+    "last_deployment": "{{LAST_DEPLOYMENT}}"
+  }
+}

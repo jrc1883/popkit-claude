@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "injection-patterns",
+  "version": "1.0.0",
+  "description": "Machine-readable checklist for injection vulnerability detection",
+  "categories": [
+    {
+      "id": "command-injection",
+      "name": "Command Injection",
+      "weight": 40,
+      "checks": [
+        {
+          "id": "IP-001",
+          "name": "os.system with concatenation",
+          "description": "Detect os.system() with string concatenation",
+          "type": "regex_match",
+          "pattern": "os\\.system\\s*\\([^)]*\\+",
+          "safe_patterns": [],
+          "severity": "critical",
+          "cwe": "CWE-78",
+          "owasp": "A03:2021",
+          "deduction": 25
+        },
+        {
+          "id": "IP-002",
+          "name": "subprocess shell=True",
+          "description": "Detect subprocess with shell=True",
+          "type": "regex_match",
+          "pattern": "subprocess\\.(run|call|Popen)\\s*\\([^)]*shell\\s*=\\s*True",
+          "safe_patterns": ["shlex.quote", "shlex.split"],
+          "severity": "critical",
+          "cwe": "CWE-78",
+          "owasp": "A03:2021",
+          "deduction": 25
+        }
+      ]
+    },
+    {
+      "id": "code-injection",
+      "name": "Code Injection",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "IP-003",
+          "name": "eval with user input",
+          "description": "Detect eval() with potential user input",
+          "type": "regex_match",
+          "pattern": "\\beval\\s*\\([^)]*(?:input|request|params|args|user)",
+          "safe_patterns": ["ast.literal_eval"],
+          "severity": "critical",
+          "cwe": "CWE-94",
+          "owasp": "A03:2021",
+          "deduction": 25
+        },
+        {
+          "id": "IP-004",
+          "name": "exec with user input",
+          "description": "Detect exec() with potential user input",
+          "type": "regex_match",
+          "pattern": "\\bexec\\s*\\([^)]*(?:input|request|params|args|user)",
+          "safe_patterns": [],
+          "severity": "critical",
+          "cwe": "CWE-94",
+          "owasp": "A03:2021",
+          "deduction": 25
+        },
+        {
+          "id": "IP-007",
+          "name": "Template injection",
+          "description": "Detect user input in template rendering",
+          "type": "regex_match",
+          "pattern": "(?:render|Template)\\s*\\([^)]*(?:\\+|\\.format\\(|f['\"])[^)]*(?:input|request|params)",
+          "safe_patterns": ["SandboxedEnvironment"],
+          "severity": "high",
+          "cwe": "CWE-94",
+          "owasp": "A03:2021",
+          "deduction": 20
+        }
+      ]
+    },
+    {
+      "id": "data-injection",
+      "name": "Data Injection",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "IP-005",
+          "name": "Path traversal",
+          "description": "Detect unsanitized file path construction",
+          "type": "regex_match",
+          "pattern": "(?:open|read|write|Path)\\s*\\([^)]*(?:\\+|\\.format\\(|f['\"])[^)]*(?:input|request|params|args|user)",
+          "safe_patterns": ["resolve()", "secure_filename"],
+          "severity": "high",
+          "cwe": "CWE-22",
+          "owasp": "A01:2021",
+          "deduction": 20
+        },
+        {
+          "id": "IP-006",
+          "name": "SQL injection",
+          "description": "Detect string formatting in SQL queries",
+          "type": "regex_match",
+          "pattern": "(?:execute|query|raw)\\s*\\([^)]*['\"].*%s.*['\"].*%",
+          "safe_patterns": ["parameterized", "prepared_statement"],
+          "severity": "critical",
+          "cwe": "CWE-89",
+          "owasp": "A03:2021",
+          "deduction": 25
+        },
+        {
+          "id": "IP-008",
+          "name": "Unsafe deserialization",
+          "description": "Detect unsafe deserialization of untrusted data",
+          "type": "regex_match",
+          "pattern": "(?:pickle\\.loads?|yaml\\.(?:unsafe_)?load|marshal\\.loads?)\\s*\\([^)]*(?:input|request|data)",
+          "safe_patterns": ["yaml.safe_load", "json.loads"],
+          "severity": "critical",
+          "cwe": "CWE-502",
+          "owasp": "A08:2021",
+          "deduction": 25
+        }
+      ]
+    }
+  ],
+  "file_patterns": {
+    "include": [
+      "**/*.py",
+      "**/*.js",
+      "**/*.ts"
+    ],
+    "exclude": [
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/__pycache__/**",
+      "**/test*/**",
+      "**/*.test.*",
+      "**/*.spec.*"
+    ]
+  },
+  "mitigation_patterns": {
+    "command_injection": [
+      "shlex.quote",
+      "shlex.split",
+      "subprocess.run([",
+      "shell=False"
+    ],
+    "code_injection": [
+      "ast.literal_eval",
+      "SandboxedEnvironment"
+    ],
+    "path_traversal": [
+      ".resolve()",
+      "secure_filename",
+      "os.path.basename"
+    ],
+    "sql_injection": [
+      "parameterized",
+      "prepared_statement",
+      ".filter(",
+      ".filter_by("
+    ],
+    "deserialization": [
+      "yaml.safe_load",
+      "json.loads",
+      "Loader=yaml.SafeLoader"
+    ]
+  },
+  "scoring": {
+    "starting_score": 100,
+    "minimum_score": 0,
+    "severity_weights": {
+      "critical": 25,
+      "high": 20,
+      "medium": 10,
+      "low": 5
+    }
+  }
+}

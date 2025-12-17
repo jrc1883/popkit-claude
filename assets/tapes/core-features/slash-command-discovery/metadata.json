@@ -1,0 +1,104 @@
+{
+  "name": "Slash Command Discovery",
+  "description": "Shows how typing /dev auto-suggests popkit:dev without needing the full popkit: prefix",
+  "category": "core-features",
+  "output_file": "slash-command-discovery.gif",
+  "dimensions": {
+    "width": 900,
+    "height": 600
+  },
+  "theme": "Catppuccin Mocha",
+  "font_size": 14,
+  "padding": 20,
+  "screenshots": [
+    {
+      "filename": "01-type-slash.png",
+      "description": "User types '/' character - cursor ready for command",
+      "timing": "0ms",
+      "notes": "Claude Code shows command palette"
+    },
+    {
+      "filename": "02-type-d.png",
+      "description": "User types 'd' character after slash",
+      "timing": "200ms",
+      "notes": "Dropdown begins filtering"
+    },
+    {
+      "filename": "03-type-de.png",
+      "description": "User types 'e' character - now '/de' showing",
+      "timing": "400ms",
+      "notes": "Dropdown narrows further"
+    },
+    {
+      "filename": "04-type-dev.png",
+      "description": "User types 'v' character - complete '/dev' showing",
+      "timing": "600ms",
+      "notes": "Dropdown shows all matching commands including popkit:dev"
+    },
+    {
+      "filename": "05-popkit-highlighted.png",
+      "description": "Dropdown visible with popkit:dev as first match (highlighted)",
+      "timing": "1000ms",
+      "notes": "Key insight: semantic search puts popkit:dev first, even without 'popkit:' prefix"
+    },
+    {
+      "filename": "06-tab-completion.png",
+      "description": "User presses Tab - full '/popkit:dev' appears",
+      "timing": "1500ms",
+      "notes": "Tab key accepts the highlighted suggestion"
+    },
+    {
+      "filename": "07-add-work.png",
+      "description": "User continues typing ' work' after command",
+      "timing": "2000ms",
+      "notes": "Subcommand entry"
+    },
+    {
+      "filename": "08-add-issue-number.png",
+      "description": "User types ' #57' to specify issue",
+      "timing": "2500ms",
+      "notes": "Complete command with issue reference"
+    },
+    {
+      "filename": "09-execute-command.png",
+      "description": "User presses Enter - command executes",
+      "timing": "3000ms",
+      "notes": "Shows immediate feedback from PopKit"
+    }
+  ],
+  "key_insights": [
+    "No need to type full 'popkit:' prefix - saves 7 keystrokes",
+    "Semantic search finds popkit:dev from just 'dev' - smart matching",
+    "Tab completion works instantly - familiar UX",
+    "Works for all Claude Code plugins, not just PopKit - universal pattern",
+    "Only need to type first few letters of actual command name"
+  ],
+  "readme_sections": [
+    "Quick Start",
+    "Features > Development Workflows"
+  ],
+  "tags": ["ux", "discovery", "commands", "quick-start", "efficiency"],
+  "vhs_limitations": [
+    "VHS cannot show actual dropdown menus from Claude Code UI",
+    "Recommend using annotated screenshot instead for this demo",
+    "Alternative: simulate dropdown in terminal using ASCII art (less accurate)"
+  ],
+  "recommended_approach": "annotated-screenshot",
+  "alternative_approaches": [
+    {
+      "name": "VHS with simulated dropdown",
+      "pros": ["Shows typing animation", "Reproducible"],
+      "cons": ["Not accurate to actual UI", "Confusing for users"]
+    },
+    {
+      "name": "Annotated screenshot",
+      "pros": ["Shows real UI", "Clear and accurate", "Easy to update"],
+      "cons": ["Static image", "Less engaging than GIF"]
+    },
+    {
+      "name": "Hybrid approach",
+      "pros": ["Best of both worlds", "Screenshot for dropdown, VHS for execution"],
+      "cons": ["More complex workflow", "Two separate assets"]
+    }
+  ]
+}

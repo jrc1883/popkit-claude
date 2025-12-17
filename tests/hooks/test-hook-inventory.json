@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "hook-inventory",
+  "description": "Comprehensive inventory and tests for all PopKit hooks",
+  "version": "1.0.0",
+
+  "hooks": [
+    {
+      "name": "pre-tool-use",
+      "file": "hooks/pre-tool-use.py",
+      "event": "pre_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Safety checks before tool execution",
+      "tests": "test-pre-tool-use.json"
+    },
+    {
+      "name": "post-tool-use",
+      "file": "hooks/post-tool-use.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Cleanup and validation after tool execution"
+    },
+    {
+      "name": "pre_tool_use_stateless",
+      "file": "hooks/pre_tool_use_stateless.py",
+      "event": "pre_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Stateless safety checks using message composition"
+    },
+    {
+      "name": "post_tool_use_stateless",
+      "file": "hooks/post_tool_use_stateless.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Stateless post-processing using message composition"
+    },
+    {
+      "name": "user-prompt-submit",
+      "file": "hooks/user-prompt-submit.py",
+      "event": "user_prompt_submit",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Process user prompts before sending to Claude"
+    },
+    {
+      "name": "session-start",
+      "file": "hooks/session-start.py",
+      "event": "session_start",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Initialize session state and context"
+    },
+    {
+      "name": "stop",
+      "file": "hooks/stop.py",
+      "event": "stop",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Clean up and save state on session end"
+    },
+    {
+      "name": "notification",
+      "file": "hooks/notification.py",
+      "event": "notification",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Handle system notifications"
+    },
+    {
+      "name": "agent-context-integration",
+      "file": "hooks/agent-context-integration.py",
+      "event": "pre_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Integrate agent context into tool calls"
+    },
+    {
+      "name": "agent-observability",
+      "file": "hooks/agent-observability.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Track agent activities for observability"
+    },
+    {
+      "name": "agent-orchestrator",
+      "file": "hooks/agent-orchestrator.py",
+      "event": "pre_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Orchestrate multi-agent workflows"
+    },
+    {
+      "name": "output-validator",
+      "file": "hooks/output-validator.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Validate agent output against schemas"
+    },
+    {
+      "name": "subagent-stop",
+      "file": "hooks/subagent-stop.py",
+      "event": "subagent_stop",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Handle subagent termination"
+    },
+    {
+      "name": "knowledge-sync",
+      "file": "hooks/knowledge-sync.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Sync knowledge base updates"
+    },
+    {
+      "name": "chain-validator",
+      "file": "hooks/chain-validator.py",
+      "event": "pre_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Validate workflow chain state"
+    },
+    {
+      "name": "chain-metrics",
+      "file": "hooks/chain-metrics.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Collect workflow chain metrics"
+    },
+    {
+      "name": "quality-gate",
+      "file": "hooks/quality-gate.py",
+      "event": "pre_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Enforce quality gates before actions"
+    },
+    {
+      "name": "context-monitor",
+      "file": "hooks/context-monitor.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Monitor context usage and warn on limits"
+    },
+    {
+      "name": "issue-workflow",
+      "file": "hooks/issue-workflow.py",
+      "event": "user_prompt_submit",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Handle GitHub issue workflow integration"
+    },
+    {
+      "name": "doc-sync",
+      "file": "hooks/doc-sync.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Synchronize documentation on changes"
+    },
+    {
+      "name": "command-learning-hook",
+      "file": "hooks/command-learning-hook.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Learn from command usage patterns"
+    },
+    {
+      "name": "bug_reporter_hook",
+      "file": "hooks/bug_reporter_hook.py",
+      "event": "post_tool_use",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Detect and report bugs automatically"
+    },
+    {
+      "name": "feedback_hook",
+      "file": "hooks/feedback_hook.py",
+      "event": "user_prompt_submit",
+      "protocol": "json_stdin_stdout",
+      "purpose": "Collect user feedback"
+    }
+  ],
+
+  "protocol_tests": [
+    {
+      "name": "hook returns valid JSON",
+      "description": "All hooks must return valid JSON on stdout",
+      "test_type": "protocol"
+    },
+    {
+      "name": "hook handles malformed input gracefully",
+      "description": "Hooks should not crash on invalid JSON input",
+      "test_type": "robustness"
+    },
+    {
+      "name": "hook respects timeout",
+      "description": "Hooks should complete within 5 seconds",
+      "test_type": "performance",
+      "max_duration_ms": 5000
+    },
+    {
+      "name": "hook has valid shebang",
+      "description": "All hooks must have #!/usr/bin/env python3",
+      "test_type": "structure"
+    }
+  ],
+
+  "utils_tested": [
+    {
+      "name": "message_builder",
+      "file": "hooks/utils/message_builder.py",
+      "tests": "test_message_builder.py",
+      "purpose": "Compose messages for hooks"
+    },
+    {
+      "name": "context_carrier",
+      "file": "hooks/utils/context_carrier.py",
+      "tests": "test_context_carrier.py",
+      "purpose": "Carry immutable context through hooks"
+    },
+    {
+      "name": "stateless_hook",
+      "file": "hooks/utils/stateless_hook.py",
+      "tests": "test_stateless_hook.py",
+      "purpose": "Base class for stateless hooks"
+    },
+    {
+      "name": "mcp_detector",
+      "file": "hooks/utils/mcp_detector.py",
+      "tests": "test_mcp_detector.py",
+      "purpose": "Detect MCP server availability"
+    },
+    {
+      "name": "plugin_detector",
+      "file": "hooks/utils/plugin_detector.py",
+      "tests": "test_plugin_detector.py",
+      "purpose": "Detect installed plugins"
+    },
+    {
+      "name": "routine_storage",
+      "file": "hooks/utils/routine_storage.py",
+      "tests": "test_routine_storage.py",
+      "purpose": "Store routine configurations"
+    },
+    {
+      "name": "flag_parser",
+      "file": "hooks/utils/flag_parser.py",
+      "tests": "test_flag_parser.py",
+      "purpose": "Parse command flags"
+    },
+    {
+      "name": "github_issues",
+      "file": "hooks/utils/github_issues.py",
+      "tests": "test_github_issues.py",
+      "purpose": "GitHub issue utilities"
+    },
+    {
+      "name": "embedding_project",
+      "file": "hooks/utils/embedding_project.py",
+      "tests": "test_embedding_project.py",
+      "purpose": "Project embedding utilities"
+    },
+    {
+      "name": "semantic_router",
+      "file": "hooks/utils/semantic_router.py",
+      "tests": "test_semantic_router.py",
+      "purpose": "Semantic routing for tools"
+    },
+    {
+      "name": "pattern_detector",
+      "file": "hooks/utils/pattern_detector.py",
+      "tests": "test_pattern_detector.py",
+      "purpose": "Detect code patterns"
+    },
+    {
+      "name": "command_translator",
+      "file": "hooks/utils/command_translator.py",
+      "tests": "test_command_translator.py",
+      "purpose": "Translate commands cross-platform"
+    },
+    {
+      "name": "pattern_learner",
+      "file": "hooks/utils/pattern_learner.py",
+      "tests": "test_pattern_learner.py",
+      "purpose": "Learn from usage patterns"
+    },
+    {
+      "name": "platform_detector",
+      "file": "hooks/utils/platform_detector.py",
+      "tests": "test_platform_detector.py",
+      "purpose": "Detect OS platform"
+    },
+    {
+      "name": "bug_store",
+      "file": "hooks/utils/bug_store.py",
+      "tests": "test_bug_store.py",
+      "purpose": "Store detected bugs"
+    },
+    {
+      "name": "bug_consent",
+      "file": "hooks/utils/bug_consent.py",
+      "tests": "test_bug_consent.py",
+      "purpose": "Handle bug reporting consent"
+    },
+    {
+      "name": "feedback_store",
+      "file": "hooks/utils/feedback_store.py",
+      "tests": "test_feedback_store.py",
+      "purpose": "Store user feedback"
+    },
+    {
+      "name": "feedback_triggers",
+      "file": "hooks/utils/feedback_triggers.py",
+      "tests": "test_feedback_triggers.py",
+      "purpose": "Trigger feedback collection"
+    },
+    {
+      "name": "priority_scorer",
+      "file": "hooks/utils/priority_scorer.py",
+      "tests": "test_priority_scorer.py",
+      "purpose": "Score feature priorities"
+    },
+    {
+      "name": "vote_fetcher",
+      "file": "hooks/utils/vote_fetcher.py",
+      "tests": "test_vote_fetcher.py",
+      "purpose": "Fetch votes from cloud"
+    },
+    {
+      "name": "workflow_engine",
+      "file": "hooks/utils/workflow_engine.py",
+      "tests": "test_workflow_engine.py",
+      "purpose": "File-based workflow state machine for skill orchestration"
+    },
+    {
+      "name": "workflow_parser",
+      "file": "hooks/utils/workflow_parser.py",
+      "tests": "test_workflow_parser.py",
+      "purpose": "Parse workflow definitions from skill YAML frontmatter"
+    },
+    {
+      "name": "response_router",
+      "file": "hooks/utils/response_router.py",
+      "tests": "test_response_router.py",
+      "purpose": "Route AskUserQuestion responses to workflows"
+    }
+  ],
+
+  "coverage_summary": {
+    "total_hooks": 23,
+    "hooks_with_tests": 1,
+    "utils_with_tests": 23,
+    "python_tests_count": 113
+  },
+
+  "metadata": {
+    "created": "2025-12-09",
+    "issue": "#105",
+    "author": "popkit"
+  }
+}

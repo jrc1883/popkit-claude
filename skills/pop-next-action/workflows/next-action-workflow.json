@@ -1,0 +1,122 @@
+{
+  "name": "Next Action Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for context-aware next action recommendations",
+  "phases": [
+    {
+      "id": "analyze",
+      "name": "Analyze State",
+      "description": "Gather and analyze current project state",
+      "steps": [
+        {
+          "id": "gather_git",
+          "name": "Gather Git State",
+          "type": "automated",
+          "script": "scripts/analyze_state.py --section=git"
+        },
+        {
+          "id": "gather_code",
+          "name": "Gather Code State",
+          "type": "automated",
+          "script": "scripts/analyze_state.py --section=code"
+        },
+        {
+          "id": "gather_issues",
+          "name": "Gather Issues",
+          "type": "automated",
+          "script": "scripts/analyze_state.py --section=issues"
+        },
+        {
+          "id": "detect_research",
+          "name": "Detect Research Branches",
+          "type": "automated",
+          "script": "scripts/analyze_state.py --section=research"
+        }
+      ]
+    },
+    {
+      "id": "recommend",
+      "name": "Generate Recommendations",
+      "description": "Score and rank possible actions",
+      "steps": [
+        {
+          "id": "score_actions",
+          "name": "Score Possible Actions",
+          "type": "automated",
+          "script": "scripts/recommend_action.py --mode=score"
+        },
+        {
+          "id": "rank_actions",
+          "name": "Rank Actions",
+          "type": "automated",
+          "script": "scripts/recommend_action.py --mode=rank"
+        },
+        {
+          "id": "generate_report",
+          "name": "Generate Report",
+          "type": "automated",
+          "script": "scripts/recommend_action.py --mode=report"
+        }
+      ]
+    },
+    {
+      "id": "present",
+      "name": "Present Recommendations",
+      "description": "Display recommendations to user",
+      "steps": [
+        {
+          "id": "display_state",
+          "name": "Display Current State",
+          "type": "automated",
+          "action": "Show state summary table"
+        },
+        {
+          "id": "display_recommendations",
+          "name": "Display Recommendations",
+          "type": "automated",
+          "action": "Show top 3-5 prioritized actions"
+        },
+        {
+          "id": "offer_action",
+          "name": "Offer Action",
+          "type": "interactive",
+          "prompt": "Which action would you like to take?",
+          "options_from": "recommendations"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "base_priorities": {
+      "fix_build_errors": 90,
+      "process_research": 85,
+      "commit_work": 80,
+      "push_changes": 60,
+      "work_on_issue": 50,
+      "tackle_tech_debt": 40,
+      "start_new_feature": 30
+    },
+    "multipliers": {
+      "uncommitted_changes": 20,
+      "typescript_errors": 30,
+      "research_branches": 25,
+      "many_open_issues": 10,
+      "long_since_commit": 15
+    }
+  },
+  "triggers": {
+    "automatic": [
+      "User expresses uncertainty",
+      "User asks 'what should I do'",
+      "User mentions 'stuck'"
+    ],
+    "manual": [
+      "/popkit:next",
+      "Invoke pop-next-action skill"
+    ]
+  },
+  "output": {
+    "format": "next_action_report",
+    "sections": ["state_summary", "recommendations", "quick_reference"]
+  }
+}

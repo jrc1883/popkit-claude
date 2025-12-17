@@ -1,0 +1,153 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "name": "{{PROJECT_NAME}}",
+  "version": 2,
+  "public": {{PUBLIC}},
+
+  "builds": [
+    {{#STATIC}}
+    {
+      "src": "{{BUILD_OUTPUT}}/**",
+      "use": "@vercel/static"
+    }
+    {{/STATIC}}
+    {{#NEXT}}
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+    {{/NEXT}}
+    {{#NODE_API}}
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
+    }
+    {{/NODE_API}}
+  ],
+
+  "routes": [
+    {{#API_REWRITE}}
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {{/API_REWRITE}}
+    {{#SPA}}
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+    {{/SPA}}
+  ],
+
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+
+  "rewrites": [
+    {{#API_PROXY}}
+    {
+      "source": "/api/:path*",
+      "destination": "{{API_URL}}/:path*"
+    }
+    {{/API_PROXY}}
+  ],
+
+  "redirects": [
+    {{#WWW_REDIRECT}}
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.{{DOMAIN}}"
+        }
+      ],
+      "destination": "https://{{DOMAIN}}",
+      "permanent": true
+    }
+    {{/WWW_REDIRECT}}
+  ],
+
+  "env": {
+    "NODE_ENV": "production"
+  },
+
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+
+  "regions": ["{{REGION}}"],
+
+  "functions": {
+    "api/**/*.ts": {
+      "memory": {{FUNCTION_MEMORY}},
+      "maxDuration": {{FUNCTION_TIMEOUT}}
+    }
+  },
+
+  "crons": [
+    {{#CRON_JOBS}}
+    {
+      "path": "{{CRON_PATH}}",
+      "schedule": "{{CRON_SCHEDULE}}"
+    }
+    {{/CRON_JOBS}}
+  ]
+}
+
+// =============================================================================
+// Template Variables:
+// {{PROJECT_NAME}} - Project name
+// {{PUBLIC}} - Public access (true/false)
+// {{BUILD_OUTPUT}} - Build output directory (e.g., "dist", "build")
+// {{STATIC}} - Enable static hosting (true/false)
+// {{NEXT}} - Enable Next.js (true/false)
+// {{NODE_API}} - Enable Node.js API routes (true/false)
+// {{SPA}} - Single Page Application mode (true/false)
+// {{API_REWRITE}} - Enable API route rewrites (true/false)
+// {{API_PROXY}} - Enable API proxy (true/false)
+// {{API_URL}} - Backend API URL for proxying
+// {{WWW_REDIRECT}} - Enable www to non-www redirect (true/false)
+// {{DOMAIN}} - Production domain
+// {{REGION}} - Deployment region (e.g., "iad1", "sfo1")
+// {{FUNCTION_MEMORY}} - Serverless function memory (MB)
+// {{FUNCTION_TIMEOUT}} - Serverless function timeout (seconds)
+// {{CRON_JOBS}} - Enable cron jobs (true/false)
+// {{CRON_PATH}} - Cron endpoint path
+// {{CRON_SCHEDULE}} - Cron schedule expression
+// =============================================================================

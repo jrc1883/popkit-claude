@@ -1,0 +1,117 @@
+{
+  "name": "Heartbeat Health Checks",
+  "version": "1.0.0",
+  "description": "Session health monitoring and stuck detection patterns",
+  "categories": [
+    {
+      "name": "Session Health",
+      "checks": [
+        {
+          "id": "heartbeat_recent",
+          "name": "Recent heartbeat",
+          "description": "Heartbeat recorded within last 3 minutes",
+          "required": true,
+          "automated": true,
+          "threshold": 3
+        },
+        {
+          "id": "session_active",
+          "name": "Session active",
+          "description": "Session has recent tool activity",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_stuck_patterns",
+          "name": "No stuck patterns",
+          "description": "No circular or repeated edit patterns detected",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Stuck Detection",
+      "checks": [
+        {
+          "id": "repeated_edits",
+          "name": "Repeated file edits",
+          "description": "Same file edited 5+ times recently",
+          "pattern": "repeated_edits",
+          "confidence_weight": 0.2,
+          "threshold": 5
+        },
+        {
+          "id": "circular_edits",
+          "name": "Circular edit pattern",
+          "description": "A→B→A→B pattern in recent files",
+          "pattern": "circular_edits",
+          "confidence_weight": 0.3
+        },
+        {
+          "id": "command_failures",
+          "name": "Command failures",
+          "description": "3+ consecutive Bash failures",
+          "pattern": "bash_failures",
+          "confidence_weight": 0.3,
+          "threshold": 3
+        },
+        {
+          "id": "heartbeat_age",
+          "name": "Heartbeat age",
+          "description": "No heartbeat for 3+ minutes",
+          "pattern": "heartbeat_age",
+          "confidence_weight": 0.4,
+          "threshold_minutes": 3
+        }
+      ]
+    },
+    {
+      "name": "Recovery Actions",
+      "actions": [
+        {
+          "id": "create_checkpoint",
+          "name": "Create checkpoint",
+          "description": "Save current state before trying new approach",
+          "command": "/checkpoint create -d 'Before trying new approach'"
+        },
+        {
+          "id": "review_changes",
+          "name": "Review recent changes",
+          "description": "Look at recent git diff",
+          "command": "git diff HEAD~5"
+        },
+        {
+          "id": "step_back",
+          "name": "Step back from file",
+          "description": "Stop editing the problematic file",
+          "requires": "file_path"
+        },
+        {
+          "id": "break_circular",
+          "name": "Break circular pattern",
+          "description": "Try completely different approach"
+        }
+      ]
+    }
+  ],
+  "stuck_threshold": 0.5,
+  "status_emojis": {
+    "active": "🟢",
+    "stuck": "🔴",
+    "idle": "🟡",
+    "completed": "✅"
+  },
+  "storage": {
+    "base_dir": "~/.claude/popkit/heartbeats",
+    "session_state": "session_state.json",
+    "heartbeats_log": "heartbeats.jsonl",
+    "latest": "latest.json"
+  },
+  "scripts": {
+    "status": "python scripts/system_check.py --mode=status",
+    "stuck": "python scripts/system_check.py --mode=stuck",
+    "beat": "python scripts/system_check.py --mode=beat",
+    "list": "python scripts/system_check.py --mode=list"
+  }
+}

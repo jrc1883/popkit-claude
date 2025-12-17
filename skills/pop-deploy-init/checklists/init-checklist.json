@@ -1,0 +1,256 @@
+{
+  "name": "Deployment Initialization Checklist",
+  "version": "1.0.0",
+  "description": "Verification checklist for deployment configuration initialization",
+  "categories": [
+    {
+      "name": "Pre-flight Checks",
+      "checks": [
+        {
+          "id": "popkit_initialized",
+          "name": "PopKit initialized",
+          "description": ".claude/popkit/ directory exists",
+          "required": true,
+          "automated": true,
+          "script": "test -d .claude/popkit && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "no_existing_config",
+          "name": "No existing deploy config",
+          "description": "deploy.json doesn't already exist (or --force used)",
+          "required": true,
+          "automated": true,
+          "script": "test ! -f .claude/popkit/deploy.json && echo 'PASS' || echo 'FAIL'"
+        }
+      ]
+    },
+    {
+      "name": "Project Detection",
+      "checks": [
+        {
+          "id": "language_detected",
+          "name": "Language detected",
+          "description": "Project language identified from package files",
+          "required": true,
+          "automated": true,
+          "script": "python scripts/detect_project.py --json | jq -e '.language != \"unknown\"'"
+        },
+        {
+          "id": "framework_detected",
+          "name": "Framework detected",
+          "description": "Framework identified or set to generic",
+          "required": true,
+          "automated": true,
+          "script": "python scripts/detect_project.py --json | jq -e '.framework'"
+        },
+        {
+          "id": "github_state_detected",
+          "name": "GitHub state detected",
+          "description": "Git and GitHub configuration analyzed",
+          "required": true,
+          "automated": true,
+          "script": "python scripts/detect_project.py --json | jq -e '.github'"
+        },
+        {
+          "id": "cicd_state_detected",
+          "name": "CI/CD state detected",
+          "description": "Existing CI/CD platform detected or marked as none",
+          "required": true,
+          "automated": true,
+          "script": "python scripts/detect_project.py --json | jq -e '.cicd'"
+        }
+      ]
+    },
+    {
+      "name": "User Intent Collection",
+      "checks": [
+        {
+          "id": "project_type_selected",
+          "name": "Project type selected",
+          "description": "User chose web-app, backend-api, cli-tool, library, or other",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "targets_selected",
+          "name": "Deployment targets selected",
+          "description": "User chose at least one deployment target",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "state_selected",
+          "name": "Project state selected",
+          "description": "User indicated current deployment setup state",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Configuration Creation",
+      "checks": [
+        {
+          "id": "config_file_created",
+          "name": "deploy.json created",
+          "description": ".claude/popkit/deploy.json file exists",
+          "required": true,
+          "automated": true,
+          "script": "test -f .claude/popkit/deploy.json && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_valid_json",
+          "name": "Valid JSON syntax",
+          "description": "deploy.json is valid JSON",
+          "required": true,
+          "automated": true,
+          "script": "jq . .claude/popkit/deploy.json > /dev/null 2>&1 && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_version",
+          "name": "Has version field",
+          "description": "version = '1.0'",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.version == \"1.0\"' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_project_type",
+          "name": "Has project_type field",
+          "description": "project_type is set",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.project_type' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_targets",
+          "name": "Has targets array",
+          "description": "targets array with at least one item",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.targets | length > 0' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_github",
+          "name": "Has github object",
+          "description": "github configuration present",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.github' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_cicd",
+          "name": "Has cicd object",
+          "description": "cicd configuration present",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.cicd' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_gaps",
+          "name": "Has gaps object",
+          "description": "gaps analysis present",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.gaps' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_has_history",
+          "name": "Has history array",
+          "description": "history with init entry",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.history | length > 0' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "config_history_has_init",
+          "name": "History contains init action",
+          "description": "At least one history entry with action='init'",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.history[] | select(.action == \"init\")' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        }
+      ]
+    },
+    {
+      "name": "Schema Validation",
+      "checks": [
+        {
+          "id": "schema_validation_passes",
+          "name": "Schema validation passes",
+          "description": "validate_config.py returns success",
+          "required": true,
+          "automated": true,
+          "script": "python scripts/validate_config.py && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "no_validation_errors",
+          "name": "No validation errors",
+          "description": "No errors in validation report",
+          "required": true,
+          "automated": true,
+          "script": "python scripts/validate_config.py --json | jq -e '.errors | map(select(.level == \"error\")) | length == 0' && echo 'PASS' || echo 'FAIL'"
+        }
+      ]
+    },
+    {
+      "name": "Gap Analysis",
+      "checks": [
+        {
+          "id": "gaps_identified",
+          "name": "Gaps correctly identified",
+          "description": "needs_github, needs_cicd, needs_target_configs flags set",
+          "required": true,
+          "automated": true,
+          "script": "jq -e '.gaps.needs_github != null and .gaps.needs_cicd != null and .gaps.needs_target_configs != null' .claude/popkit/deploy.json > /dev/null && echo 'PASS' || echo 'FAIL'"
+        },
+        {
+          "id": "state_matches_gaps",
+          "name": "State matches gaps",
+          "description": "Project state aligns with detected gaps",
+          "required": false,
+          "automated": true,
+          "condition": "manual_verification"
+        }
+      ]
+    },
+    {
+      "name": "User Experience",
+      "checks": [
+        {
+          "id": "ask_user_question_used",
+          "name": "AskUserQuestion tool used",
+          "description": "All 3 required decision points used AskUserQuestion",
+          "required": true,
+          "automated": false,
+          "note": "Tracked by hooks (pre-tool-use.py, post-tool-use.py)"
+        },
+        {
+          "id": "next_action_offered",
+          "name": "Next action offered",
+          "description": "User was offered setup/validate options after init",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "summary_displayed",
+          "name": "Summary displayed",
+          "description": "User saw detection results and gaps summary",
+          "required": true,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "detect": "python scripts/detect_project.py --json",
+    "validate": "python scripts/validate_config.py",
+    "validate_json": "python scripts/validate_config.py --json",
+    "run_all_automated": "bash -c 'for check in $(jq -r \".categories[].checks[] | select(.automated == true) | .script\" checklists/init-checklist.json); do eval \"$check\"; done'"
+  },
+  "metadata": {
+    "created": "2025-12-15",
+    "version": "1.0.0",
+    "author": "PopKit Deploy Team"
+  }
+}

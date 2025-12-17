@@ -1,0 +1,154 @@
+{
+  "name": "Embedding Checklist",
+  "version": "1.0.0",
+  "description": "Quality checklist for content embedding process",
+  "categories": [
+    {
+      "name": "Pre-Embedding Checks",
+      "checks": [
+        {
+          "id": "api_key_set",
+          "name": "VOYAGE_API_KEY configured",
+          "description": "Environment variable is set for Voyage AI access",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "content_discovered",
+          "name": "Content discovered successfully",
+          "description": "All expected content locations were scanned",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "valid_metadata",
+          "name": "Items have valid metadata",
+          "description": "Name and description present in frontmatter",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "reasonable_size",
+          "name": "Content within size limits",
+          "description": "Items are not too large (< 10KB) or too small (> 50 chars)",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Chunking Quality",
+      "checks": [
+        {
+          "id": "meaningful_chunks",
+          "name": "Chunks are meaningful",
+          "description": "Each chunk represents a coherent section",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "appropriate_size",
+          "name": "Chunk sizes are appropriate",
+          "description": "Chunks are 100-2000 characters",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "no_truncation_issues",
+          "name": "No mid-sentence truncation",
+          "description": "Chunks end at natural boundaries",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "metadata_preserved",
+          "name": "Metadata preserved in chunks",
+          "description": "Source attribution maintained",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Embedding Quality",
+      "checks": [
+        {
+          "id": "embeddings_computed",
+          "name": "Embeddings computed successfully",
+          "description": "API returned valid embedding vectors",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "correct_dimension",
+          "name": "Correct embedding dimension",
+          "description": "Vectors are 1024 dimensions (voyage-3.5)",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "stored_successfully",
+          "name": "Stored in embedding database",
+          "description": "Embeddings saved to SQLite store",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "hash_recorded",
+          "name": "Content hash recorded",
+          "description": "For incremental update detection",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Post-Embedding Verification",
+      "checks": [
+        {
+          "id": "retrieval_test",
+          "name": "Retrieval test passed",
+          "description": "Can search and retrieve embedded content",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "similarity_reasonable",
+          "name": "Similarity scores reasonable",
+          "description": "Related content returns high similarity",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "export_valid",
+          "name": "Export file valid (if exported)",
+          "description": "JSON export is valid and readable",
+          "required": false,
+          "automated": true
+        }
+      ]
+    }
+  ],
+  "rate_limiting": {
+    "requests_per_minute": 3,
+    "delay_seconds": 21,
+    "batch_size": 50,
+    "max_tokens_per_request": 120000
+  },
+  "content_requirements": {
+    "min_content_length": 50,
+    "max_content_length": 10000,
+    "required_frontmatter_fields": ["name"],
+    "recommended_frontmatter_fields": ["name", "description"]
+  },
+  "storage": {
+    "database_path": "~/.claude/embeddings/embeddings.db",
+    "export_path": ".claude/tool_embeddings.json"
+  },
+  "scripts": {
+    "discover": "python scripts/chunk_content.py --mode=discover",
+    "chunk": "python scripts/chunk_content.py --mode=chunk",
+    "embed": "python scripts/chunk_content.py --mode=embed",
+    "status": "python scripts/chunk_content.py --mode=status"
+  }
+}

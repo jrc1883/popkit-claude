@@ -1,0 +1,523 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "agent-routing",
+  "description": "Comprehensive tests for agent routing based on keywords, file patterns, and error patterns",
+  "version": "2.0.0",
+
+  "keyword_tests": [
+    {
+      "name": "bug keywords route to bug-whisperer",
+      "prompt": "fix this bug in the authentication code",
+      "expected_agent": "bug-whisperer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "error keywords route to bug-whisperer",
+      "prompt": "there's an error when I try to login",
+      "expected_agent": "bug-whisperer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "security keywords route to security-auditor",
+      "prompt": "audit this code for security vulnerabilities",
+      "expected_agent": "security-auditor",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "test keywords route to test-writer-fixer",
+      "prompt": "write unit tests for this function",
+      "expected_agent": "test-writer-fixer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "performance keywords route to performance-optimizer",
+      "prompt": "analyze and improve the performance of this slow function",
+      "expected_agent": "performance-optimizer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "optimize keywords route to performance-optimizer",
+      "prompt": "optimize this database query",
+      "expected_agent": "performance-optimizer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "slow keywords route to performance-optimizer",
+      "prompt": "this page is loading slow, help me fix it",
+      "expected_agent": "performance-optimizer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "review keywords route to code-reviewer",
+      "prompt": "review this pull request for best practices",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "pr keywords route to code-reviewer",
+      "prompt": "check my pr for issues",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "pull-request keywords route to code-reviewer",
+      "prompt": "review my pull-request changes",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "api keywords route to api-designer",
+      "prompt": "design a REST API for user management",
+      "expected_agent": "api-designer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "refactor keywords route to refactoring-expert",
+      "prompt": "refactor this legacy code to use modern patterns",
+      "expected_agent": "refactoring-expert",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "docs keywords route to documentation-maintainer",
+      "prompt": "update the docs for this API endpoint",
+      "expected_agent": "documentation-maintainer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "database keywords route to query-optimizer",
+      "prompt": "optimize my database schema",
+      "expected_agent": "query-optimizer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "migration keywords route to migration-specialist",
+      "prompt": "help me migrate from MySQL to PostgreSQL",
+      "expected_agent": "migration-specialist",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "accessibility keywords route to accessibility-guardian",
+      "prompt": "check the accessibility of this component for screen readers",
+      "expected_agent": "accessibility-guardian",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "prototype keywords route to rapid-prototyper",
+      "prompt": "quickly build a prototype for this feature",
+      "expected_agent": "rapid-prototyper",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "deploy keywords route to devops-automator",
+      "prompt": "set up CI/CD pipeline for deployment",
+      "expected_agent": "devops-automator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "backup keywords route to backup-coordinator",
+      "prompt": "set up database backup strategy",
+      "expected_agent": "backup-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "ai keywords route to ai-engineer",
+      "prompt": "integrate an AI model into our application",
+      "expected_agent": "ai-engineer",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "feature keywords route to feature-prioritizer",
+      "prompt": "prioritize the features in our backlog",
+      "expected_agent": "feature-prioritizer",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "metrics keywords route to metrics-collector",
+      "prompt": "set up metrics collection for the application",
+      "expected_agent": "metrics-collector",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "logs keywords route to log-analyzer",
+      "prompt": "analyze these error logs to find the issue",
+      "expected_agent": "log-analyzer",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "rollback keywords route to rollback-specialist",
+      "prompt": "rollback the last deployment",
+      "expected_agent": "rollback-specialist",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "lint keywords route to code-reviewer",
+      "prompt": "fix the eslint errors and clean up the code",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "eslint keywords route to code-reviewer",
+      "prompt": "configure eslint for this project",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "linting keywords route to code-reviewer",
+      "prompt": "set up linting rules for the codebase",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "prettier keywords route to code-reviewer",
+      "prompt": "configure prettier for consistent formatting",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "format keywords route to code-reviewer",
+      "prompt": "format the code according to style guide",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "style keywords route to code-reviewer",
+      "prompt": "apply consistent code style across the project",
+      "expected_agent": "code-reviewer",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "cleanup keywords route to refactoring-expert",
+      "prompt": "cleanup this messy code and remove dead code",
+      "expected_agent": "refactoring-expert",
+      "min_confidence": 0.4,
+      "tier": "tier-1-always-active"
+    },
+    {
+      "name": "power keywords route to power-coordinator",
+      "prompt": "start power mode for this complex task",
+      "expected_agent": "power-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "orchestrate keywords route to power-coordinator",
+      "prompt": "orchestrate multiple agents to work on this",
+      "expected_agent": "power-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "coordinate keywords route to power-coordinator",
+      "prompt": "coordinate the agents to work in parallel",
+      "expected_agent": "power-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "parallel keywords route to power-coordinator",
+      "prompt": "run these tasks in parallel using multiple agents",
+      "expected_agent": "power-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "mesh keywords route to power-coordinator",
+      "prompt": "set up a mesh network for agent communication",
+      "expected_agent": "power-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    },
+    {
+      "name": "multi-agent keywords route to power-coordinator",
+      "prompt": "use multi-agent collaboration for this project",
+      "expected_agent": "power-coordinator",
+      "min_confidence": 0.4,
+      "tier": "tier-2-on-demand"
+    }
+  ],
+
+  "file_pattern_tests": [
+    {
+      "name": "test files route to test-writer-fixer",
+      "file": "src/auth.test.ts",
+      "expected_agent": "test-writer-fixer",
+      "pattern": "*.test.ts"
+    },
+    {
+      "name": "spec files route to test-writer-fixer",
+      "file": "src/auth.spec.ts",
+      "expected_agent": "test-writer-fixer",
+      "pattern": "*.spec.ts"
+    },
+    {
+      "name": "tsx files route to code-reviewer",
+      "file": "src/components/Button.tsx",
+      "expected_agents": ["code-reviewer", "accessibility-guardian"],
+      "pattern": "*.tsx"
+    },
+    {
+      "name": "sql files route to query-optimizer",
+      "file": "migrations/001_create_users.sql",
+      "expected_agent": "query-optimizer",
+      "pattern": "*.sql"
+    },
+    {
+      "name": "markdown files route to documentation-maintainer",
+      "file": "docs/README.md",
+      "expected_agent": "documentation-maintainer",
+      "pattern": "*.md"
+    },
+    {
+      "name": "package.json routes to bundle-analyzer",
+      "file": "package.json",
+      "expected_agent": "bundle-analyzer",
+      "pattern": "package.json"
+    },
+    {
+      "name": "Dockerfile routes to devops-automator",
+      "file": "Dockerfile",
+      "expected_agent": "devops-automator",
+      "pattern": "Dockerfile"
+    },
+    {
+      "name": "env files route to security-auditor",
+      "file": ".env.local",
+      "expected_agent": "security-auditor",
+      "pattern": ".env*"
+    },
+    {
+      "name": "eslintrc routes to code-reviewer",
+      "file": ".eslintrc.json",
+      "expected_agent": "code-reviewer",
+      "pattern": ".eslintrc*"
+    },
+    {
+      "name": "eslint config routes to code-reviewer",
+      "file": "eslint.config.js",
+      "expected_agent": "code-reviewer",
+      "pattern": "eslint.config.*"
+    },
+    {
+      "name": "prettierrc routes to code-reviewer",
+      "file": ".prettierrc",
+      "expected_agent": "code-reviewer",
+      "pattern": ".prettierrc*"
+    },
+    {
+      "name": "config.js routes to code-reviewer",
+      "file": "webpack.config.js",
+      "expected_agent": "code-reviewer",
+      "pattern": "*.config.js"
+    },
+    {
+      "name": "config.ts routes to code-reviewer",
+      "file": "vite.config.ts",
+      "expected_agent": "code-reviewer",
+      "pattern": "*.config.ts"
+    },
+    {
+      "name": "tsconfig routes to code-reviewer",
+      "file": "tsconfig.json",
+      "expected_agent": "code-reviewer",
+      "pattern": "tsconfig*.json"
+    }
+  ],
+
+  "error_pattern_tests": [
+    {
+      "name": "TypeError routes to bug-whisperer",
+      "error": "TypeError: Cannot read property 'foo' of undefined",
+      "expected_agent": "bug-whisperer",
+      "pattern": "TypeError"
+    },
+    {
+      "name": "SyntaxError routes to code-reviewer",
+      "error": "SyntaxError: Unexpected token",
+      "expected_agent": "code-reviewer",
+      "pattern": "SyntaxError"
+    },
+    {
+      "name": "ReferenceError routes to bug-whisperer",
+      "error": "ReferenceError: x is not defined",
+      "expected_agent": "bug-whisperer",
+      "pattern": "ReferenceError"
+    },
+    {
+      "name": "RangeError routes to bug-whisperer",
+      "error": "RangeError: Maximum call stack size exceeded",
+      "expected_agent": "bug-whisperer",
+      "pattern": "RangeError"
+    },
+    {
+      "name": "SecurityError routes to security-auditor",
+      "error": "SecurityError: Content-Security-Policy violation",
+      "expected_agent": "security-auditor",
+      "pattern": "SecurityError"
+    },
+    {
+      "name": "PermissionError routes to security-auditor",
+      "error": "PermissionError: Access denied to resource",
+      "expected_agent": "security-auditor",
+      "pattern": "PermissionError"
+    },
+    {
+      "name": "PerformanceWarning routes to performance-optimizer",
+      "error": "PerformanceWarning: Slow render detected",
+      "expected_agent": "performance-optimizer",
+      "pattern": "PerformanceWarning"
+    },
+    {
+      "name": "MemoryError routes to performance-optimizer",
+      "error": "MemoryError: JavaScript heap out of memory",
+      "expected_agent": "performance-optimizer",
+      "pattern": "MemoryError"
+    },
+    {
+      "name": "TimeoutError routes to performance-optimizer",
+      "error": "TimeoutError: Operation timed out after 30s",
+      "expected_agent": "performance-optimizer",
+      "pattern": "TimeoutError"
+    },
+    {
+      "name": "DeprecationWarning routes to migration-specialist",
+      "error": "DeprecationWarning: This API will be removed in v2.0",
+      "expected_agent": "migration-specialist",
+      "pattern": "DeprecationWarning"
+    },
+    {
+      "name": "ImportError routes to migration-specialist",
+      "error": "ImportError: Cannot find module 'old-package'",
+      "expected_agent": "migration-specialist",
+      "pattern": "ImportError"
+    },
+    {
+      "name": "ModuleNotFoundError routes to migration-specialist",
+      "error": "ModuleNotFoundError: No module named 'legacy'",
+      "expected_agent": "migration-specialist",
+      "pattern": "ModuleNotFoundError"
+    },
+    {
+      "name": "ConnectionError routes to devops-automator",
+      "error": "ConnectionError: Failed to connect to database",
+      "expected_agent": "devops-automator",
+      "pattern": "ConnectionError"
+    },
+    {
+      "name": "NetworkError routes to devops-automator",
+      "error": "NetworkError: Failed to fetch resource",
+      "expected_agent": "devops-automator",
+      "pattern": "NetworkError"
+    }
+  ],
+
+  "feature_workflow_tests": [
+    {
+      "name": "exploration phase uses code-explorer",
+      "workflow": "feature-dev",
+      "phase": "Exploration",
+      "expected_agent": "code-explorer"
+    },
+    {
+      "name": "architecture phase uses code-architect",
+      "workflow": "feature-dev",
+      "phase": "Architecture",
+      "expected_agent": "code-architect"
+    },
+    {
+      "name": "review phase uses code-reviewer",
+      "workflow": "feature-dev",
+      "phase": "Review",
+      "expected_agent": "code-reviewer"
+    }
+  ],
+
+  "agent_coverage": {
+    "tier-1-always-active": {
+      "tested": [
+        "code-reviewer",
+        "bug-whisperer",
+        "security-auditor",
+        "test-writer-fixer",
+        "api-designer",
+        "performance-optimizer",
+        "refactoring-expert",
+        "documentation-maintainer",
+        "query-optimizer",
+        "migration-specialist",
+        "accessibility-guardian"
+      ],
+      "total": 11,
+      "coverage": "100%"
+    },
+    "tier-2-on-demand": {
+      "tested": [
+        "ai-engineer",
+        "deployment-validator",
+        "feature-prioritizer",
+        "rapid-prototyper",
+        "backup-coordinator",
+        "meta-agent",
+        "researcher",
+        "user-story-writer",
+        "devops-automator",
+        "bundle-analyzer",
+        "log-analyzer",
+        "metrics-collector",
+        "feedback-synthesizer",
+        "rollback-specialist",
+        "data-integrity",
+        "dead-code-eliminator",
+        "power-coordinator"
+      ],
+      "total": 17,
+      "coverage": "100%"
+    },
+    "feature-workflow": {
+      "tested": [
+        "code-explorer",
+        "code-architect",
+        "code-reviewer"
+      ],
+      "total": 3,
+      "coverage": "100%"
+    }
+  },
+
+  "metadata": {
+    "created": "2025-12-09",
+    "updated": "2025-12-12",
+    "issue": "#105, #196",
+    "total_tests": 65,
+    "author": "popkit"
+  }
+}

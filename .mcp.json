@@ -1,0 +1,134 @@
+{
+  "$schema": "https://claude.ai/schemas/mcp.json",
+  "version": "1.0.0",
+  "name": "popkit",
+  "displayName": "Pop Toolkit",
+  "description": "AI-powered development workflows through skills, agents, commands, and hooks",
+  "publisher": "jrc1883",
+  "repository": "https://github.com/jrc1883/popkit",
+  "license": "MIT",
+  "mcpServers": {},
+  "tools": {
+    "health-check": {
+      "description": "Run comprehensive project health checks",
+      "server": "project-health"
+    },
+    "git-status": {
+      "description": "Get current git repository status",
+      "server": "project-health"
+    },
+    "git-diff": {
+      "description": "Show git diff for staged/unstaged changes",
+      "server": "project-health"
+    },
+    "recent-commits": {
+      "description": "List recent git commits",
+      "server": "project-health"
+    },
+    "typecheck": {
+      "description": "Run TypeScript type checking",
+      "server": "project-health"
+    },
+    "lint": {
+      "description": "Run ESLint on the codebase",
+      "server": "project-health"
+    },
+    "test": {
+      "description": "Run project tests",
+      "server": "project-health"
+    }
+  },
+  "resources": {
+    "project-context": {
+      "description": "Current project context and configuration",
+      "server": "project-health"
+    },
+    "agent-registry": {
+      "description": "Registry of available agents and their capabilities",
+      "server": "project-health"
+    }
+  },
+  "settings": {
+    "observability": {
+      "enabled": true,
+      "endpoint": "http://localhost:8001/events"
+    },
+    "orchestration": {
+      "enabled": true,
+      "endpoint": "http://localhost:8005"
+    },
+    "logging": {
+      "level": "info",
+      "directory": "logs"
+    },
+    "claude-code-2.0.71": {
+      "description": "Settings framework integration (Claude Code 2.0.71+)",
+      "prompt-suggestions": {
+        "enabled": true,
+        "description": "Control display of prompt suggestions in editor",
+        "type": "boolean"
+      },
+      "configuration-management": {
+        "enabled": true,
+        "description": "Native /config and /settings commands",
+        "type": "boolean"
+      },
+      "settings-alias": {
+        "enabled": true,
+        "description": "/settings command alias for /config",
+        "type": "boolean"
+      },
+      "mcp-permissions": {
+        "description": "Fixed MCP server loading with dangerously-skip-permissions",
+        "endpoint": "http://localhost:8005/mcp-settings"
+      },
+      "bash-glob-safety": {
+        "enabled": true,
+        "description": "Improved permission rules for bash glob patterns",
+        "type": "boolean"
+      }
+    },
+    "popkit-account": {
+      "description": "Account and tier management (Claude Code 2.0.71+ UI)",
+      "api-key": {
+        "description": "API key management and rotation",
+        "endpoint": "https://api.thehouseofdeals.com/v1/auth/keys"
+      },
+      "tier-status": {
+        "description": "Current subscription tier and limits",
+        "endpoint": "https://api.thehouseofdeals.com/v1/auth/me"
+      },
+      "billing": {
+        "description": "Stripe billing portal integration",
+        "endpoint": "https://api.thehouseofdeals.com/v1/billing/portal"
+      }
+    },
+    "popkit-privacy": {
+      "description": "Privacy and data sharing settings (Claude Code 2.0.71+ UI)",
+      "data-sharing": {
+        "enabled": true,
+        "description": "Enable/disable collective learning patterns",
+        "type": "boolean"
+      },
+      "anonymization": {
+        "description": "Anonymization level: strict, moderate, minimal",
+        "default": "moderate",
+        "type": "string"
+      },
+      "auto-delete": {
+        "description": "Auto-delete data retention period in days (0=off)",
+        "default": 90,
+        "type": "integer"
+      },
+      "region": {
+        "description": "Data storage region: us, eu",
+        "default": "us",
+        "type": "string"
+      },
+      "consent": {
+        "description": "Collective learning consent status",
+        "endpoint": "https://api.thehouseofdeals.com/v1/privacy/consent"
+      }
+    }
+  }
+}

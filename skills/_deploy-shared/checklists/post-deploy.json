@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "post-deploy",
+  "version": "1.0.0",
+  "description": "Post-deployment verification checklist",
+  "categories": [
+    {
+      "id": "health-check",
+      "name": "Health Checks",
+      "weight": 40,
+      "checks": [
+        {
+          "id": "POST-001",
+          "name": "Service Responding",
+          "description": "Application responds to health check endpoint",
+          "examples": [
+            "curl https://example.com/health",
+            "curl https://example.com/api/status"
+          ],
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "POST-002",
+          "name": "Correct Version",
+          "description": "Deployed version matches expected",
+          "examples": [
+            "curl https://example.com/version",
+            "npm view package-name version"
+          ],
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "POST-003",
+          "name": "Response Time",
+          "description": "Response time within acceptable limits",
+          "threshold": "< 500ms",
+          "severity": "high",
+          "automated": true
+        }
+      ]
+    },
+    {
+      "id": "functionality",
+      "name": "Core Functionality",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "POST-010",
+          "name": "Critical Path Works",
+          "description": "Main user flow functions correctly",
+          "severity": "critical",
+          "automated": false
+        },
+        {
+          "id": "POST-011",
+          "name": "Authentication Works",
+          "description": "Users can log in/authenticate",
+          "severity": "critical",
+          "automated": false
+        },
+        {
+          "id": "POST-012",
+          "name": "Database Connected",
+          "description": "Database connections working",
+          "severity": "critical",
+          "automated": true
+        },
+        {
+          "id": "POST-013",
+          "name": "External Services",
+          "description": "Third-party integrations functional",
+          "severity": "high",
+          "automated": false
+        }
+      ]
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitoring & Logs",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "POST-020",
+          "name": "Logs Flowing",
+          "description": "Application logs appearing in monitoring",
+          "severity": "high",
+          "automated": false
+        },
+        {
+          "id": "POST-021",
+          "name": "Metrics Recording",
+          "description": "Application metrics being collected",
+          "severity": "medium",
+          "automated": false
+        },
+        {
+          "id": "POST-022",
+          "name": "Alerts Configured",
+          "description": "Alerting rules active for new version",
+          "severity": "medium",
+          "automated": false
+        },
+        {
+          "id": "POST-023",
+          "name": "No Error Spike",
+          "description": "Error rate not elevated after deploy",
+          "severity": "high",
+          "automated": true
+        }
+      ]
+    }
+  ],
+  "rollback_criteria": {
+    "automatic": [
+      "Health check failing for > 2 minutes",
+      "Error rate > 10% for > 5 minutes",
+      "Response time > 5s for > 2 minutes"
+    ],
+    "manual": [
+      "Critical functionality broken",
+      "Data corruption detected",
+      "Security vulnerability discovered"
+    ]
+  },
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 85,
+    "critical_must_pass": true
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "startup-performance",
+  "version": "1.0.0",
+  "description": "Checklist for plugin startup performance assessment",
+  "categories": [
+    {
+      "id": "file-loading",
+      "name": "Startup File Loading",
+      "weight": 40,
+      "checks": [
+        {
+          "id": "SP-001",
+          "name": "Startup File Count",
+          "description": "Minimal files loaded at startup",
+          "target": "<10 files",
+          "warning": "10-20 files",
+          "critical": ">20 files",
+          "automated": true,
+          "files": [
+            "plugin.json",
+            "marketplace.json",
+            "config.json",
+            "hooks.json",
+            ".mcp.json"
+          ]
+        },
+        {
+          "id": "SP-002",
+          "name": "Startup Size",
+          "description": "Total size of startup files",
+          "target": "<50KB",
+          "warning": "50-100KB",
+          "critical": ">100KB",
+          "automated": true
+        },
+        {
+          "id": "SP-003",
+          "name": "Required vs Optional",
+          "description": "Clear separation of required startup files",
+          "checks": [
+            "Required files identified",
+            "Optional files deferred",
+            "No unnecessary parsing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lazy-loading",
+      "name": "Lazy Loading Implementation",
+      "weight": 35,
+      "checks": [
+        {
+          "id": "SP-004",
+          "name": "Tier Distribution",
+          "description": "Appropriate tier 1 vs tier 2 balance",
+          "target": "Tier 1 <=15 agents",
+          "warning": "16-20 agents",
+          "critical": ">20 agents",
+          "automated": true
+        },
+        {
+          "id": "SP-005",
+          "name": "On-Demand Loading",
+          "description": "Skills and agents loaded when needed",
+          "checks": [
+            "SKILL.md read on invocation only",
+            "AGENT.md read on activation only",
+            "Resources loaded lazily"
+          ]
+        },
+        {
+          "id": "SP-006",
+          "name": "Trigger-Based Activation",
+          "description": "Efficient trigger matching",
+          "checks": [
+            "Keywords indexed efficiently",
+            "File patterns compiled",
+            "Error patterns optimized"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "initialization",
+      "name": "Initialization Efficiency",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "SP-007",
+          "name": "Hook Initialization",
+          "description": "Hooks initialize quickly",
+          "checks": [
+            "No heavy imports at module level",
+            "Deferred processing",
+            "Cached configurations"
+          ]
+        },
+        {
+          "id": "SP-008",
+          "name": "MCP Server Startup",
+          "description": "MCP servers start efficiently",
+          "checks": [
+            "Lazy tool registration",
+            "Deferred connections",
+            "Timeout handling"
+          ]
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "target_startup_time_ms": 500,
+    "warning_startup_time_ms": 1000,
+    "critical_startup_time_ms": 2000
+  },
+  "scoring": {
+    "method": "weighted_average",
+    "pass_threshold": 70
+  }
+}

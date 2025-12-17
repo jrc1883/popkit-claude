@@ -1,0 +1,113 @@
+{
+  "name": "Knowledge Lookup Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for querying cached knowledge sources",
+  "phases": [
+    {
+      "id": "query",
+      "name": "Understand Query",
+      "description": "Parse and understand the user's question",
+      "steps": [
+        {
+          "id": "parse_query",
+          "name": "Parse Query",
+          "type": "automated",
+          "action": "Extract keywords, intent, and topic from query"
+        },
+        {
+          "id": "identify_sources",
+          "name": "Identify Relevant Sources",
+          "type": "automated",
+          "script": "scripts/semantic_search.py --mode=sources"
+        },
+        {
+          "id": "check_availability",
+          "name": "Check Source Availability",
+          "type": "automated",
+          "action": "Verify sources are cached and fresh"
+        }
+      ]
+    },
+    {
+      "id": "search",
+      "name": "Search Knowledge",
+      "description": "Find relevant information using hybrid search",
+      "steps": [
+        {
+          "id": "semantic_search",
+          "name": "Semantic Search",
+          "type": "automated",
+          "script": "scripts/semantic_search.py --mode=semantic",
+          "fallback": "keyword_search"
+        },
+        {
+          "id": "keyword_search",
+          "name": "Keyword Search",
+          "type": "automated",
+          "script": "scripts/semantic_search.py --mode=keyword"
+        },
+        {
+          "id": "hybrid_merge",
+          "name": "Merge Results",
+          "type": "automated",
+          "action": "Combine semantic and keyword results with weighted scoring"
+        }
+      ]
+    },
+    {
+      "id": "present",
+      "name": "Present Results",
+      "description": "Format and present findings to user",
+      "steps": [
+        {
+          "id": "rank_results",
+          "name": "Rank Results",
+          "type": "automated",
+          "action": "Order by relevance score and recency"
+        },
+        {
+          "id": "format_response",
+          "name": "Format Response",
+          "type": "automated",
+          "action": "Apply knowledge reference format template"
+        },
+        {
+          "id": "add_attribution",
+          "name": "Add Source Attribution",
+          "type": "automated",
+          "action": "Include source, timestamp, and relevance"
+        }
+      ]
+    }
+  ],
+  "triggers": {
+    "automatic": [
+      "Claude Code feature questions",
+      "Best practices queries",
+      "Documentation lookups"
+    ],
+    "manual": [
+      "Invoke pop-knowledge-lookup skill",
+      "Use /popkit:knowledge search"
+    ]
+  },
+  "search_strategies": {
+    "semantic_first": {
+      "description": "Try semantic search, fall back to keyword",
+      "weight_semantic": 0.7,
+      "weight_keyword": 0.3
+    },
+    "keyword_only": {
+      "description": "Exact keyword matching only",
+      "use_when": "embeddings_unavailable"
+    },
+    "hybrid": {
+      "description": "Run both in parallel, merge results",
+      "combine_strategy": "reciprocal_rank_fusion"
+    }
+  },
+  "output": {
+    "format": "markdown",
+    "template": "knowledge-reference"
+  }
+}

@@ -1,0 +1,202 @@
+{
+  "name": "Deployment Rollback Checklist",
+  "version": "1.0.0",
+  "description": "Critical checks for safe deployment rollbacks",
+  "categories": [
+    {
+      "name": "Pre-Rollback Assessment",
+      "checks": [
+        {
+          "id": "confirm_issue",
+          "name": "Issue confirmed",
+          "description": "Verified the issue requires rollback (not config/data issue)",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "identify_severity",
+          "name": "Severity assessed",
+          "description": "Determined impact level (critical/high/medium/low)",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "team_notified",
+          "name": "Team notified",
+          "description": "Relevant team members aware of rollback",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "rollback_target_identified",
+          "name": "Rollback target identified",
+          "description": "Know which version to rollback to",
+          "required": true,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Compatibility Checks",
+      "checks": [
+        {
+          "id": "database_compatible",
+          "name": "Database schema compatible",
+          "description": "Previous version works with current DB schema",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "api_compatible",
+          "name": "API contracts compatible",
+          "description": "No breaking API changes in rolled-back version",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "data_format_compatible",
+          "name": "Data format compatible",
+          "description": "No data format changes that would break",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "config_compatible",
+          "name": "Configuration compatible",
+          "description": "Environment variables and config work with old version",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Pre-Rollback Actions",
+      "checks": [
+        {
+          "id": "state_captured",
+          "name": "Current state captured",
+          "description": "Logs, metrics, and state preserved for forensics",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "previous_artifacts_available",
+          "name": "Previous artifacts available",
+          "description": "Old version images/packages accessible",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "rollback_tested",
+          "name": "Rollback tested (if time permits)",
+          "description": "Tested rollback in staging if not emergency",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Post-Rollback Verification",
+      "checks": [
+        {
+          "id": "health_checks_passing",
+          "name": "Health checks passing",
+          "description": "Application health endpoints return 200",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "correct_version_deployed",
+          "name": "Correct version deployed",
+          "description": "Version endpoint shows expected version",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "error_rates_normal",
+          "name": "Error rates normalized",
+          "description": "Error rate back to baseline",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "critical_paths_functional",
+          "name": "Critical paths functional",
+          "description": "Key user flows working correctly",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "no_data_loss",
+          "name": "No data loss",
+          "description": "Verified no data was lost during rollback",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Communication",
+      "checks": [
+        {
+          "id": "status_page_updated",
+          "name": "Status page updated",
+          "description": "Public status page reflects current state",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "stakeholders_notified",
+          "name": "Stakeholders notified",
+          "description": "Relevant parties informed of rollback completion",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "incident_documented",
+          "name": "Incident documented",
+          "description": "Timeline and details recorded",
+          "required": true,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Follow-Up",
+      "checks": [
+        {
+          "id": "postmortem_scheduled",
+          "name": "Post-mortem scheduled",
+          "description": "Review meeting scheduled within 48 hours",
+          "required": true,
+          "automated": false
+        },
+        {
+          "id": "fix_task_created",
+          "name": "Fix task created",
+          "description": "Issue created to properly fix the problem",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "monitoring_enhanced",
+          "name": "Monitoring enhanced",
+          "description": "Additional alerts added if gaps identified",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "time_targets": {
+    "decision": "5 minutes",
+    "execution": "10 minutes",
+    "verification": "5 minutes",
+    "total": "20 minutes"
+  },
+  "scripts": {
+    "execute_rollback": "python scripts/rollback_executor.py ${PLATFORM} --target ${TARGET}",
+    "verify_health": "curl -f ${HEALTH_URL}",
+    "check_version": "curl ${VERSION_URL}"
+  }
+}

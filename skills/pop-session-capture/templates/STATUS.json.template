@@ -1,0 +1,72 @@
+{
+  "lastUpdate": "{{TIMESTAMP}}",
+  "project": "{{PROJECT_NAME}}",
+  "sessionType": "{{SESSION_TYPE}}",
+  "git": {
+    "branch": "{{GIT_BRANCH}}",
+    "lastCommit": "{{LAST_COMMIT}}",
+    "uncommittedFiles": {{UNCOMMITTED_COUNT}},
+    "stagedFiles": {{STAGED_COUNT}},
+    "modifiedFiles": [{{MODIFIED_FILES}}],
+    "untrackedFiles": [{{UNTRACKED_FILES}}]
+  },
+  "tasks": {
+    "inProgress": [{{IN_PROGRESS_TASKS}}],
+    "completed": [{{COMPLETED_TASKS}}],
+    "blocked": [{{BLOCKED_TASKS}}]
+  },
+  "services": {
+    "devServer": {"running": {{DEV_SERVER_RUNNING}}, "port": 3000},
+    "database": {"running": {{DATABASE_RUNNING}}, "port": 5432},
+    "redis": {"running": {{REDIS_RUNNING}}, "port": 6379}
+  },
+  "context": {
+    "focusArea": "{{FOCUS_AREA}}",
+    "blocker": {{BLOCKER}},
+    "nextAction": "{{NEXT_ACTION}}",
+    "keyDecisions": [{{KEY_DECISIONS}}]
+  },
+  "projectData": {
+    "testStatus": "{{TEST_STATUS}}",
+    "buildStatus": "{{BUILD_STATUS}}",
+    "lintErrors": {{LINT_ERRORS}}
+  }
+}
+
+<!--
+Template Variables:
+
+Session:
+- TIMESTAMP: ISO 8601 timestamp (e.g., "2025-01-15T10:30:00Z")
+- PROJECT_NAME: Name from package.json or directory name
+- SESSION_TYPE: "Fresh" | "Resume" | "Continuation" | "Capture"
+
+Git:
+- GIT_BRANCH: Current branch name
+- LAST_COMMIT: "hash - message" format
+- UNCOMMITTED_COUNT: Number of uncommitted files
+- STAGED_COUNT: Number of staged files
+- MODIFIED_FILES: Comma-separated list of modified files
+- UNTRACKED_FILES: Comma-separated list of untracked files
+
+Tasks:
+- IN_PROGRESS_TASKS: Comma-separated task descriptions
+- COMPLETED_TASKS: Recently completed tasks (last 3-5)
+- BLOCKED_TASKS: Tasks with blockers
+
+Services:
+- DEV_SERVER_RUNNING: true | false
+- DATABASE_RUNNING: true | false
+- REDIS_RUNNING: true | false
+
+Context:
+- FOCUS_AREA: Current area of work
+- BLOCKER: null or "description of blocker"
+- NEXT_ACTION: What should happen next
+- KEY_DECISIONS: Important decisions made during session
+
+Project Data:
+- TEST_STATUS: "passing" | "45 passing, 2 failing" | "unknown"
+- BUILD_STATUS: "passing" | "failing" | "not configured"
+- LINT_ERRORS: Number of lint errors (-1 if unknown)
+-->

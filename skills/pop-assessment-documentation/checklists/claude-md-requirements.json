@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "claude-md-requirements",
+  "version": "1.0.0",
+  "description": "Checklist for CLAUDE.md documentation requirements",
+  "sections": [
+    {
+      "id": "CM-001",
+      "name": "Project Overview",
+      "required": true,
+      "description": "Clear explanation of what the project does",
+      "checks": [
+        "One-paragraph project summary",
+        "Primary purpose and goals",
+        "Target audience identification"
+      ]
+    },
+    {
+      "id": "CM-002",
+      "name": "Repository Structure",
+      "required": true,
+      "description": "Directory tree with explanations",
+      "checks": [
+        "ASCII directory tree or equivalent",
+        "Each major directory explained",
+        "Key files called out"
+      ]
+    },
+    {
+      "id": "CM-003",
+      "name": "Development Notes",
+      "required": true,
+      "description": "How to work with the codebase",
+      "checks": [
+        "Build/run commands documented",
+        "Development prerequisites listed",
+        "Testing approach explained"
+      ]
+    },
+    {
+      "id": "CM-004",
+      "name": "Key Architectural Patterns",
+      "required": true,
+      "description": "Core design decisions and patterns",
+      "checks": [
+        "Main patterns identified",
+        "Rationale for key decisions",
+        "File locations for pattern implementations"
+      ]
+    },
+    {
+      "id": "CM-005",
+      "name": "Key Files Table",
+      "required": true,
+      "description": "Quick reference for important files",
+      "checks": [
+        "Table format with file path and purpose",
+        "Entry points identified",
+        "Configuration files listed"
+      ]
+    },
+    {
+      "id": "CM-006",
+      "name": "Version History",
+      "required": false,
+      "description": "Current version and changelog reference",
+      "checks": [
+        "Current version number",
+        "Link to CHANGELOG.md if exists",
+        "Major version milestones"
+      ]
+    },
+    {
+      "id": "CM-007",
+      "name": "Conventions",
+      "required": true,
+      "description": "Coding and documentation standards",
+      "checks": [
+        "Commit message format",
+        "File naming conventions",
+        "Code style guidelines"
+      ]
+    },
+    {
+      "id": "CM-008",
+      "name": "Auto-Generated Sections",
+      "required": false,
+      "description": "Sections updated automatically",
+      "checks": [
+        "AUTO-GEN markers present",
+        "Counts match reality",
+        "Script reference for regeneration"
+      ]
+    },
+    {
+      "id": "CM-009",
+      "name": "Quick Start",
+      "required": false,
+      "description": "Fast onboarding for new developers",
+      "checks": [
+        "Installation commands",
+        "First run example",
+        "Success verification steps"
+      ]
+    },
+    {
+      "id": "CM-010",
+      "name": "Troubleshooting",
+      "required": false,
+      "description": "Common issues and solutions",
+      "checks": [
+        "FAQ section",
+        "Known issues documented",
+        "Debug instructions"
+      ]
+    }
+  ],
+  "scoring": {
+    "required_weight": 15,
+    "optional_weight": 5,
+    "per_check_weight": 2
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "name": "MCP Server Generation Workflow",
+  "version": "1.0.0",
+  "description": "Guided workflow for generating project-specific MCP servers",
+  "phases": [
+    {
+      "id": "analyze",
+      "name": "Analyze Project",
+      "description": "Understand the project to generate relevant MCP tools",
+      "steps": [
+        {
+          "id": "detect_stack",
+          "name": "Detect Technology Stack",
+          "prompt": "Analyzing project technology stack...",
+          "type": "automated",
+          "script": "scripts/analyze_project.py"
+        },
+        {
+          "id": "find_scripts",
+          "name": "Find Available Scripts",
+          "prompt": "Finding available npm/pip scripts...",
+          "type": "automated",
+          "sources": [
+            "package.json scripts",
+            "pyproject.toml scripts",
+            "Makefile targets"
+          ]
+        },
+        {
+          "id": "detect_services",
+          "name": "Detect External Services",
+          "prompt": "Detecting external services and integrations...",
+          "type": "automated",
+          "checks": [
+            "Database connections",
+            "API integrations",
+            "Cloud services",
+            "Message queues"
+          ]
+        },
+        {
+          "id": "select_tools",
+          "name": "Select Tools to Generate",
+          "prompt": "Which tools should be included in the MCP server?",
+          "type": "multiselect",
+          "options": {
+            "health": [
+              {"label": "Dev Server Health", "value": "dev_server_health", "default": true},
+              {"label": "Database Health", "value": "db_health", "default": true},
+              {"label": "API Health", "value": "api_health"}
+            ],
+            "git": [
+              {"label": "Git Status", "value": "git_status", "default": true},
+              {"label": "Git Diff", "value": "git_diff", "default": true},
+              {"label": "Recent Commits", "value": "git_recent_commits", "default": true}
+            ],
+            "quality": [
+              {"label": "Run Tests", "value": "run_tests", "default": true},
+              {"label": "Run Lint", "value": "run_lint", "default": true},
+              {"label": "Run Typecheck", "value": "run_typecheck", "default": true},
+              {"label": "Run Build", "value": "run_build"}
+            ],
+            "custom": [
+              {"label": "Custom Tools", "value": "custom", "description": "Add project-specific tools"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "generate",
+      "name": "Generate MCP Server",
+      "description": "Generate the MCP server code",
+      "steps": [
+        {
+          "id": "create_structure",
+          "name": "Create Directory Structure",
+          "type": "automated",
+          "directories": [
+            "mcp-server/",
+            "mcp-server/src/",
+            "mcp-server/src/tools/"
+          ]
+        },
+        {
+          "id": "generate_config",
+          "name": "Generate Configuration",
+          "type": "automated",
+          "files": [
+            "mcp-server/package.json",
+            "mcp-server/tsconfig.json",
+            "mcp-server/.mcp.json"
+          ]
+        },
+        {
+          "id": "generate_tools",
+          "name": "Generate Tool Implementations",
+          "type": "automated",
+          "per_tool": true
+        },
+        {
+          "id": "generate_index",
+          "name": "Generate Entry Point",
+          "type": "automated",
+          "file": "mcp-server/src/index.ts"
+        }
+      ]
+    },
+    {
+      "id": "test",
+      "name": "Test MCP Server",
+      "description": "Verify the generated MCP server works",
+      "steps": [
+        {
+          "id": "install_deps",
+          "name": "Install Dependencies",
+          "type": "automated",
+          "command": "cd mcp-server && npm install"
+        },
+        {
+          "id": "build",
+          "name": "Build Server",
+          "type": "automated",
+          "command": "cd mcp-server && npm run build"
+        },
+        {
+          "id": "test_tools",
+          "name": "Test Each Tool",
+          "type": "automated",
+          "script": "scripts/test_mcp_tools.py"
+        },
+        {
+          "id": "integration_test",
+          "name": "Integration Test",
+          "type": "manual",
+          "prompt": "Test the MCP server in Claude Code by adding to .mcp.json"
+        }
+      ]
+    },
+    {
+      "id": "integrate",
+      "name": "Integrate with Project",
+      "description": "Configure MCP server for use with Claude Code",
+      "steps": [
+        {
+          "id": "update_mcp_json",
+          "name": "Update .mcp.json",
+          "type": "automated",
+          "action": "Add server to project .mcp.json"
+        },
+        {
+          "id": "document",
+          "name": "Generate Documentation",
+          "type": "automated",
+          "file": "mcp-server/README.md"
+        },
+        {
+          "id": "next_steps",
+          "name": "Show Next Steps",
+          "type": "display",
+          "content": "MCP server created. Restart Claude Code to load the new tools."
+        }
+      ]
+    }
+  ],
+  "tool_categories": {
+    "health": "Service health checks",
+    "git": "Version control tools",
+    "quality": "Code quality tools",
+    "database": "Database tools",
+    "api": "API tools",
+    "custom": "Project-specific tools"
+  }
+}

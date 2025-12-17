@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "skill-documentation",
+  "version": "1.0.0",
+  "description": "Checklist for SKILL.md documentation requirements",
+  "requirements": [
+    {
+      "id": "SKD-001",
+      "name": "YAML Frontmatter",
+      "required": true,
+      "description": "Metadata header in YAML format",
+      "checks": [
+        {
+          "field": "name",
+          "required": true,
+          "format": "kebab-case with pop- prefix"
+        },
+        {
+          "field": "description",
+          "required": true,
+          "format": "One-line summary under 200 chars"
+        },
+        {
+          "field": "triggers",
+          "required": true,
+          "format": "Array of trigger phrases"
+        },
+        {
+          "field": "version",
+          "required": true,
+          "format": "Semantic version (X.Y.Z)"
+        }
+      ]
+    },
+    {
+      "id": "SKD-002",
+      "name": "Purpose Section",
+      "required": true,
+      "description": "Clear explanation of skill purpose",
+      "checks": [
+        "What the skill does",
+        "When to use it",
+        "Expected outcomes"
+      ]
+    },
+    {
+      "id": "SKD-003",
+      "name": "How to Use Section",
+      "required": true,
+      "description": "Step-by-step usage instructions",
+      "checks": [
+        "Numbered steps",
+        "Code examples where applicable",
+        "Expected outputs described"
+      ]
+    },
+    {
+      "id": "SKD-004",
+      "name": "Input/Output Documentation",
+      "required": true,
+      "description": "What the skill expects and returns",
+      "checks": [
+        "Required inputs listed",
+        "Optional inputs documented",
+        "Output format specified"
+      ]
+    },
+    {
+      "id": "SKD-005",
+      "name": "Examples",
+      "required": false,
+      "description": "Real-world usage examples",
+      "checks": [
+        "At least one complete example",
+        "Example shows typical use case",
+        "Expected output shown"
+      ]
+    },
+    {
+      "id": "SKD-006",
+      "name": "Related Skills",
+      "required": false,
+      "description": "Cross-references to related skills",
+      "checks": [
+        "Links to complementary skills",
+        "Explains when to use alternatives"
+      ]
+    },
+    {
+      "id": "SKD-007",
+      "name": "Standards Reference",
+      "required": false,
+      "description": "References to applicable standards",
+      "checks": [
+        "Table of relevant standards",
+        "File paths to standards docs"
+      ]
+    },
+    {
+      "id": "SKD-008",
+      "name": "Resource Directory",
+      "required": false,
+      "description": "Scripts, checklists, standards listing",
+      "checks": [
+        "scripts/ directory documented",
+        "checklists/ directory documented",
+        "standards/ directory documented"
+      ]
+    }
+  ],
+  "validation": {
+    "min_length": 200,
+    "max_length": 10000,
+    "required_markers": ["---", "## "]
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "blog-practices",
+  "version": "1.0.0",
+  "description": "Checklist based on Anthropic engineering blog best practices",
+  "source": "https://www.anthropic.com/engineering",
+  "categories": [
+    {
+      "id": "user-interaction",
+      "name": "User Interaction Patterns",
+      "weight": 25,
+      "checks": [
+        {
+          "id": "BP-001",
+          "name": "Uses AskUserQuestion",
+          "description": "Skills should use AskUserQuestion for user input, not raw prompts",
+          "type": "file_contains",
+          "pattern": "skills/*/SKILL.md",
+          "contains": "AskUserQuestion",
+          "severity": "high",
+          "deduction": 10,
+          "reference": "Anthropic recommends structured user input over free-form prompts"
+        },
+        {
+          "id": "BP-002",
+          "name": "No numbered options in prose",
+          "description": "Should not present options as '1. Option A, 2. Option B'",
+          "type": "file_not_contains",
+          "pattern": "skills/*/SKILL.md",
+          "not_contains": "type 1 or 2",
+          "severity": "medium",
+          "deduction": 5,
+          "reference": "Use AskUserQuestion tool instead of numbered text options"
+        }
+      ]
+    },
+    {
+      "id": "hook-enforcement",
+      "name": "Hook-Based Rule Enforcement",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "BP-003",
+          "name": "Rules in hooks, not prompts",
+          "description": "Critical rules should be enforced via hooks, not just prompt instructions",
+          "type": "concept_check",
+          "evidence_patterns": [
+            "hooks/pre-tool-use.py",
+            "hooks/post-tool-use.py"
+          ],
+          "severity": "medium",
+          "deduction": 5,
+          "reference": "Hooks provide deterministic enforcement vs probabilistic prompt compliance"
+        },
+        {
+          "id": "BP-004",
+          "name": "Safety checks in PreToolUse",
+          "description": "Safety validations should happen in PreToolUse hook",
+          "type": "file_contains_any",
+          "pattern": "hooks/pre-tool-use.py",
+          "contains_any": [
+            "security",
+            "validate",
+            "check",
+            "block"
+          ],
+          "severity": "medium",
+          "deduction": 5,
+          "reference": "PreToolUse is the right place for safety gates"
+        }
+      ]
+    },
+    {
+      "id": "skill-command-separation",
+      "name": "Skill/Command Separation",
+      "weight": 15,
+      "checks": [
+        {
+          "id": "BP-005",
+          "name": "Commands are entry points",
+          "description": "Commands should invoke skills, not implement logic directly",
+          "type": "concept_check",
+          "directories": ["commands/", "skills/"],
+          "severity": "low",
+          "deduction": 2,
+          "reference": "Commands are user-facing, skills contain implementation"
+        },
+        {
+          "id": "BP-006",
+          "name": "Skills are reusable",
+          "description": "Skills should be invokable from multiple commands",
+          "type": "concept_check",
+          "severity": "low",
+          "deduction": 2,
+          "reference": "DRY principle - skills contain shared logic"
+        }
+      ]
+    },
+    {
+      "id": "error-handling",
+      "name": "Error Handling Patterns",
+      "weight": 20,
+      "checks": [
+        {
+          "id": "BP-007",
+          "name": "Graceful degradation",
+          "description": "Hooks should not crash on errors",
+          "type": "file_contains",
+          "pattern": "hooks/*.py",
+          "contains": "except",
+          "severity": "high",
+          "deduction": 10,
+          "reference": "Never break the tool pipeline with unhandled exceptions"
+        },
+        {
+          "id": "BP-008",
+          "name": "Informative error messages",
+          "description": "Errors should be logged to stderr with context",
+          "type": "file_contains",
+          "pattern": "hooks/*.py",
+          "contains": "stderr",
+          "severity": "medium",
+          "deduction": 5,
+          "reference": "Users should understand what went wrong"
+        }
+      ]
+    },
+    {
+      "id": "model-selection",
+      "name": "Model Selection",
+      "weight": 10,
+      "checks": [
+        {
+          "id": "BP-009",
+          "name": "Appropriate model for task",
+          "description": "Complex tasks should use more capable models",
+          "type": "json_field_exists",
+          "file": "agents/config.json",
+          "path": "agents.*.model",
+          "severity": "low",
+          "deduction": 2,
+          "reference": "Match model capability to task complexity"
+        },
+        {
+          "id": "BP-010",
+          "name": "Haiku for simple tasks",
+          "description": "Simple, fast tasks should prefer Haiku",
+          "type": "concept_check",
+          "severity": "low",
+          "deduction": 2,
+          "reference": "Cost-effective model selection"
+        }
+      ]
+    },
+    {
+      "id": "extended-thinking",
+      "name": "Extended Thinking",
+      "weight": 10,
+      "checks": [
+        {
+          "id": "BP-011",
+          "name": "Thinking configuration exists",
+          "description": "Agents should have thinking configuration",
+          "type": "json_field_exists",
+          "file": "agents/config.json",
+          "path": "thinking",
+          "severity": "low",
+          "deduction": 2,
+          "reference": "Extended thinking improves complex reasoning"
+        },
+        {
+          "id": "BP-012",
+          "name": "Thinking budget defined",
+          "description": "Default thinking token budget should be defined",
+          "type": "json_field_exists",
+          "file": "agents/config.json",
+          "path": "thinking.default_budget",
+          "severity": "low",
+          "deduction": 2,
+          "reference": "Control thinking token usage"
+        }
+      ]
+    }
+  ],
+  "references": [
+    {
+      "title": "Anthropic Engineering Blog",
+      "url": "https://www.anthropic.com/engineering",
+      "topics": ["Tool use", "Prompt engineering", "Safety"]
+    },
+    {
+      "title": "Claude Code Documentation",
+      "url": "https://code.claude.com/docs",
+      "topics": ["Hooks", "Skills", "Commands"]
+    },
+    {
+      "title": "Claude Hooks Guide",
+      "url": "https://code.claude.com/docs/hooks",
+      "topics": ["PreToolUse", "PostToolUse", "Hook protocol"]
+    }
+  ],
+  "scoring": {
+    "starting_score": 100,
+    "minimum_score": 0,
+    "severity_weights": {
+      "critical": 20,
+      "high": 10,
+      "medium": 5,
+      "low": 2,
+      "warning": 1
+    }
+  }
+}

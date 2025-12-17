@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "pattern-catalog",
+  "version": "1.0.0",
+  "description": "Catalog of architecture patterns with detection signatures",
+  "patterns": {
+    "creational": [
+      {
+        "id": "PATTERN-001",
+        "name": "Singleton",
+        "description": "Ensure a class has only one instance",
+        "indicators": [
+          "private static instance",
+          "getInstance()",
+          "__new__ with cls._instance"
+        ],
+        "use_cases": [
+          "Configuration managers",
+          "Connection pools",
+          "Logger instances"
+        ],
+        "warnings": [
+          "Can make testing difficult",
+          "Hidden dependencies",
+          "Global state issues"
+        ]
+      },
+      {
+        "id": "PATTERN-002",
+        "name": "Factory Method",
+        "description": "Define interface for creating objects",
+        "indicators": [
+          "create*() methods",
+          "Factory class suffix",
+          "make*() methods"
+        ],
+        "use_cases": [
+          "Object creation abstraction",
+          "Plugin systems",
+          "Dependency injection"
+        ]
+      },
+      {
+        "id": "PATTERN-003",
+        "name": "Builder",
+        "description": "Construct complex objects step by step",
+        "indicators": [
+          "Builder class suffix",
+          "with*() method chains",
+          "build() final method"
+        ],
+        "use_cases": [
+          "Complex object construction",
+          "Fluent APIs",
+          "Configuration objects"
+        ]
+      }
+    ],
+    "structural": [
+      {
+        "id": "PATTERN-010",
+        "name": "Adapter",
+        "description": "Convert interface to another expected interface",
+        "indicators": [
+          "Adapter class suffix",
+          "Wrapper class pattern",
+          "Interface translation"
+        ],
+        "use_cases": [
+          "Legacy system integration",
+          "Third-party library wrapping",
+          "Interface compatibility"
+        ]
+      },
+      {
+        "id": "PATTERN-011",
+        "name": "Decorator",
+        "description": "Add responsibilities dynamically",
+        "indicators": [
+          "@ decorator syntax",
+          "Decorator class suffix",
+          "wrap() methods"
+        ],
+        "use_cases": [
+          "Cross-cutting concerns",
+          "Logging/caching layers",
+          "Permission checks"
+        ]
+      },
+      {
+        "id": "PATTERN-012",
+        "name": "Facade",
+        "description": "Simplified interface to complex subsystem",
+        "indicators": [
+          "Facade class suffix",
+          "Aggregates multiple services",
+          "Simplified API surface"
+        ],
+        "use_cases": [
+          "Complex library wrapping",
+          "Subsystem isolation",
+          "API simplification"
+        ]
+      }
+    ],
+    "behavioral": [
+      {
+        "id": "PATTERN-020",
+        "name": "Observer",
+        "description": "Define subscription mechanism",
+        "indicators": [
+          "subscribe/unsubscribe methods",
+          "notify/emit methods",
+          "listener arrays"
+        ],
+        "use_cases": [
+          "Event systems",
+          "State change notifications",
+          "Pub/sub patterns"
+        ]
+      },
+      {
+        "id": "PATTERN-021",
+        "name": "Strategy",
+        "description": "Define family of interchangeable algorithms",
+        "indicators": [
+          "Strategy interface/type",
+          "setStrategy() method",
+          "Algorithm interfaces"
+        ],
+        "use_cases": [
+          "Interchangeable algorithms",
+          "Validation strategies",
+          "Pricing calculations"
+        ]
+      },
+      {
+        "id": "PATTERN-022",
+        "name": "Command",
+        "description": "Encapsulate request as object",
+        "indicators": [
+          "Command class suffix",
+          "execute() method",
+          "undo() method"
+        ],
+        "use_cases": [
+          "Undo/redo functionality",
+          "Transaction logging",
+          "Queue processing"
+        ]
+      }
+    ],
+    "architectural": [
+      {
+        "id": "PATTERN-030",
+        "name": "Repository",
+        "description": "Mediate between domain and data mapping",
+        "indicators": [
+          "Repository class suffix",
+          "findBy*() methods",
+          "save/delete methods"
+        ],
+        "use_cases": [
+          "Data access abstraction",
+          "Domain model persistence",
+          "Test isolation"
+        ]
+      },
+      {
+        "id": "PATTERN-031",
+        "name": "Service Layer",
+        "description": "Define application's boundary",
+        "indicators": [
+          "Service class suffix",
+          "Business logic methods",
+          "Transaction coordination"
+        ],
+        "use_cases": [
+          "Business logic encapsulation",
+          "API service layer",
+          "Workflow orchestration"
+        ]
+      },
+      {
+        "id": "PATTERN-032",
+        "name": "Domain Model",
+        "description": "Object model incorporating behavior and data",
+        "indicators": [
+          "Entity classes",
+          "Value objects",
+          "Domain events"
+        ],
+        "use_cases": [
+          "Complex business logic",
+          "Rich domain modeling",
+          "DDD implementations"
+        ]
+      }
+    ]
+  },
+  "anti_patterns": [
+    {
+      "id": "ANTI-001",
+      "name": "God Class",
+      "description": "Class that knows/does too much",
+      "detection": "Lines > 500, methods > 20",
+      "remediation": "Split by responsibility"
+    },
+    {
+      "id": "ANTI-002",
+      "name": "Spaghetti Code",
+      "description": "Tangled, unstructured code flow",
+      "detection": "High cyclomatic complexity, deep nesting",
+      "remediation": "Extract methods, reduce nesting"
+    },
+    {
+      "id": "ANTI-003",
+      "name": "Circular Dependency",
+      "description": "Modules depending on each other",
+      "detection": "Import cycle detection",
+      "remediation": "Extract shared interface/module"
+    },
+    {
+      "id": "ANTI-004",
+      "name": "Copy-Paste Programming",
+      "description": "Duplicated code blocks",
+      "detection": "Clone detection tools",
+      "remediation": "Extract shared function/module"
+    },
+    {
+      "id": "ANTI-005",
+      "name": "Magic Numbers",
+      "description": "Unexplained numeric literals",
+      "detection": "Literal pattern matching",
+      "remediation": "Extract to named constants"
+    }
+  ]
+}

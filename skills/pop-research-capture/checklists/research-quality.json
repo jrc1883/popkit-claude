@@ -1,0 +1,134 @@
+{
+  "name": "Research Quality Checklist",
+  "version": "1.0.0",
+  "description": "Quality assessment for research findings",
+  "categories": [
+    {
+      "name": "Source Quality",
+      "checks": [
+        {
+          "id": "source_identified",
+          "name": "Source clearly identified",
+          "description": "Origin of information documented",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "source_authoritative",
+          "name": "Source is authoritative",
+          "description": "Official docs, reputable source, or primary source",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "source_recent",
+          "name": "Information is current",
+          "description": "Source is recent or still relevant",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "multiple_sources",
+          "name": "Multiple sources consulted",
+          "description": "Information verified across sources",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Content Quality",
+      "checks": [
+        {
+          "id": "has_summary",
+          "name": "Summary provided",
+          "description": "Brief overview of findings",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "has_key_points",
+          "name": "Key points extracted",
+          "description": "Main takeaways identified",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "has_examples",
+          "name": "Examples included",
+          "description": "Code or practical examples",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "actionable",
+          "name": "Actionable insights",
+          "description": "Findings can inform decisions",
+          "required": false,
+          "automated": false
+        }
+      ]
+    },
+    {
+      "name": "Organization",
+      "checks": [
+        {
+          "id": "properly_tagged",
+          "name": "Properly tagged",
+          "description": "Relevant tags for retrieval",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "clear_structure",
+          "name": "Clear structure",
+          "description": "Well-organized sections",
+          "required": true,
+          "automated": true
+        },
+        {
+          "id": "linked_references",
+          "name": "References linked",
+          "description": "Related materials connected",
+          "required": false,
+          "automated": true
+        }
+      ]
+    },
+    {
+      "name": "Completeness",
+      "checks": [
+        {
+          "id": "no_gaps",
+          "name": "No obvious gaps",
+          "description": "All relevant aspects covered",
+          "required": false,
+          "automated": false
+        },
+        {
+          "id": "follow_ups_noted",
+          "name": "Follow-ups noted",
+          "description": "Questions and next steps documented",
+          "required": false,
+          "automated": true
+        },
+        {
+          "id": "confidence_noted",
+          "name": "Confidence levels noted",
+          "description": "Certainty of findings indicated",
+          "required": false,
+          "automated": false
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "excellent": {"min": 11, "description": "Comprehensive, well-sourced research"},
+    "good": {"min": 8, "description": "Solid research with minor gaps"},
+    "adequate": {"min": 5, "description": "Basic research, needs enrichment"},
+    "poor": {"min": 0, "description": "Insufficient research quality"}
+  },
+  "scripts": {
+    "assess": "python scripts/extract_findings.py --assess"
+  }
+}

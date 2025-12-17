@@ -1,0 +1,93 @@
+---
+title: "{{TITLE}}"
+date: {{DATE}}
+tags: [{{TAGS}}]
+sources: [{{SOURCES}}]
+status: {{STATUS}}
+---
+
+# {{TITLE}}
+
+## Overview
+
+{{SUMMARY}}
+
+## Key Findings
+
+{{#FINDINGS}}
+### {{FINDING_TITLE}}
+
+{{FINDING_CONTENT}}
+
+**Source:** {{FINDING_SOURCE}}
+**Confidence:** {{CONFIDENCE}}
+
+{{/FINDINGS}}
+
+## Detailed Notes
+
+{{#SECTIONS}}
+### {{SECTION_TITLE}}
+
+{{SECTION_CONTENT}}
+
+{{/SECTIONS}}
+
+## Code Examples
+
+{{#CODE_BLOCKS}}
+```{{LANGUAGE}}
+{{CODE}}
+```
+*{{CODE_DESCRIPTION}}*
+
+{{/CODE_BLOCKS}}
+
+## References
+
+{{#REFERENCES}}
+- [{{REF_TITLE}}]({{REF_URL}}) - {{REF_DESCRIPTION}}
+{{/REFERENCES}}
+
+## Questions & Follow-ups
+
+{{#QUESTIONS}}
+- [ ] {{QUESTION}}
+{{/QUESTIONS}}
+
+## Related Research
+
+{{#RELATED}}
+- [[{{RELATED_TITLE}}]] - {{RELATED_DESCRIPTION}}
+{{/RELATED}}
+
+---
+
+## Metadata
+
+| Property | Value |
+|----------|-------|
+| Captured | {{DATE}} |
+| Last Updated | {{UPDATED}} |
+| Quality Score | {{QUALITY_SCORE}}/6 |
+| Word Count | {{WORD_COUNT}} |
+
+---
+
+## Template Variables
+
+When using this template, replace:
+- `{{TITLE}}` - Research note title
+- `{{DATE}}` - Date in YYYY-MM-DD format
+- `{{TAGS}}` - Comma-separated tags
+- `{{SOURCES}}` - Source URLs/references
+- `{{STATUS}}` - draft, reviewed, complete
+- `{{SUMMARY}}` - Brief overview
+- `{{FINDINGS}}` - Key findings array
+- `{{SECTIONS}}` - Detailed notes sections
+- `{{CODE_BLOCKS}}` - Code examples
+- `{{REFERENCES}}` - External references
+- `{{QUESTIONS}}` - Follow-up questions
+- `{{RELATED}}` - Related research notes
+- `{{QUALITY_SCORE}}` - Quality assessment score
+- `{{WORD_COUNT}}` - Total word count

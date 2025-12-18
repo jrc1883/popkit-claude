@@ -63,7 +63,7 @@ def check_git_status() -> Dict[str, Any]:
     }
 
     # Check uncommitted changes
-    uncommitted, ok = run_command("git status --porcelain")
+    uncommitted, ok = run_command("git status --porcelain .")
     uncommitted_count = len([l for l in uncommitted.split('\n') if l.strip()]) if ok else -1
     status["checks"]["uncommitted"] = {
         "value": uncommitted_count,

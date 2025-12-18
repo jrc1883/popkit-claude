@@ -9,7 +9,6 @@
   "homepage": "https://github.com/jrc1883/popkit",
   "repository": "https://github.com/jrc1883/popkit",
   "license": "MIT",
-  "claudeCodeMinimumVersion": "2.0.71",
   "keywords": [
     "claude-code",
     "workflow",

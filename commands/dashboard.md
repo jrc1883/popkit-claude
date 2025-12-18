@@ -1,5 +1,5 @@
 ---
-description: "[add|remove|refresh|switch|discover] - Multi-project management"
+description: "[add|remove|refresh|discover] - Multi-project management"
 argument-hint: "<subcommand> [path]"
 ---
 
@@ -14,7 +14,6 @@ Unified view for managing multiple PopKit-enabled projects. Shows health scores,
 /popkit:dashboard add <path>         # Add project to registry
 /popkit:dashboard remove <name>      # Remove project from registry
 /popkit:dashboard refresh [name]     # Refresh health scores
-/popkit:dashboard switch <name>      # Switch to project
 /popkit:dashboard discover           # Auto-discover projects
 ```
 
@@ -26,7 +25,6 @@ Unified view for managing multiple PopKit-enabled projects. Shows health scores,
 | `add <path>` | Register a project in the global registry |
 | `remove <name>` | Remove a project from the registry |
 | `refresh [name]` | Recalculate health scores (all or specific) |
-| `switch <name>` | Change working context to a different project |
 | `discover` | Auto-discover projects in common locations |
 
 ---
@@ -71,8 +69,6 @@ Display the full dashboard with all registered projects.
    - question: "What would you like to do?"
    - header: "Action"
    - options:
-     - label: "Switch project"
-       description: "Change to a different project"
      - label: "Refresh health scores"
        description: "Recalculate all health scores"
      - label: "Add project"
@@ -217,67 +213,6 @@ Recalculate health scores for all or specific projects.
 |------|-------------|
 | `--quick` | Quick refresh (git + activity only, faster) |
 | `--full` | Full refresh including build and tests (slower) |
-
----
-
-## Switch Project
-
-Change working context to a different project.
-
-```
-/popkit:dashboard switch project-name
-```
-
-### Instructions
-
-1. **If no project specified, show selection:**
-   ```
-   Use AskUserQuestion tool with:
-   - question: "Which project would you like to switch to?"
-   - header: "Switch"
-   - options:
-     - label: "popkit"
-       description: "Health: 92 | Last: 2 min ago"
-     - label: "popkit-cloud"
-       description: "Health: 78 | Last: 1 hour ago"
-     - label: "reseller-central"
-       description: "Health: 88 | Last: 3 days ago"
-   - multiSelect: false
-   ```
-
-2. **Get project info:**
-   ```python
-   from project_registry import get_project, touch_project
-
-   project = get_project(identifier)
-   if not project:
-       print(f"Project not found: {identifier}")
-       return
-   ```
-
-3. **Update activity and report:**
-   ```python
-   touch_project(project['path'])
-
-   print(f"Switched to: {project['name']}")
-   print(f"Path: {project['path']}")
-   print(f"Health: {project['healthScore']}/100")
-   ```
-
-4. **Suggest next action:**
-   ```
-   Use AskUserQuestion tool with:
-   - question: "What would you like to do in this project?"
-   - header: "Action"
-   - options:
-     - label: "Morning routine"
-       description: "Run health check for this project"
-     - label: "See open issues"
-       description: "View GitHub issues"
-     - label: "Start development"
-       description: "Run /popkit:dev workflow"
-   - multiSelect: false
-   ```
 
 ---
 

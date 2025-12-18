@@ -1,5 +1,5 @@
 ---
-description: "init | analyze | board | embed | generate | mcp | setup | skills | observe [--power, --json]"
+description: "init | analyze | board | embed | generate | mcp | setup | skills | observe | reference [--power, --json]"
 argument-hint: "<subcommand> [options]"
 ---
 
@@ -26,6 +26,7 @@ Complete project lifecycle tools: initialization, analysis, configuration, custo
 | `setup` | Configure pre-commit hooks and quality gates |
 | `skills` | Generate custom skills from project patterns |
 | `observe` | Cross-project dashboard (from monorepo) |
+| `reference` | Load context from another project in monorepo |
 
 ---
 
@@ -71,10 +72,77 @@ Invokes the **pop-project-init** skill:
    - Architecture patterns (detected from codebase)
    - Key files for reference
 
-4. **Ask About Power Mode**
-   - **Redis Mode**: Full parallel agents (requires Docker)
-   - **File Mode**: Simpler coordination (no dependencies)
-   - **Skip**: Set up later with `/popkit:power init`
+4. **Interactive Configuration**
+
+   a. **Monorepo Detection** (only if parent workspace.json exists)
+   ```
+   Use AskUserQuestion tool with:
+   - question: "Detected monorepo structure. How should PopKit be configured?"
+   - header: "Config"
+   - options:
+     - label: "App-specific config"
+       description: "Create .claude/ in this app directory"
+     - label: "Use shared config"
+       description: "Use parent monorepo .claude/ directory"
+   - multiSelect: false
+   ```
+
+   b. **Stack Selection**
+   ```
+   Use AskUserQuestion tool with:
+   - question: "What's your primary tech stack?"
+   - header: "Stack"
+   - options:
+     - label: "Next.js"
+       description: "React framework with App/Pages Router"
+     - label: "Python"
+       description: "FastAPI, Django, Flask, or CLI"
+     - label: "Cloudflare"
+       description: "Workers, Pages, D1, R2"
+     - label: "React SPA"
+       description: "React with Vite, CRA, or custom"
+     - label: "Other"
+       description: "Custom or different stack"
+   - multiSelect: false
+   ```
+
+   c. **Quality Gates**
+   ```
+   Use AskUserQuestion tool with:
+   - question: "What quality gates should we enforce?"
+   - header: "Quality"
+   - options:
+     - label: "Basic"
+       description: "Whitespace, file endings, YAML/JSON syntax"
+     - label: "Standard"
+       description: "Basic + lint, format, type check"
+     - label: "Strict"
+       description: "Standard + tests, coverage, commit validation"
+     - label: "Enterprise"
+       description: "Strict + security scan, license check, dependency audit"
+   - multiSelect: false
+   ```
+
+   d. **Premium Features** (only if applicable tier)
+   ```
+   Use AskUserQuestion tool with:
+   - question: "Enable premium features?"
+   - header: "Features"
+   - options:
+     - label: "Power Mode"
+       description: "Multi-agent parallel orchestration"
+     - label: "Semantic Search"
+       description: "Embedding-based tool discovery"
+     - label: "Cloud Sync"
+       description: "Cross-project pattern learning"
+   - multiSelect: true
+   ```
+
+5. **Power Mode Setup** (Optional)
+   - Free tier: File-based coordination (2 agents, sequential)
+   - Premium tier: Native Async mode (5 agents, parallel) - `/popkit:upgrade`
+   - Pro tier: Native Async mode (10 agents, parallel) - `/popkit:upgrade`
+   - Skip: Set up later with `/popkit:power start`
 
 ### Output
 
@@ -90,23 +158,18 @@ Creating .claude/ structure...
 [+] STATUS.json initialized
 [+] .gitignore updated
 
-Would you like to set up Power Mode for multi-agent orchestration?
-  - Redis Mode: Full parallel agents (requires Docker)
-  - File Mode: Simpler coordination (no dependencies)
-  - Skip: Set up later with /popkit:power init
+Power Mode is available based on your tier:
+  - Free: File-based mode (2 agents, zero setup)
+  - Premium/Pro: Native Async mode (5-10 agents, zero setup)
 
-[User selects Redis Mode]
-
-Setting up Power Mode...
-[+] docker-compose.yml created
-[+] Run 'docker compose up -d' to start Redis
+Run /popkit:upgrade to unlock premium features.
 
 Project initialized!
 
 Recommended next steps:
 1. Review and customize CLAUDE.md
 2. Run /popkit:routine morning for project health check
-3. Run /popkit:power init start to start Redis (if Docker installed)
+3. Run /popkit:power status to check available modes
 4. Run /popkit:issue list to see GitHub issues
 ```
 
@@ -114,10 +177,8 @@ Recommended next steps:
 
 | Flag | Description |
 |------|-------------|
-| `--power` | Auto-select Power Mode (prompts for Redis vs File) |
-| `--redis` | Use Redis Mode (requires Docker) |
-| `--file` | Use File Mode (no dependencies) |
-| `--skip-power` | Skip Power Mode setup entirely |
+| `--power` | Display Power Mode tier information during init |
+| `--skip-power` | Skip Power Mode information display |
 
 ---
 
@@ -742,6 +803,11 @@ Skills are now available via the Skill tool.
 
 # Generate project-specific skills
 /popkit:project skills generate
+
+# Load context from another project in monorepo
+/popkit:project reference optimus
+/popkit:project reference genesis --query "authentication"
+/popkit:project reference                    # Interactive selection
 ```
 
 ---
@@ -1006,3 +1072,304 @@ Power Mode:
 | `/popkit:routine morning` | Updates health score for current project |
 | `/popkit:privacy status` | View data collection settings |
 | `/popkit:privacy export` | Export all your PopKit Cloud data |
+
+---
+
+## Subcommand: reference
+
+Load context from another project in the monorepo without switching directories. This is essential for cross-project learning in monorepo workflows.
+
+```
+/popkit:project reference <name>                  # Load project context
+/popkit:project reference <name> --query <text>   # Load with semantic search (future)
+/popkit:project reference                         # Show available projects
+```
+
+### Use Cases
+
+1. **Cross-Project Learning**
+   - Working in `apps/genesis/` but want to see how `apps/optimus/` handles WebSockets
+   - Reference implementation patterns without context switching
+   - Compare architecture decisions across projects
+
+2. **Monorepo Development**
+   - Understand how other apps structure their code
+   - Reuse patterns from sibling projects
+   - Maintain consistency across the monorepo
+
+3. **Knowledge Transfer**
+   - New team members learning the codebase
+   - Understanding dependencies between apps
+   - Discovering shared patterns to extract into packages
+
+### Process
+
+1. **Resolve Project Name**
+   - Read `pnpm-workspace.yaml` or `workspace.json` at monorepo root
+   - Match project name to workspace member
+   - Validate project exists and is accessible
+
+2. **Load Project Context**
+   - Read `CLAUDE.md` (project instructions)
+   - Read `package.json` (dependencies, scripts, metadata)
+   - Read `README.md` (overview and documentation)
+   - Read `.claude/STATUS.json` (if exists - current state)
+
+3. **Apply Semantic Search** (Optional, Future Enhancement)
+   - If `--query` provided, mention it will enable semantic filtering
+   - Future: Use embeddings to find relevant sections
+   - Future: Filter loaded content to most relevant parts
+
+4. **Output Context**
+   - Display loaded content to chat (enters Claude's context)
+   - Format as markdown sections for readability
+   - Include file paths for reference
+
+### Output
+
+```
+/popkit:project reference optimus
+
+Loading context from apps/optimus...
+
+═══════════════════════════════════════════════════════════════
+                    Project: Optimus
+═══════════════════════════════════════════════════════════════
+
+Path: C:\Users\Josep\onedrive\documents\elshaddai\apps\optimus
+
+─────────────────────────────────────────────────────────────
+CLAUDE.md
+─────────────────────────────────────────────────────────────
+# Optimus - Dev Command Center
+
+Next.js 15 developer dashboard with real-time monitoring...
+
+[Full CLAUDE.md content]
+
+─────────────────────────────────────────────────────────────
+package.json
+─────────────────────────────────────────────────────────────
+{
+  "name": "optimus",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev -p 3050",
+    ...
+  }
+}
+
+[Full package.json content]
+
+─────────────────────────────────────────────────────────────
+README.md
+─────────────────────────────────────────────────────────────
+# Optimus
+
+Developer command center built with Next.js 15...
+
+[Full README.md content]
+
+═══════════════════════════════════════════════════════════════
+
+Context loaded. You can now ask questions about apps/optimus
+without leaving your current directory.
+
+Example: "How does Optimus handle WebSocket connections?"
+```
+
+### Interactive Project Selection
+
+If no project name is provided, use AskUserQuestion to present available projects:
+
+```
+/popkit:project reference
+
+Detecting monorepo projects...
+
+Use AskUserQuestion tool with:
+  question: Which project would you like to reference?
+  header: Select Project
+  options:
+    - label: aiproxy
+      description: Python FastAPI - AI Security (Port 8000)
+    - label: consensus
+      description: Cloudflare Workers - Contract Platform (Port 3003)
+    - label: genesis
+      description: Next.js 14 - Family OS (Port 3002)
+    - label: optimus
+      description: Next.js 15 - Dev Command Center (Ports 3050-3052)
+    [... more projects ...]
+  multiSelect: false
+
+After selection, load the chosen project's context.
+```
+
+### With Query Parameter (Future Enhancement)
+
+```
+/popkit:project reference optimus --query "websocket implementation"
+
+Loading context from apps/optimus...
+
+Note: --query parameter provided. Semantic search will be enabled
+in a future update to filter content to most relevant sections.
+
+For now, loading full project context.
+
+[Full output as above]
+
+Future: This will use embeddings to return only sections related
+to "websocket implementation" instead of the full context.
+```
+
+### Error Handling
+
+**Project Not Found:**
+```
+/popkit:project reference nonexistent
+
+Error: Project "nonexistent" not found in workspace.
+
+Available projects:
+  - aiproxy (apps/aiproxy)
+  - consensus (apps/consensus)
+  - genesis (apps/genesis)
+  - optimus (apps/optimus)
+  - popkit (apps/popkit)
+  - reseller-central (apps/reseller-central)
+  - runtheworld (apps/runtheworld)
+  - scribemaster (apps/scribemaster)
+  - voice-clone-app (apps/voice-clone-app)
+
+Use: /popkit:project reference <name>
+```
+
+**Not in Monorepo:**
+```
+/popkit:project reference optimus
+
+Error: Not in a monorepo workspace.
+
+This command requires a workspace configuration file:
+  - pnpm-workspace.yaml (pnpm workspaces)
+  - workspace.json (npm/yarn workspaces)
+  - lerna.json (Lerna monorepo)
+
+Current directory is a standalone project.
+```
+
+**Missing Context Files:**
+```
+/popkit:project reference optimus
+
+Loading context from apps/optimus...
+
+Warning: Some context files not found:
+  - CLAUDE.md: Not found (skipping)
+  - README.md: Not found (skipping)
+
+Loaded:
+  - package.json: Found
+
+Project may be missing documentation. Consider running:
+  /popkit:project init
+
+to set up complete project structure.
+```
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--query <text>` | Semantic search filter (future enhancement) |
+| `--json` | Output as JSON for scripting |
+| `--no-status` | Skip loading .claude/STATUS.json |
+| `--no-readme` | Skip loading README.md |
+| `--files <glob>` | Load additional files matching pattern |
+
+### Advanced Usage
+
+**Load Specific Files:**
+```
+/popkit:project reference optimus --files "src/lib/websocket.ts"
+
+Loading context from apps/optimus...
+
+[Standard context loaded]
+
+Additional Files:
+─────────────────────────────────────────────────────────────
+src/lib/websocket.ts
+─────────────────────────────────────────────────────────────
+[File content]
+```
+
+**JSON Output for Scripting:**
+```
+/popkit:project reference optimus --json
+
+{
+  "project": "optimus",
+  "path": "C:\\Users\\Josep\\onedrive\\documents\\elshaddai\\apps\\optimus",
+  "context": {
+    "claude_md": "...",
+    "package_json": {...},
+    "readme_md": "...",
+    "status_json": {...}
+  },
+  "files_loaded": 4,
+  "warnings": []
+}
+```
+
+### Implementation Notes
+
+**For Implementers:**
+
+1. **Workspace Detection**
+   - Check for `pnpm-workspace.yaml` first (this monorepo uses pnpm)
+   - Fall back to `package.json` with `workspaces` field (npm/yarn)
+   - Fall back to `lerna.json` (Lerna monorepos)
+   - Error if none found
+
+2. **Path Resolution**
+   - All paths should be absolute (use `os.path.abspath()` or `path.resolve()`)
+   - Handle both Windows and Unix path separators
+   - Validate paths exist before reading
+
+3. **File Reading**
+   - Use Read tool for all file operations
+   - Gracefully handle missing files (warn but continue)
+   - Output to stdout (chat), not stderr
+   - Format with clear section headers
+
+4. **Interactive Selection**
+   - MUST use AskUserQuestion if project name not provided
+   - Extract project descriptions from CLAUDE.md or package.json
+   - Sort by alphabetical order
+   - Include path hint in description
+
+5. **Future Semantic Search**
+   - When `--query` provided, acknowledge it in output
+   - Mention it's a future enhancement
+   - Load full context for now
+   - Add TODO comment in implementation for embeddings integration
+
+### Architecture Integration
+
+| Component | Integration |
+|-----------|-------------|
+| Workspace Detection | Read `pnpm-workspace.yaml` or `package.json` |
+| Context Loading | Use Read tool for all files |
+| Project Metadata | Parse from `package.json` and `CLAUDE.md` |
+| Interactive Selection | AskUserQuestion tool |
+| Future: Embeddings | `hooks/utils/embedding_project.py` |
+
+### Related Commands (reference)
+
+| Command | Purpose |
+|---------|---------|
+| `/popkit:project analyze` | Analyze current project |
+| `/popkit:project observe` | View all projects dashboard |
+| `/popkit:worktree create` | Create isolated workspace |
